@@ -42,6 +42,7 @@ class Merger(object):
     _mergers = {
         "overwrite": _mergers.overwrite,
         "version": _mergers.version,
+        "versionLast": _mergers.version_last,
         "append": _mergers.append,
         "objectMerge": _mergers.object_merge,
     }

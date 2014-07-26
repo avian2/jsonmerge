@@ -10,6 +10,9 @@ def version(merger, base, head, _schema):
     base.append(merger.add_meta(head))
     return base
 
+def version_last(merger, base, head, _schema):
+    return merger.add_meta(head)
+
 def append(merger, base, head, _schema):
     if base is None:
         base = []
