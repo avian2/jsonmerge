@@ -1,7 +1,7 @@
-def overwrite(base, head, _schema):
+def overwrite(merger, base, head, _schema):
     return head
 
-def version(base, head, _schema):
+def version(merger, base, head, _schema):
     if base is None:
         base = []
     else:
@@ -10,7 +10,7 @@ def version(base, head, _schema):
     base.append({'value': head})
     return base
 
-def append(base, head, _schema):
+def append(merger, base, head, _schema):
     if base is None:
         base = []
     else:
@@ -19,7 +19,7 @@ def append(base, head, _schema):
     base += head
     return base
 
-def map_merge(base, head, _schema):
+def map_merge(merger, base, head, _schema):
     if base is None:
         base = {}
     else:

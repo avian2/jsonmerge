@@ -74,7 +74,7 @@ class Merger(object):
             name = "overwrite"
 
         merger = self._mergers[name]
-        return merger(base, head, _schema)
+        return merger(self, base, head, _schema)
 
 
 def merge(base, head, schema):
