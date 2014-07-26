@@ -7,7 +7,7 @@ def version(merger, base, head, _schema):
     else:
         base = list(base)
 
-    base.append({'value': head})
+    base.append(merger.add_meta(head))
     return base
 
 def append(merger, base, head, _schema):

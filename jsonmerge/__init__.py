@@ -71,6 +71,9 @@ class Merger(object):
 
         return self.descend(base, head, schema)
 
+    def add_meta(self, head):
+        return {'value': head}
+
     def descend(self, base, head, schema=None):
 
 #        print "\n" + "="*50
