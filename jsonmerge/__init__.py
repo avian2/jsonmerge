@@ -66,16 +66,16 @@ class Merger(object):
                 return False
         return isinstance(instance, pytypes)
 
-    def merge(self, base, head, schema=None):
+    def merge(self, base, head, schema=None, meta=None):
         if schema is None:
             schema = self.schema
 
-        return self.descend(base, head, schema)
+        return self.descend(base, head, schema, meta)
 
-    def add_meta(self, head):
+    def add_meta(self, head, meta):
         return {'value': head}
 
-    def descend(self, base, head, schema=None):
+    def descend(self, base, head, schema, meta):
 
 #        print "\n" + "="*50
 #        print "base:",
@@ -97,7 +97,7 @@ class Merger(object):
                 name = "overwrite"
 
         merger = self._mergers[name]
-        return merger(self, base, head, schema)
+        return merger(self, base, head, schema, meta)
 
 
 def merge(base, head, schema):

@@ -1,19 +1,19 @@
-def overwrite(merger, base, head, _schema):
+def overwrite(merger, base, head, _schema, meta):
     return head
 
-def version(merger, base, head, _schema):
+def version(merger, base, head, _schema, meta):
     if base is None:
         base = []
     else:
         base = list(base)
 
-    base.append(merger.add_meta(head))
+    base.append(merger.add_meta(head, meta))
     return base
 
-def version_last(merger, base, head, _schema):
-    return merger.add_meta(head)
+def version_last(merger, base, head, _schema, meta):
+    return merger.add_meta(head, meta)
 
-def append(merger, base, head, _schema):
+def append(merger, base, head, _schema, meta):
     if base is None:
         base = []
     else:
@@ -22,7 +22,7 @@ def append(merger, base, head, _schema):
     base += head
     return base
 
-def object_merge(merger, base, head, _schema):
+def object_merge(merger, base, head, _schema, meta):
     if base is None:
         base = {}
     else:
@@ -36,6 +36,6 @@ def object_merge(merger, base, head, _schema):
         else:
             s = None
 
-        base[k] = merger.descend(base.get(k), v, s)
+        base[k] = merger.descend(base.get(k), v, s, meta)
 
     return base
