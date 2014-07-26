@@ -179,3 +179,26 @@ class TestJsonMerge(unittest.TestCase):
         base = jsonmerge.merge(base, head2, schema)
 
         self.assertEqual(base, base_expect)
+
+    def test_refs(self):
+
+        schema =    {
+                        'properties': {
+                            'a': {'$ref': "#/definitions/a"},
+                        },
+                        'definitions': {
+                            "a": {
+                                "properties": {
+                                    "b": { 'mergeStrategy': 'version' },
+                                }
+                            },
+                        }
+                    }
+
+        merger = jsonmerge.Merger(schema)
+
+        base = None
+        base = merger.merge(base, {"a": {"b": "c"} })
+        base = merger.merge(base, {"a": {"b": "d"} })
+
+        self.assertEqual(base, {"a": {"b": [{"value": "c"}, {"value": "d"}] } })

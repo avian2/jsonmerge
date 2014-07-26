@@ -1,6 +1,7 @@
 import numbers
 import _mergers
 import pprint
+from jsonschema.validators import RefResolver
 
 class UnknownType(Exception):
     def __init__(self, type, instance, schema):
@@ -49,6 +50,7 @@ class Merger(object):
 
     def __init__(self, schema):
         self.schema = schema
+        self.resolver = RefResolver.from_schema(schema)
 
     def is_type(self, instance, type):
         if type not in self._types:
@@ -92,7 +94,12 @@ class Merger(object):
 #        pprint.pprint(schema)
 
         if schema is not None:
-            name = schema.get("mergeStrategy")
+            ref = schema.get("$ref")
+            if ref is not None:
+                with self.resolver.resolving(ref) as resolved:
+                    return self.descend(base, head, resolved, meta)
+            else:
+                name = schema.get("mergeStrategy")
         else:
             name = None
 
