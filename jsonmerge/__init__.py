@@ -87,7 +87,10 @@ class Merger(object):
             name = None
 
         if name is None:
-            name = "overwrite"
+            if self.is_type(head, "object"):
+                name = "mapMerge"
+            else:
+                name = "overwrite"
 
         merger = self._mergers[name]
         return merger(self, base, head, schema)

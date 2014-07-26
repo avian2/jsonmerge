@@ -44,6 +44,17 @@ class TestJsonMerge(unittest.TestCase):
 
         self.assertEqual(base, ["a", "b"])
 
+    def test_merge_default(self):
+
+        schema = {}
+
+        base = None
+        base = jsonmerge.merge(base, {'a': "a"}, schema)
+        base = jsonmerge.merge(base, {'b': "b"}, schema)
+
+        self.assertEqual(base, {'a': "a",  'b': "b"})
+
+
     def test_merge_trivial(self):
 
         schema = {'mergeStrategy': 'mapMerge'}
