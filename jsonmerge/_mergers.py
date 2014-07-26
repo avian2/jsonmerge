@@ -35,21 +35,22 @@ def object_merge(merger, base, head, schema, meta):
         subschema = None
 
         # get subschema for this element
-        p = schema.get('properties')
-        if p is not None:
-            subschema = p.get(k)
-
-        if subschema is None:
-            p = schema.get('patternProperties')
-            if p is not None:
-                for pattern, s in p.iteritems():
-                    if re.search(pattern, k):
-                        subschema = s
-
-        if subschema is None:
-            p = schema.get('additionalProperties')
+        if schema is not None:
+            p = schema.get('properties')
             if p is not None:
                 subschema = p.get(k)
+
+            if subschema is None:
+                p = schema.get('patternProperties')
+                if p is not None:
+                    for pattern, s in p.iteritems():
+                        if re.search(pattern, k):
+                            subschema = s
+
+            if subschema is None:
+                p = schema.get('additionalProperties')
+                if p is not None:
+                    subschema = p.get(k)
 
         base[k] = merger.descend(base.get(k), v, subschema, meta)
 
