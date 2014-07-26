@@ -1,9 +1,9 @@
 import re
 
-def overwrite(merger, base, head, _schema, meta):
+def overwrite(merger, base, head, schema, meta):
     return head
 
-def version(merger, base, head, _schema, meta):
+def version(merger, base, head, schema, meta):
     if base is None:
         base = []
     else:
@@ -12,10 +12,10 @@ def version(merger, base, head, _schema, meta):
     base.append(merger.add_meta(head, meta))
     return base
 
-def version_last(merger, base, head, _schema, meta):
+def version_last(merger, base, head, schema, meta):
     return merger.add_meta(head, meta)
 
-def append(merger, base, head, _schema, meta):
+def append(merger, base, head, schema, meta):
     if base is None:
         base = []
     else:
@@ -24,7 +24,7 @@ def append(merger, base, head, _schema, meta):
     base += head
     return base
 
-def object_merge(merger, base, head, _schema, meta):
+def object_merge(merger, base, head, schema, meta):
     if base is None:
         base = {}
     else:
@@ -35,19 +35,19 @@ def object_merge(merger, base, head, _schema, meta):
         subschema = None
 
         # get subschema for this element
-        p = _schema.get('properties')
+        p = schema.get('properties')
         if p is not None:
             subschema = p.get(k)
 
         if subschema is None:
-            p = _schema.get('patternProperties')
+            p = schema.get('patternProperties')
             if p is not None:
                 for pattern, s in p.iteritems():
                     if re.search(pattern, k):
                         subschema = s
 
         if subschema is None:
-            p = _schema.get('additionalProperties')
+            p = schema.get('additionalProperties')
             if p is not None:
                 subschema = p.get(k)
 
