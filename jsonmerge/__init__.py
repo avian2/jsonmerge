@@ -14,10 +14,27 @@ class Merger(object):
     }
 
     def __init__(self, schema):
+        """Create a new Merger object.
+
+        schema -- JSON schema to use when merging.
+        """
+
         self.schema = schema
         self.validator = Draft4Validator(schema)
 
     def merge(self, base, head, schema=None, meta=None):
+        """Merge head into base.
+
+        base -- Old JSON document you are merging into.
+        head -- New JSON document for merging into base.
+        meta -- Dictionary with meta-data.
+
+        Any elements in the meta dictionary will be added to
+        the dictionaries appended by the version strategies.
+
+        Returns an updated base document
+        """
+
         if schema is None:
             schema = self.schema
 
