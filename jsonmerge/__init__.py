@@ -22,7 +22,7 @@ class Merger(object):
         self.schema = schema
         self.validator = Draft4Validator(schema)
 
-    def merge(self, base, head, schema=None, meta=None):
+    def merge(self, base, head, meta=None):
         """Merge head into base.
 
         base -- Old JSON document you are merging into.
@@ -35,10 +35,7 @@ class Merger(object):
         Returns an updated base document
         """
 
-        if schema is None:
-            schema = self.schema
-
-        return self.descend(base, head, schema, meta)
+        return self.descend(base, head, self.schema, meta)
 
     def add_meta(self, head, meta):
         if meta is None:
