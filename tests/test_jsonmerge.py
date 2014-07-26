@@ -89,3 +89,68 @@ class TestJsonMerge(unittest.TestCase):
         base = jsonmerge.merge(base, {'a': ["b"], 'b': 'c'}, schema)
 
         self.assertEqual(base, {'a': ["a", "b"], 'b': 'c'})
+
+    def test_example(self):
+
+        head1 =     {
+                        'buyer': {
+                            'id': {
+                                'name': "Test old",
+                            },
+                            'uri': 'Test uri old',
+                        }
+                    }
+
+        head2 =     {
+                        'buyer': {
+                            'id': {
+                                'name': "Test new"
+                            },
+                            'uri': 'Test uri new',
+                        },
+
+                        'award': "Award"
+                    }
+
+        base_expect = {
+                        'buyer': {
+                            'id': {
+                                'name': [
+                                    {'value': "Test old" },
+                                    {'value': "Test new" },
+                                ]
+                            },
+                            'uri': 'Test uri new',
+                        },
+
+                        'award': "Award"
+                    }
+
+        schema =    {
+                        'mergeStrategy': 'objectMerge',
+                        'properties': {
+                            'buyer': {
+                                'properties': {
+                                    'id': {
+                                        'properties': {
+                                            'name': {
+                                                'mergeStrategy': 'version',
+                                            }
+                                        }
+                                    },
+                                    'uri': {
+                                        'mergeStrategy': 'overwrite',
+                                    }
+                                },
+                            },
+                            'award': {
+                                'mergeStrategy': 'overwrite',
+                            }
+                        },
+                    }
+
+        base = None
+        base = jsonmerge.merge(base, head1, schema)
+        base = jsonmerge.merge(base, head2, schema)
+
+        self.assertEqual(base, base_expect)
