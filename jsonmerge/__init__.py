@@ -5,7 +5,7 @@ from jsonschema.validators import Draft4Validator
 
 class Merger(object):
 
-    _mergers = {
+    MERGERS = {
         "overwrite": _mergers.overwrite,
         "version": _mergers.version,
         "versionLast": _mergers.version_last,
@@ -58,7 +58,7 @@ class Merger(object):
             else:
                 name = "overwrite"
 
-        merger = self._mergers[name]
+        merger = self.MERGERS[name]
         return merger(self, base, head, schema, meta)
 
 
