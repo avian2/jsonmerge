@@ -4,13 +4,32 @@ import datadiff
 
 class TestJsonMerge(unittest.TestCase):
 
-	def test_string(self):
+    def test_default(self):
 
-		base = "a"
-		head = "b"
+        schema = {}
 
-		schema = {}
+        base = None
+        base = jsonmerge.merge(base, "a", schema)
+        base = jsonmerge.merge(base, "b", schema)
 
-		base = jsonmerge.merge(base, head, schema)
+        self.assertEqual(base, "b")
 
-		self.assertEqual(base, "b")
+    def test_overwrite(self):
+
+        schema = {'mergeStrategy': 'overwrite'}
+
+        base = None
+        base = jsonmerge.merge(base, "a", schema)
+        base = jsonmerge.merge(base, "b", schema)
+
+        self.assertEqual(base, "b")
+
+    def test_version(self):
+
+        schema = {'mergeStrategy': 'version'}
+
+        base = None
+        base = jsonmerge.merge(base, "a", schema)
+        base = jsonmerge.merge(base, "b", schema)
+
+        self.assertEqual(base, [{'value': "a"}, {'value': "b"}])

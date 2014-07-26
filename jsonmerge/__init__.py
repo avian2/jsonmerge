@@ -1,4 +1,5 @@
 import numbers
+import _mergers
 
 class UnknownType(Exception):
     def __init__(self, type, instance, schema):
@@ -37,6 +38,11 @@ class Merger(object):
         "string" : str,
     }
 
+    _mergers = {
+        "overwrite": _mergers.overwrite,
+        "version": _mergers.version
+    }
+
     def __init__(self, schema):
         self.schema = schema
 
@@ -56,8 +62,17 @@ class Merger(object):
                 return False
         return isinstance(instance, pytypes)
 
-    def merge(self, base, head):
-        return "b"
+    def merge(self, base, head, _schema=None):
+
+        if _schema is None:
+            _schema = self.schema
+
+        name = _schema.get("mergeStrategy")
+        if name is None:
+            name = "overwrite"
+
+        merger = self._mergers[name]
+        return merger(base, head, _schema)
 
 
 def merge(base, head, schema):
