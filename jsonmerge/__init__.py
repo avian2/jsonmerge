@@ -1,5 +1,6 @@
 import numbers
 import _mergers
+import pprint
 
 class UnknownType(Exception):
     def __init__(self, type, instance, schema):
@@ -64,17 +65,32 @@ class Merger(object):
                 return False
         return isinstance(instance, pytypes)
 
-    def merge(self, base, head, _schema=None):
+    def merge(self, base, head, schema=None):
+        if schema is None:
+            schema = self.schema
 
-        if _schema is None:
-            _schema = self.schema
+        return self.descend(base, head, schema)
 
-        name = _schema.get("mergeStrategy")
+    def descend(self, base, head, schema=None):
+
+#        print "\n" + "="*50
+#        print "base:",
+#        pprint.pprint(base)
+#        print "head:",
+#        pprint.pprint(head)
+#        print "schema:",
+#        pprint.pprint(schema)
+
+        if schema is not None:
+            name = schema.get("mergeStrategy")
+        else:
+            name = None
+
         if name is None:
             name = "overwrite"
 
         merger = self._mergers[name]
-        return merger(self, base, head, _schema)
+        return merger(self, base, head, schema)
 
 
 def merge(base, head, schema):

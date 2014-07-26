@@ -25,5 +25,14 @@ def map_merge(merger, base, head, _schema):
     else:
         base = dict(base)
 
-    base.update(head)
+    for k, v in head.iteritems():
+
+        p = _schema.get('properties')
+        if p is not None:
+            s = p.get(k)
+        else:
+            s = None
+
+        base[k] = merger.descend(base.get(k), v, s)
+
     return base
