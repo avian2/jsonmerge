@@ -1,6 +1,5 @@
 import unittest
 import jsonmerge
-import datadiff
 
 class TestJsonMerge(unittest.TestCase):
 
