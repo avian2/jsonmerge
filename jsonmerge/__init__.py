@@ -43,7 +43,7 @@ class Merger(object):
         "overwrite": _mergers.overwrite,
         "version": _mergers.version,
         "append": _mergers.append,
-        "mapMerge": _mergers.map_merge,
+        "objectMerge": _mergers.object_merge,
     }
 
     def __init__(self, schema):
@@ -88,7 +88,7 @@ class Merger(object):
 
         if name is None:
             if self.is_type(head, "object"):
-                name = "mapMerge"
+                name = "objectMerge"
             else:
                 name = "overwrite"
 

@@ -19,7 +19,7 @@ def append(merger, base, head, _schema):
     base += head
     return base
 
-def map_merge(merger, base, head, _schema):
+def object_merge(merger, base, head, _schema):
     if base is None:
         base = {}
     else:

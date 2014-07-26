@@ -57,7 +57,7 @@ class TestJsonMerge(unittest.TestCase):
 
     def test_merge_trivial(self):
 
-        schema = {'mergeStrategy': 'mapMerge'}
+        schema = {'mergeStrategy': 'objectMerge'}
 
         base = None
         base = jsonmerge.merge(base, {'a': "a"}, schema)
@@ -67,7 +67,7 @@ class TestJsonMerge(unittest.TestCase):
 
     def test_merge_overwrite(self):
 
-        schema = {'mergeStrategy': 'mapMerge'}
+        schema = {'mergeStrategy': 'objectMerge'}
 
         base = None
         base = jsonmerge.merge(base, {'a': "a"}, schema)
@@ -78,7 +78,7 @@ class TestJsonMerge(unittest.TestCase):
     def test_merge_append(self):
 
         schema =    {
-                        'mergeStrategy': 'mapMerge',
+                        'mergeStrategy': 'objectMerge',
                         'properties': {
                             'a': {'mergeStrategy': 'append' }
                         }
