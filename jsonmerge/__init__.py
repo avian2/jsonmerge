@@ -73,7 +73,13 @@ class Merger(object):
         return self.descend(base, head, schema, meta)
 
     def add_meta(self, head, meta):
-        return {'value': head}
+        if meta is None:
+            rv = dict()
+        else:
+            rv = dict(meta)
+
+        rv['value'] = head
+        return rv
 
     def descend(self, base, head, schema, meta):
 

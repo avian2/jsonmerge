@@ -33,6 +33,22 @@ class TestJsonMerge(unittest.TestCase):
 
         self.assertEqual(base, [{'value': "a"}, {'value': "b"}])
 
+    def test_version_meta(self):
+
+        schema = {'mergeStrategy': 'version'}
+
+        merger = jsonmerge.Merger(schema)
+
+        base = None
+        base = merger.merge(base, "a", meta={'uri': 'http://example.com/a'})
+        base = merger.merge(base, "b", meta={'uri': 'http://example.com/b'})
+
+        self.assertEqual(base, [
+            {'value': "a",
+            'uri': 'http://example.com/a' },
+            {'value': "b",
+            'uri': 'http://example.com/b' }])
+
     def test_version_last(self):
 
         schema = {'mergeStrategy': 'versionLast'}
