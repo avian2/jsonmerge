@@ -1,44 +1,9 @@
 import numbers
 import _mergers
 import pprint
-from jsonschema.validators import RefResolver
-
-class UnknownType(Exception):
-    def __init__(self, type, instance, schema):
-        self.type = type
-        self.instance = instance
-        self.schema = schema
-
-def flatten(suitable_for_isinstance):
-    """
-    isinstance() can accept a bunch of really annoying different types:
-        * a single type
-        * a tuple of types
-        * an arbitrary nested tree of tuples
-
-    Return a flattened tuple of the given argument.
-
-    """
-
-    types = set()
-
-    if not isinstance(suitable_for_isinstance, tuple):
-        suitable_for_isinstance = (suitable_for_isinstance,)
-    for thing in suitable_for_isinstance:
-        if isinstance(thing, tuple):
-            types.update(flatten(thing))
-        else:
-            types.add(thing)
-    return tuple(types)
-
+from jsonschema.validators import Draft4Validator
 
 class Merger(object):
-
-    _types = {
-        "array" : list, "boolean" : bool, "integer" : (int, long),
-        "null" : type(None), "number" : numbers.Number, "object" : dict,
-        "string" : str,
-    }
 
     _mergers = {
         "overwrite": _mergers.overwrite,
@@ -50,23 +15,7 @@ class Merger(object):
 
     def __init__(self, schema):
         self.schema = schema
-        self.resolver = RefResolver.from_schema(schema)
-
-    def is_type(self, instance, type):
-        if type not in self._types:
-            raise UnknownType(type, instance, self.schema)
-
-        pytypes = self._types[type]
-
-        # bool inherits from int, so ensure bools aren't reported as ints
-        if isinstance(instance, bool):
-            pytypes = _utils.flatten(pytypes)
-            is_number = any(
-                issubclass(pytype, numbers.Number) for pytype in pytypes
-            )
-            if is_number and bool not in pytypes:
-                return False
-        return isinstance(instance, pytypes)
+        self.validator = Draft4Validator(schema)
 
     def merge(self, base, head, schema=None, meta=None):
         if schema is None:
@@ -96,7 +45,7 @@ class Merger(object):
         if schema is not None:
             ref = schema.get("$ref")
             if ref is not None:
-                with self.resolver.resolving(ref) as resolved:
+                with self.validator.resolver.resolving(ref) as resolved:
                     return self.descend(base, head, resolved, meta)
             else:
                 name = schema.get("mergeStrategy")
@@ -104,7 +53,7 @@ class Merger(object):
             name = None
 
         if name is None:
-            if self.is_type(head, "object"):
+            if self.validator.is_type(head, "object"):
                 name = "objectMerge"
             else:
                 name = "overwrite"
