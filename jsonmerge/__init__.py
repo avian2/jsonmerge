@@ -40,7 +40,8 @@ class Merger(object):
 
     _mergers = {
         "overwrite": _mergers.overwrite,
-        "version": _mergers.version
+        "version": _mergers.version,
+        "append": _mergers.append
     }
 
     def __init__(self, schema):
