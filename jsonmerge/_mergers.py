@@ -46,6 +46,11 @@ def object_merge(merger, base, head, _schema, meta):
                     if re.search(pattern, k):
                         subschema = s
 
+        if subschema is None:
+            p = _schema.get('additionalProperties')
+            if p is not None:
+                subschema = p.get(k)
+
         base[k] = merger.descend(base.get(k), v, subschema, meta)
 
     return base

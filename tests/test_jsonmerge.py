@@ -130,6 +130,22 @@ class TestJsonMerge(unittest.TestCase):
 
         self.assertEqual(base, {'a': ["a", "b"], 'b': 'c'})
 
+    def test_merge_append_additional(self):
+
+        schema =    {
+                        'mergeStrategy': 'objectMerge',
+                        'additionalProperties': {
+                            'a': {'mergeStrategy': 'append' }
+                        }
+                    }
+
+        base = None
+        base = jsonmerge.merge(base, {'a': ["a"]}, schema)
+        base = jsonmerge.merge(base, {'a': ["b"], 'b': 'c'}, schema)
+
+        self.assertEqual(base, {'a': ["a", "b"], 'b': 'c'})
+
+
     def test_example(self):
 
         head1 =     {

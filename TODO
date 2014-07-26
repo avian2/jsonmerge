@@ -1,4 +1,2 @@
 - check if type is appropriate for the merger (e.g. map merger only works on
   maps)
-
-- implement all the ways schema can descend into the hierarchy
