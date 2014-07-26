@@ -1,3 +1,5 @@
+import re
+
 def overwrite(merger, base, head, _schema, meta):
     return head
 
@@ -30,12 +32,20 @@ def object_merge(merger, base, head, _schema, meta):
 
     for k, v in head.iteritems():
 
+        subschema = None
+
+        # get subschema for this element
         p = _schema.get('properties')
         if p is not None:
-            s = p.get(k)
-        else:
-            s = None
+            subschema = p.get(k)
 
-        base[k] = merger.descend(base.get(k), v, s, meta)
+        if subschema is None:
+            p = _schema.get('patternProperties')
+            if p is not None:
+                for pattern, s in p.iteritems():
+                    if re.search(pattern, k):
+                        subschema = s
+
+        base[k] = merger.descend(base.get(k), v, subschema, meta)
 
     return base
