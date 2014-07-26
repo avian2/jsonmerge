@@ -18,3 +18,12 @@ def append(base, head, _schema):
 
     base += head
     return base
+
+def map_merge(base, head, _schema):
+    if base is None:
+        base = {}
+    else:
+        base = dict(base)
+
+    base.update(head)
+    return base

@@ -41,7 +41,8 @@ class Merger(object):
     _mergers = {
         "overwrite": _mergers.overwrite,
         "version": _mergers.version,
-        "append": _mergers.append
+        "append": _mergers.append,
+        "mapMerge": _mergers.map_merge,
     }
 
     def __init__(self, schema):
