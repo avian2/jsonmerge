@@ -118,6 +118,10 @@ class Merger(object):
             #else:
             #    name = "overwrite"
 
+        schema = dict(schema)
+        schema.pop("mergeStrategy", None)
+        schema.pop("mergeOptions", None)
+
         strategy = self.STRATEGIES[name]
         return strategy.get_schema(self, schema, **kwargs)
 

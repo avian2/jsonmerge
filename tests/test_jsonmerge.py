@@ -268,3 +268,11 @@ class TestGetSchema(unittest.TestCase):
 
         merger = jsonmerge.Merger(schema)
         self.assertRaises(TypeError, merger.get_schema)
+
+    def test_overwrite(self):
+        schema = {'mergeStrategy': 'overwrite'}
+
+        merger = jsonmerge.Merger(schema)
+        schema2 = merger.get_schema()
+
+        self.assertEqual(schema2, {})

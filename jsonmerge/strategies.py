@@ -7,6 +7,9 @@ class Overwrite(Strategy):
     def merge(self, merger, base, head, schema, meta, **kwargs):
         return head
 
+    def get_schema(self, merger, schema):
+        return schema
+
 class Version(Strategy):
     def merge(self, merger, base, head, schema, meta, limit=None, **kwargs):
         if base is None:
