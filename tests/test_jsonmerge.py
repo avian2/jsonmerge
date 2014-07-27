@@ -258,6 +258,23 @@ class TestMerge(unittest.TestCase):
 
         self.assertEqual(base, {"a": {"b": [{"value": "c"}, {"value": "d"}] } })
 
+    def test_oneof(self):
+
+        schema =    {
+                        'oneOf': [
+                            { 'properties': { 'a': {} } },
+                            { 'properties': { 'b': {} } }
+                        ]
+                    }
+
+        merger = jsonmerge.Merger(schema)
+
+        base = None
+        base = merger.merge(base, {'a': 1})
+        base = merger.merge(base, {'b': 2})
+
+        self.assertEqual(base, {'a': 1, 'b': 2})
+
 class TestGetSchema(unittest.TestCase):
 
     def test_default(self):
@@ -332,3 +349,16 @@ class TestGetSchema(unittest.TestCase):
                         }
                     }
                 })
+
+    def test_oneof(self):
+
+        schema =    {
+                        'mergeStrategy': 'objectMerge',
+                        'oneOf': [
+                            { 'properties': { 'a': {} } },
+                            { 'properties': { 'b': {} } }
+                        ]
+                    }
+
+        merger = jsonmerge.Merger(schema)
+        self.assertRaises(TypeError, merger.get_schema)

@@ -86,6 +86,10 @@ class ObjectMerge(Strategy):
 
     def get_schema(self, merger, schema):
 
+        for forbidden in ("oneOf", "allOf", "anyOf"):
+            if forbidden in schema:
+                raise TypeError("Type ambiguous schema")
+
         schema2 = dict(schema)
 
         def descend_keyword(keyword):
