@@ -22,6 +22,9 @@ class Merger(object):
         self.schema = schema
         self.validator = Draft4Validator(schema)
 
+    def is_type(self, instance, type):
+        return self.validator.is_type(instance, type)
+
     def merge(self, base, head, meta=None):
         """Merge head into base.
 
@@ -71,7 +74,7 @@ class Merger(object):
 	    kwargs = {}
 
         if name is None:
-            if self.validator.is_type(head, "object"):
+            if self.is_type(head, "object"):
                 name = "objectMerge"
             else:
                 name = "overwrite"
