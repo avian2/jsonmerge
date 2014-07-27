@@ -1,3 +1,4 @@
+# vim:ts=4 sw=4 expandtab softtabstop=4
 import numbers
 import pprint
 
@@ -66,12 +67,12 @@ class Merger(object):
                     return self.descend(base, head, resolved, meta)
             else:
                 name = schema.get("mergeStrategy")
-		kwargs = schema.get("mergeOptions")
-		if kwargs is None:
-			kwargs = {}
+                kwargs = schema.get("mergeOptions")
+                if kwargs is None:
+                    kwargs = {}
         else:
             name = None
-	    kwargs = {}
+            kwargs = {}
 
         if name is None:
             if self.is_type(head, "object"):

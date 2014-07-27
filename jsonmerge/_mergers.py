@@ -12,7 +12,7 @@ def version(merger, base, head, schema, meta, limit=None, **kwargs):
 
     base.append(merger.add_meta(head, meta))
     if limit is not None:
-	    base = base[-limit:]
+        base = base[-limit:]
 
     return base
 

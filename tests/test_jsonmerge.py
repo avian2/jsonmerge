@@ -1,3 +1,4 @@
+# vim:ts=4 sw=4 expandtab softtabstop=4
 import unittest
 import jsonmerge
 
@@ -51,8 +52,8 @@ class TestJsonMerge(unittest.TestCase):
 
     def test_version_last(self):
 
-        schema = {	'mergeStrategy': 'version',
-			'mergeOptions': { 'limit': 1 } }
+        schema = {  'mergeStrategy': 'version',
+                    'mergeOptions': { 'limit': 1 } }
 
         base = None
         base = jsonmerge.merge(base, "a", schema)
