@@ -7,11 +7,11 @@ from jsonschema.validators import Draft4Validator
 
 class Merger(object):
 
-    MERGERS = {
-        "overwrite": _mergers.overwrite,
-        "version": _mergers.version,
-        "append": _mergers.append,
-        "objectMerge": _mergers.object_merge,
+    STRATEGIES = {
+        "overwrite": _mergers.Overwrite(),
+        "version": _mergers.Version(),
+        "append": _mergers.Append(),
+        "objectMerge": _mergers.ObjectMerge(),
     }
 
     def __init__(self, schema):
@@ -80,8 +80,8 @@ class Merger(object):
             else:
                 name = "overwrite"
 
-        merger = self.MERGERS[name]
-        return merger(self, base, head, schema, meta, **kwargs)
+        strategy = self.STRATEGIES[name]
+        return strategy.merge(self, base, head, schema, meta, **kwargs)
 
 
 def merge(base, head, schema):

@@ -1,64 +1,70 @@
 # vim:ts=4 sw=4 expandtab softtabstop=4
 import re
 
-def overwrite(merger, base, head, schema, meta, **kwargs):
-    return head
+class Strategy: pass
 
-def version(merger, base, head, schema, meta, limit=None, **kwargs):
-    if base is None:
-        base = []
-    else:
-        base = list(base)
+class Overwrite(Strategy):
+    def merge(self, merger, base, head, schema, meta, **kwargs):
+        return head
 
-    base.append(merger.add_meta(head, meta))
-    if limit is not None:
-        base = base[-limit:]
+class Version(Strategy):
+    def merge(self, merger, base, head, schema, meta, limit=None, **kwargs):
+        if base is None:
+            base = []
+        else:
+            base = list(base)
 
-    return base
+        base.append(merger.add_meta(head, meta))
+        if limit is not None:
+            base = base[-limit:]
 
-def append(merger, base, head, schema, meta, **kwargs):
-    if not merger.is_type(head, "array"):
-        raise TypeError("Head for an 'append' merge strategy is not an array")
+        return base
 
-    if base is None:
-        base = []
-    else:
-        base = list(base)
+class Append(Strategy):
+    def merge(self, merger, base, head, schema, meta, **kwargs):
+        if not merger.is_type(head, "array"):
+            raise TypeError("Head for an 'append' merge strategy is not an array")
 
-    base += head
-    return base
+        if base is None:
+            base = []
+        else:
+            base = list(base)
 
-def object_merge(merger, base, head, schema, meta, **kwargs):
-    if not merger.is_type(head, "object"):
-        raise TypeError("Head for an 'object' merge strategy is not an object")
+        base += head
+        return base
 
-    if base is None:
-        base = {}
-    else:
-        base = dict(base)
+class ObjectMerge(Strategy):
+    def merge(self, merger, base, head, schema, meta, **kwargs):
+        if not merger.is_type(head, "object"):
+            raise TypeError("Head for an 'object' merge strategy is not an object")
 
-    for k, v in head.items():
+        if base is None:
+            base = {}
+        else:
+            base = dict(base)
 
-        subschema = None
+        for k, v in head.items():
 
-        # get subschema for this element
-        if schema is not None:
-            p = schema.get('properties')
-            if p is not None:
-                subschema = p.get(k)
+            subschema = None
 
-            if subschema is None:
-                p = schema.get('patternProperties')
-                if p is not None:
-                    for pattern, s in p.items():
-                        if re.search(pattern, k):
-                            subschema = s
-
-            if subschema is None:
-                p = schema.get('additionalProperties')
+            # get subschema for this element
+            if schema is not None:
+                p = schema.get('properties')
                 if p is not None:
                     subschema = p.get(k)
 
-        base[k] = merger.descend(base.get(k), v, subschema, meta)
+                if subschema is None:
+                    p = schema.get('patternProperties')
+                    if p is not None:
+                        for pattern, s in p.items():
+                            if re.search(pattern, k):
+                                subschema = s
 
-    return base
+                if subschema is None:
+                    p = schema.get('additionalProperties')
+                    if p is not None:
+                        subschema = p.get(k)
+
+            base[k] = merger.descend(base.get(k), v, subschema, meta)
+
+        return base
