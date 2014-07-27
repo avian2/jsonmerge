@@ -94,6 +94,13 @@ If a merge strategy is not specified in the schema, *objectMerge* is used
 to objects and *overwrite* for all other values.
 
 
+Limitations
+-----------
+
+Schemas that do not have a well-defined type (e.g. schemas using *allOf*,
+*anyOf* and *oneOf*) do not work well.
+
+
 Requirements
 ------------
 
