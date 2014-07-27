@@ -276,3 +276,12 @@ class TestGetSchema(unittest.TestCase):
         schema2 = merger.get_schema()
 
         self.assertEqual(schema2, {})
+
+    def test_append(self):
+        schema = {  'type': 'array',
+                    'mergeStrategy': 'append' }
+
+        merger = jsonmerge.Merger(schema)
+        schema2 = merger.get_schema()
+
+        self.assertEqual(schema2, {'type': 'array'})

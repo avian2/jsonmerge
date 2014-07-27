@@ -36,6 +36,9 @@ class Append(Strategy):
         base += head
         return base
 
+    def get_schema(self, merger, schema):
+        return schema
+
 class ObjectMerge(Strategy):
     def merge(self, merger, base, head, schema, meta, **kwargs):
         if not merger.is_type(head, "object"):
