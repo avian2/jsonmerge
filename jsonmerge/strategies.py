@@ -23,6 +23,15 @@ class Version(Strategy):
 
         return base
 
+    def get_schema(self, merger, schema):
+        return  {
+                    "items": {
+                        "properties": {
+                            "value": schema,
+                        }
+                    }
+                }
+
 class Append(Strategy):
     def merge(self, merger, base, head, schema, meta, **kwargs):
         if not merger.is_type(head, "array"):
