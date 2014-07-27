@@ -2,16 +2,16 @@
 import numbers
 import pprint
 
-from jsonmerge import _mergers
+from jsonmerge import strategies
 from jsonschema.validators import Draft4Validator
 
 class Merger(object):
 
     STRATEGIES = {
-        "overwrite": _mergers.Overwrite(),
-        "version": _mergers.Version(),
-        "append": _mergers.Append(),
-        "objectMerge": _mergers.ObjectMerge(),
+        "overwrite": strategies.Overwrite(),
+        "version": strategies.Version(),
+        "append": strategies.Append(),
+        "objectMerge": strategies.ObjectMerge(),
     }
 
     def __init__(self, schema):
