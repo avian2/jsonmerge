@@ -7,7 +7,7 @@ class Overwrite(Strategy):
     def merge(self, merger, base, head, schema, meta, **kwargs):
         return head
 
-    def get_schema(self, merger, schema, **kwargs):
+    def get_schema(self, merger, schema, meta, **kwargs):
         return schema
 
 class Version(Strategy):
@@ -23,14 +23,19 @@ class Version(Strategy):
 
         return base
 
-    def get_schema(self, merger, schema, limit=None, **kwargs):
-        rv = {
-                    "items": {
-                        "properties": {
-                            "value": schema,
-                        }
-                    }
-                }
+    def get_schema(self, merger, schema, meta, limit=None, **kwargs):
+
+        if meta is not None:
+            item = dict(meta)
+        else:
+            item = {}
+
+        if 'properties' not in item:
+            item['properties'] = {}
+
+        item['properties']['value'] = schema
+
+        rv = { "items": item }
 
         if limit is not None:
             rv['maxItems'] = limit
@@ -50,7 +55,7 @@ class Append(Strategy):
         base += head
         return base
 
-    def get_schema(self, merger, schema, **kwargs):
+    def get_schema(self, merger, schema, meta, **kwargs):
         return schema
 
 class ObjectMerge(Strategy):
@@ -89,7 +94,7 @@ class ObjectMerge(Strategy):
 
         return base
 
-    def get_schema(self, merger, schema, **kwargs):
+    def get_schema(self, merger, schema, meta, **kwargs):
 
         for forbidden in ("oneOf", "allOf", "anyOf"):
             if forbidden in schema:
@@ -101,7 +106,7 @@ class ObjectMerge(Strategy):
             p = schema.get(keyword)
             if p is not None:
                 for k, v in p.items():
-                    schema2[keyword][k] = merger.descend_schema(v)
+                    schema2[keyword][k] = merger.descend_schema(v, meta)
 
         descend_keyword("properties")
         descend_keyword("patternProperties")

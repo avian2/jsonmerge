@@ -1,5 +1,4 @@
 - make the schema for the merged document based on the schema annotated with merge strategies.
 
   - refactor merger
-  - schema for metadata
   - detection of types in schema

@@ -83,10 +83,10 @@ class Merger(object):
         strategy = self.STRATEGIES[name]
         return strategy.merge(self, base, head, schema, meta, **kwargs)
 
-    def get_schema(self):
-        return self.descend_schema(self.schema)
+    def get_schema(self, meta=None):
+        return self.descend_schema(self.schema, meta)
 
-    def descend_schema(self, schema):
+    def descend_schema(self, schema, meta):
 
 #        print "\n" + "="*50
 #        print "base:",
@@ -100,7 +100,7 @@ class Merger(object):
             ref = schema.get("$ref")
             if ref is not None:
                 with self.validator.resolver.resolving(ref) as resolved:
-                    return self.descend_schema(resolved)
+                    return self.descend_schema(resolved, meta)
             else:
                 name = schema.get("mergeStrategy")
                 kwargs = schema.get("mergeOptions")
@@ -123,7 +123,7 @@ class Merger(object):
         schema.pop("mergeOptions", None)
 
         strategy = self.STRATEGIES[name]
-        return strategy.get_schema(self, schema, **kwargs)
+        return strategy.get_schema(self, schema, meta, **kwargs)
 
 def merge(base, head, schema):
     merger = Merger(schema)

@@ -318,6 +318,30 @@ class TestGetSchema(unittest.TestCase):
                     }
                 })
 
+    def test_version_meta(self):
+        schema = {  'type': 'object',
+                    'mergeStrategy': 'version' }
+
+        meta =  {   'properties': {
+                        'date': {},
+                        'version': {}
+                    }
+                }
+
+        merger = jsonmerge.Merger(schema)
+        schema2 = merger.get_schema(meta)
+
+        self.assertEqual(schema2,
+                {
+                    'items': {
+                        'properties': {
+                            'value': { 'type': 'object' },
+                            'date': {},
+                            'version': {}
+                        }
+                    }
+                })
+
     def test_version_limit(self):
         schema = {  'mergeStrategy': 'version',
                     'mergeOptions': { 'limit': 5 } }
