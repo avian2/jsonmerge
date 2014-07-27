@@ -51,13 +51,14 @@ class TestJsonMerge(unittest.TestCase):
 
     def test_version_last(self):
 
-        schema = {'mergeStrategy': 'versionLast'}
+        schema = {	'mergeStrategy': 'version',
+			'mergeOptions': { 'limit': 1 } }
 
         base = None
         base = jsonmerge.merge(base, "a", schema)
         base = jsonmerge.merge(base, "b", schema)
 
-        self.assertEqual(base, {'value': "b"})
+        self.assertEqual(base, [{'value': "b"}])
 
     def test_append(self):
 

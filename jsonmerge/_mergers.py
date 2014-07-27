@@ -1,21 +1,22 @@
+# vim:ts=4 sw=4 expandtab softtabstop=4
 import re
 
-def overwrite(merger, base, head, schema, meta):
+def overwrite(merger, base, head, schema, meta, **kwargs):
     return head
 
-def version(merger, base, head, schema, meta):
+def version(merger, base, head, schema, meta, limit=None, **kwargs):
     if base is None:
         base = []
     else:
         base = list(base)
 
     base.append(merger.add_meta(head, meta))
+    if limit is not None:
+	    base = base[-limit:]
+
     return base
 
-def version_last(merger, base, head, schema, meta):
-    return merger.add_meta(head, meta)
-
-def append(merger, base, head, schema, meta):
+def append(merger, base, head, schema, meta, **kwargs):
     if base is None:
         base = []
     else:
@@ -24,7 +25,7 @@ def append(merger, base, head, schema, meta):
     base += head
     return base
 
-def object_merge(merger, base, head, schema, meta):
+def object_merge(merger, base, head, schema, meta, **kwargs):
     if base is None:
         base = {}
     else:

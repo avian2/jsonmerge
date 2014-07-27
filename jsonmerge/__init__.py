@@ -9,7 +9,6 @@ class Merger(object):
     MERGERS = {
         "overwrite": _mergers.overwrite,
         "version": _mergers.version,
-        "versionLast": _mergers.version_last,
         "append": _mergers.append,
         "objectMerge": _mergers.object_merge,
     }
@@ -64,8 +63,12 @@ class Merger(object):
                     return self.descend(base, head, resolved, meta)
             else:
                 name = schema.get("mergeStrategy")
+		kwargs = schema.get("mergeOptions")
+		if kwargs is None:
+			kwargs = {}
         else:
             name = None
+	    kwargs = {}
 
         if name is None:
             if self.validator.is_type(head, "object"):
@@ -74,7 +77,7 @@ class Merger(object):
                 name = "overwrite"
 
         merger = self.MERGERS[name]
-        return merger(self, base, head, schema, meta)
+        return merger(self, base, head, schema, meta, **kwargs)
 
 
 def merge(base, head, schema):

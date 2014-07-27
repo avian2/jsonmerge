@@ -32,6 +32,8 @@ value in the document. The specification is based on JSON Schema. On each
 level of the hierarchy, the *mergeStrategy* keyword specifies the merge
 strategy used for that instance.
 
+*mergeOptions* keyword specifies any options for the selected strategy.
+
 
 Module content
 --------------
@@ -85,8 +87,8 @@ version
   array in the form of an object with a *value* property. This way all
   values seen during the merge are preserved.
 
-versionLast
-  Same as *version*, except only the last version is preserved.
+  You can limit the length of the list using the *limit* option in the
+  *mergeOptions* keyword.
 
 If a merge strategy is not specified in the schema, *objectMerge* is used
 to objects and *overwrite* for all other values.
