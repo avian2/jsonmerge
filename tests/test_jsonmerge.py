@@ -318,6 +318,23 @@ class TestGetSchema(unittest.TestCase):
                     }
                 })
 
+    def test_version_limit(self):
+        schema = {  'mergeStrategy': 'version',
+                    'mergeOptions': { 'limit': 5 } }
+
+        merger = jsonmerge.Merger(schema)
+        schema2 = merger.get_schema()
+
+        self.assertEqual(schema2,
+                {
+                    'items': {
+                        'properties': {
+                            'value': {}
+                        }
+                    },
+                    'maxItems': 5
+                })
+
     def test_object_merge_simple(self):
         schema = {  'mergeStrategy': 'objectMerge' }
 

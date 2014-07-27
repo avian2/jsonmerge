@@ -2,5 +2,4 @@
 
   - refactor merger
   - schema for metadata
-  - options for get_schema
   - detection of types in schema

@@ -7,7 +7,7 @@ class Overwrite(Strategy):
     def merge(self, merger, base, head, schema, meta, **kwargs):
         return head
 
-    def get_schema(self, merger, schema):
+    def get_schema(self, merger, schema, **kwargs):
         return schema
 
 class Version(Strategy):
@@ -23,14 +23,19 @@ class Version(Strategy):
 
         return base
 
-    def get_schema(self, merger, schema):
-        return  {
+    def get_schema(self, merger, schema, limit=None, **kwargs):
+        rv = {
                     "items": {
                         "properties": {
                             "value": schema,
                         }
                     }
                 }
+
+        if limit is not None:
+            rv['maxItems'] = limit
+
+        return rv
 
 class Append(Strategy):
     def merge(self, merger, base, head, schema, meta, **kwargs):
@@ -45,7 +50,7 @@ class Append(Strategy):
         base += head
         return base
 
-    def get_schema(self, merger, schema):
+    def get_schema(self, merger, schema, **kwargs):
         return schema
 
 class ObjectMerge(Strategy):
@@ -84,7 +89,7 @@ class ObjectMerge(Strategy):
 
         return base
 
-    def get_schema(self, merger, schema):
+    def get_schema(self, merger, schema, **kwargs):
 
         for forbidden in ("oneOf", "allOf", "anyOf"):
             if forbidden in schema:
