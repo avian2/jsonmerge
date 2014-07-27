@@ -83,6 +83,43 @@ class Merger(object):
         strategy = self.STRATEGIES[name]
         return strategy.merge(self, base, head, schema, meta, **kwargs)
 
+    def get_schema(self):
+        return self.descend_schema(self.schema)
+
+    def descend_schema(self, schema):
+
+#        print "\n" + "="*50
+#        print "base:",
+#        pprint.pprint(base)
+#        print "head:",
+#        pprint.pprint(head)
+#        print "schema:",
+#        pprint.pprint(schema)
+
+        if schema is not None:
+            ref = schema.get("$ref")
+            if ref is not None:
+                with self.validator.resolver.resolving(ref) as resolved:
+                    return self.descend_schema(resolved)
+            else:
+                name = schema.get("mergeStrategy")
+                kwargs = schema.get("mergeOptions")
+                if kwargs is None:
+                    kwargs = {}
+        else:
+            name = None
+            kwargs = {}
+
+        if name is None:
+            # FIXME: get expected type from schema
+            raise TypeError
+            #if self.is_type(head, "object"):
+            #    name = "objectMerge"
+            #else:
+            #    name = "overwrite"
+
+        strategy = self.STRATEGIES[name]
+        return strategy.get_schema(self, schema, **kwargs)
 
 def merge(base, head, schema):
     merger = Merger(schema)

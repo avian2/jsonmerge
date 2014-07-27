@@ -2,7 +2,7 @@
 import unittest
 import jsonmerge
 
-class TestJsonMerge(unittest.TestCase):
+class TestMerge(unittest.TestCase):
 
     def test_default(self):
 
@@ -257,3 +257,14 @@ class TestJsonMerge(unittest.TestCase):
         base = merger.merge(base, {"a": {"b": "d"} })
 
         self.assertEqual(base, {"a": {"b": [{"value": "c"}, {"value": "d"}] } })
+
+class TestGetSchema(unittest.TestCase):
+
+    def test_default(self):
+        # with an empty schema, we can't know the type of the object and hence
+        # we can't determine the default strategy -> error
+
+        schema = {}
+
+        merger = jsonmerge.Merger(schema)
+        self.assertRaises(TypeError, merger.get_schema)
