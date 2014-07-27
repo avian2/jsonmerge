@@ -85,4 +85,17 @@ class ObjectMerge(Strategy):
         return base
 
     def get_schema(self, merger, schema):
-        return schema
+
+        schema2 = dict(schema)
+
+        def descend_keyword(keyword):
+            p = schema.get(keyword)
+            if p is not None:
+                for k, v in p.items():
+                    schema2[keyword][k] = merger.descend_schema(v)
+
+        descend_keyword("properties")
+        descend_keyword("patternProperties")
+        descend_keyword("additionalProperties")
+
+        return schema2

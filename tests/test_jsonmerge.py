@@ -308,3 +308,27 @@ class TestGetSchema(unittest.TestCase):
         schema2 = merger.get_schema()
 
         self.assertEqual(schema2, {})
+
+    def test_object_merge_nested(self):
+        schema =    {   'mergeStrategy': 'objectMerge',
+                        'properties': {
+                            'foo': {
+                                'mergeStrategy': 'version',
+                            }
+                         }
+                    }
+
+        merger = jsonmerge.Merger(schema)
+        schema2 = merger.get_schema()
+
+        self.assertEqual(schema2,
+                {   'properties': {
+                        'foo': {
+                            'items': {
+                                'properties': {
+                                    'value': {}
+                                }
+                            }
+                        }
+                    }
+                })
