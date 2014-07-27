@@ -50,6 +50,31 @@ class TestMerge(unittest.TestCase):
             {'value': "b",
             'uri': 'http://example.com/b' }])
 
+    def test_version_unique_false(self):
+
+        schema = {  'mergeStrategy': 'version',
+                    'mergeOptions': { 'unique': False } }
+
+        merger = jsonmerge.Merger(schema)
+
+        base = None
+        base = merger.merge(base, "a")
+        base = merger.merge(base, "a")
+
+        self.assertEqual(base, [ {'value': "a"}, {'value': "a"} ])
+
+    def test_version_unique_true(self):
+
+        schema = {  'mergeStrategy': 'version' }
+
+        merger = jsonmerge.Merger(schema)
+
+        base = None
+        base = merger.merge(base, "a")
+        base = merger.merge(base, "a")
+
+        self.assertEqual(base, [ {'value': "a"} ])
+
     def test_version_last(self):
 
         schema = {  'mergeStrategy': 'version',

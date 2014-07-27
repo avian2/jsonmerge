@@ -11,15 +11,16 @@ class Overwrite(Strategy):
         return schema
 
 class Version(Strategy):
-    def merge(self, merger, base, head, schema, meta, limit=None, **kwargs):
+    def merge(self, merger, base, head, schema, meta, limit=None, unique=True, **kwargs):
         if base is None:
             base = []
         else:
             base = list(base)
 
-        base.append(merger.add_meta(head, meta))
-        if limit is not None:
-            base = base[-limit:]
+        if not unique or not base or base[0]['value'] != head:
+            base.append(merger.add_meta(head, meta))
+            if limit is not None:
+                base = base[-limit:]
 
         return base
 
