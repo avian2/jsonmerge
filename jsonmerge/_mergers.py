@@ -30,7 +30,7 @@ def object_merge(merger, base, head, schema, meta):
     else:
         base = dict(base)
 
-    for k, v in head.iteritems():
+    for k, v in head.items():
 
         subschema = None
 
@@ -43,7 +43,7 @@ def object_merge(merger, base, head, schema, meta):
             if subschema is None:
                 p = schema.get('patternProperties')
                 if p is not None:
-                    for pattern, s in p.iteritems():
+                    for pattern, s in p.items():
                         if re.search(pattern, k):
                             subschema = s
 

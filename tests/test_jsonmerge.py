@@ -84,9 +84,9 @@ class TestJsonMerge(unittest.TestCase):
         schema = {}
 
         base = None
-	base = jsonmerge.merge(base, {'a': {'b': 'c'}}, schema)
+        base = jsonmerge.merge(base, {'a': {'b': 'c'}}, schema)
 
-	self.assertEqual(base, {'a': {'b': 'c'}})
+        self.assertEqual(base, {'a': {'b': 'c'}})
 
     def test_merge_trivial(self):
 

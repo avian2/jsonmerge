@@ -1,6 +1,7 @@
 import numbers
-import _mergers
 import pprint
+
+from jsonmerge import _mergers
 from jsonschema.validators import Draft4Validator
 
 class Merger(object):
