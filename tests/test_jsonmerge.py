@@ -277,14 +277,34 @@ class TestMerge(unittest.TestCase):
 
 class TestGetSchema(unittest.TestCase):
 
-    def test_default(self):
-        # with an empty schema, we can't know the type of the object and hence
-        # we can't determine the default strategy -> error
-
-        schema = {}
+    def test_default_overwrite(self):
+        schema = { 'description': 'test' }
 
         merger = jsonmerge.Merger(schema)
-        self.assertRaises(TypeError, merger.get_schema)
+        schema2 = merger.get_schema()
+
+        self.assertEqual(schema2, { 'description': 'test' })
+
+    def test_default_object_merge(self):
+        schema = { 'properties': {
+                        'foo': {
+                            'mergeStrategy': 'version',
+                        }
+                } }
+
+        merger = jsonmerge.Merger(schema)
+        schema2 = merger.get_schema()
+
+        self.assertEqual(schema2, { 'properties': {
+                                        'foo': {
+                                            'items': {
+                                                'properties': {
+                                                    'value': {},
+                                                }
+                                            }
+                                        }
+                                    }
+                                 } )
 
     def test_overwrite(self):
         schema = {'mergeStrategy': 'overwrite'}

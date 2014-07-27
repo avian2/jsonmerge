@@ -83,6 +83,26 @@ class Merger(object):
         strategy = self.STRATEGIES[name]
         return strategy.merge(self, base, head, schema, meta, **kwargs)
 
+    def schema_is_object(self, schema):
+
+        objonly = (
+                'maxProperties',
+                'minProperties',
+                'required',
+                'additionalProperties',
+                'properties',
+                'patternProperties',
+                'dependencies')
+
+        for k in objonly:
+            if k in schema:
+                return True
+
+        if schema.get('type') == 'object':
+            return True
+
+        return False
+
     def get_schema(self, meta=None):
         return self.descend_schema(self.schema, meta)
 
@@ -111,12 +131,10 @@ class Merger(object):
             kwargs = {}
 
         if name is None:
-            # FIXME: get expected type from schema
-            raise TypeError
-            #if self.is_type(head, "object"):
-            #    name = "objectMerge"
-            #else:
-            #    name = "overwrite"
+            if self.schema_is_object(schema):
+                name = "objectMerge"
+            else:
+                name = "overwrite"
 
         schema = dict(schema)
         schema.pop("mergeStrategy", None)
