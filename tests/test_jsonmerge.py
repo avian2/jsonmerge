@@ -300,3 +300,11 @@ class TestGetSchema(unittest.TestCase):
                         }
                     }
                 })
+
+    def test_object_merge_simple(self):
+        schema = {  'mergeStrategy': 'objectMerge' }
+
+        merger = jsonmerge.Merger(schema)
+        schema2 = merger.get_schema()
+
+        self.assertEqual(schema2, {})

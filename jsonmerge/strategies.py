@@ -83,3 +83,6 @@ class ObjectMerge(Strategy):
             base[k] = merger.descend(base.get(k), v, subschema, meta)
 
         return base
+
+    def get_schema(self, merger, schema):
+        return schema
