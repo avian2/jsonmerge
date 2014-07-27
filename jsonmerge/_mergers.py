@@ -17,6 +17,9 @@ def version(merger, base, head, schema, meta, limit=None, **kwargs):
     return base
 
 def append(merger, base, head, schema, meta, **kwargs):
+    if not merger.is_type(head, "array"):
+        raise TypeError("Head for an 'append' merge strategy is not an array")
+
     if base is None:
         base = []
     else:
@@ -26,6 +29,9 @@ def append(merger, base, head, schema, meta, **kwargs):
     return base
 
 def object_merge(merger, base, head, schema, meta, **kwargs):
+    if not merger.is_type(head, "object"):
+        raise TypeError("Head for an 'object' merge strategy is not an object")
+
     if base is None:
         base = {}
     else:

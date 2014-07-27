@@ -70,6 +70,13 @@ class TestJsonMerge(unittest.TestCase):
 
         self.assertEqual(base, ["a", "b"])
 
+    def test_append_type_error(self):
+
+        schema = {'mergeStrategy': 'append'}
+
+        base = None
+        self.assertRaises(TypeError, jsonmerge.merge, base, "a", schema)
+
     def test_merge_default(self):
 
         schema = {}
@@ -98,6 +105,13 @@ class TestJsonMerge(unittest.TestCase):
         base = jsonmerge.merge(base, {'b': "b"}, schema)
 
         self.assertEqual(base, {'a': "a",  'b': "b"})
+
+    def test_merge_type_error(self):
+
+        schema = {'mergeStrategy': 'objectMerge'}
+
+        base = None
+        self.assertRaises(TypeError, jsonmerge.merge, base, "a", schema)
 
     def test_merge_overwrite(self):
 

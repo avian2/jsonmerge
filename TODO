@@ -1,4 +1,1 @@
-- check if type is appropriate for the merger (e.g. map merger only works on
-  maps)
-
 - make the schema for the merged document based on the schema annotated with merge strategies.
