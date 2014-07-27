@@ -7,6 +7,9 @@ class Overwrite(Strategy):
     def merge(self, merger, base, head, schema, meta, **kwargs):
         return head
 
+    def get_schema(self, merger, schema, meta, **kwargs):
+        return schema
+
 class Version(Strategy):
     def merge(self, merger, base, head, schema, meta, limit=None, **kwargs):
         if base is None:
@@ -20,6 +23,25 @@ class Version(Strategy):
 
         return base
 
+    def get_schema(self, merger, schema, meta, limit=None, **kwargs):
+
+        if meta is not None:
+            item = dict(meta)
+        else:
+            item = {}
+
+        if 'properties' not in item:
+            item['properties'] = {}
+
+        item['properties']['value'] = schema
+
+        rv = { "items": item }
+
+        if limit is not None:
+            rv['maxItems'] = limit
+
+        return rv
+
 class Append(Strategy):
     def merge(self, merger, base, head, schema, meta, **kwargs):
         if not merger.is_type(head, "array"):
@@ -32,6 +54,9 @@ class Append(Strategy):
 
         base += head
         return base
+
+    def get_schema(self, merger, schema, meta, **kwargs):
+        return schema
 
 class ObjectMerge(Strategy):
     def merge(self, merger, base, head, schema, meta, **kwargs):
@@ -68,3 +93,23 @@ class ObjectMerge(Strategy):
             base[k] = merger.descend(base.get(k), v, subschema, meta)
 
         return base
+
+    def get_schema(self, merger, schema, meta, **kwargs):
+
+        for forbidden in ("oneOf", "allOf", "anyOf"):
+            if forbidden in schema:
+                raise TypeError("Type ambiguous schema")
+
+        schema2 = dict(schema)
+
+        def descend_keyword(keyword):
+            p = schema.get(keyword)
+            if p is not None:
+                for k, v in p.items():
+                    schema2[keyword][k] = merger.descend_schema(v, meta)
+
+        descend_keyword("properties")
+        descend_keyword("patternProperties")
+        descend_keyword("additionalProperties")
+
+        return schema2
