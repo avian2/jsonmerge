@@ -1,6 +1,7 @@
 # vim:ts=4 sw=4 expandtab softtabstop=4
 import unittest
 import jsonmerge
+import jsonschema
 
 class TestMerge(unittest.TestCase):
 
@@ -448,3 +449,36 @@ class TestGetSchema(unittest.TestCase):
 
         merger = jsonmerge.Merger(schema)
         self.assertRaises(TypeError, merger.get_schema)
+
+    def test_resolve_refs(self):
+
+        schema_1 = {
+                        'id': 'http://example.com/schema_1.json',
+                        '$ref': 'schema_2.json#/definitions/foo'
+                }
+
+        schema_2 = {
+                        'id': 'http://example.com/schema_2.json',
+                        'definitions': {
+                            'foo': {
+                                'mergeStrategy': 'overwrite',
+                                'properties': {
+                                    'bar': {
+                                        '$ref': '#/definitions/baz'
+                                    },
+                                    'b': {}
+                                },
+                            },
+                            'baz': {
+                                'mergeStrategy': 'append'
+                            }
+                        }
+                    }
+
+        merger = jsonmerge.Merger(schema_1)
+        merger.validator.resolver.store.update(((schema_2['id'], schema_2),))
+
+        mschema = merger.get_schema()
+
+        d = {'bar': [] }
+        jsonschema.validate(d, mschema)

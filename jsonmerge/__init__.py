@@ -50,6 +50,19 @@ class Merger(object):
         rv['value'] = head
         return rv
 
+    def resolve_refs(self, schema):
+        if self.is_type(schema, "array"):
+            return [ self.resolve_refs(v) for v in schema ]
+        elif self.is_type(schema, "object"):
+            ref = schema.get("$ref")
+            if ref is not None:
+                with self.validator.resolver.resolving(ref) as resolved:
+                    return self.resolve_refs(resolved)
+            else:
+                return dict( ((k, self.resolve_refs(v)) for k, v in schema.items()) )
+        else:
+            return schema
+
     def descend(self, base, head, schema, meta):
 
 #        print "\n" + "="*50
@@ -141,7 +154,7 @@ class Merger(object):
         schema.pop("mergeOptions", None)
 
         strategy = self.STRATEGIES[name]
-        return strategy.get_schema(self, schema, meta, **kwargs)
+        return self.resolve_refs(strategy.get_schema(self, schema, meta, **kwargs))
 
 def merge(base, head, schema):
     merger = Merger(schema)
