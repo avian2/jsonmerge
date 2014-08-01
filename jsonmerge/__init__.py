@@ -125,6 +125,25 @@ class Merger(object):
         self.schema = schema
         self.validator = Draft4Validator(schema)
 
+    def cache_schema(self, schema, uri=None):
+        """Cache an external schema reference.
+
+        schema -- JSON schema to cache
+        uri -- Optional URI for the schema
+
+        If the JSON schema for merging contains external references, they will
+        be fetched using HTTP from their respective URLs. Alternatively, this
+        method can be used to pre-populate the cache with any external schemas
+        that are already known.
+
+        If URI is omitted, it is obtained from the 'id' keyword of the schema.
+        """
+
+        if uri is None:
+            uri = schema.get('id', '')
+
+        self.validator.resolver.store.update(((uri, schema),))
+
     def merge(self, base, head, meta=None):
         """Merge head into base.
 

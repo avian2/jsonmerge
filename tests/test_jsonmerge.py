@@ -490,7 +490,7 @@ class TestGetSchema(unittest.TestCase):
                     }
 
         merger = jsonmerge.Merger(schema_1)
-        merger.validator.resolver.store.update(((schema_2['id'], schema_2),))
+        merger.cache_schema(schema_2)
 
         mschema = merger.get_schema()
 
