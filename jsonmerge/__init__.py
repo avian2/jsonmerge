@@ -159,7 +159,7 @@ class Merger(object):
         schema.pop("mergeOptions", None)
 
         strategy = self.STRATEGIES[name]
-        return self.resolve_refs(strategy.get_schema(self, schema, meta, **kwargs))
+        return strategy.get_schema(self, schema, meta, **kwargs)
 
 def merge(base, head, schema):
     merger = Merger(schema)

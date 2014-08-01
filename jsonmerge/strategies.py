@@ -8,7 +8,7 @@ class Overwrite(Strategy):
         return head
 
     def get_schema(self, merger, schema, meta, **kwargs):
-        return schema
+        return merger.resolve_refs(schema)
 
 class Version(Strategy):
     def merge(self, merger, base, head, schema, meta, limit=None, unique=True, **kwargs):
@@ -34,7 +34,7 @@ class Version(Strategy):
         if 'properties' not in item:
             item['properties'] = {}
 
-        item['properties']['value'] = schema
+        item['properties']['value'] = merger.resolve_refs(schema)
 
         rv = { "items": item }
 
@@ -57,7 +57,7 @@ class Append(Strategy):
         return base
 
     def get_schema(self, merger, schema, meta, **kwargs):
-        return schema
+        return merger.resolve_refs(schema)
 
 class ObjectMerge(Strategy):
     def merge(self, merger, base, head, schema, meta, **kwargs):
