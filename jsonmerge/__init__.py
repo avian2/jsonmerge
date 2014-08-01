@@ -54,9 +54,9 @@ class WalkInstance(Walk):
 
 class WalkSchema(Walk):
 
-    def resolve_refs(self, schema):
+    def resolve_refs(self, schema, resolve_base=False):
 
-        if self.resolver.base_uri == self.merger.schema.get('id', ''):
+        if (not resolve_base) and self.resolver.base_uri == self.merger.schema.get('id', ''):
             # no need to resolve refs in the context of the original schema - they 
             # are still valid
             return schema
@@ -168,6 +168,21 @@ class Merger(object):
         Returns a JSON schema for documents returned by the
         merge() method.
         """
+
+        if meta is not None:
+
+            # This is kind of ugly - schema for meta data
+            # can again contain references to external schemas.
+            #
+            # Since we already have in place all the machinery
+            # to resolve these references in the merge schema,
+            # we (ab)use it here to do the same for meta data
+            # schema.
+            m = Merger(meta)
+            m.validator.resolver.store.update(self.validator.resolver.store)
+
+            w = WalkSchema(m)
+            meta = w.resolve_refs(meta, resolve_base=True)
 
         walk = WalkSchema(self)
         return walk.descend(self.schema, meta)

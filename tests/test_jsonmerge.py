@@ -524,3 +524,42 @@ class TestGetSchema(unittest.TestCase):
         mschema = merger.get_schema()
 
         self.assertEqual(mschema_correct, mschema)
+
+    def test_reference_in_meta(self):
+
+        schema = {
+                    'mergeStrategy': 'version'
+                }
+
+        meta_schema = {
+            'id': 'http://example.com/schema_1.json',
+            '$ref': 'schema_2.json#/definitions/meta'
+        }
+
+        schema_2 = {
+            'id': 'http://example.com/schema_2.json',
+            'definitions': {
+                'meta': {
+                    'properties': {
+                        'foo': {
+                            'type': 'string'
+                        }
+                    }
+                }
+            }
+        }
+
+        merger = jsonmerge.Merger(schema)
+        merger.cache_schema(schema_2)
+
+        mschema = merger.get_schema(meta=meta_schema)
+
+        self.assertEqual(mschema,
+            {
+                'items': {
+                    'properties': {
+                        'value': {},
+                        'foo': {'type': 'string'}
+                    }
+                }
+            })
