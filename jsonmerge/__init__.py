@@ -51,7 +51,12 @@ class Merger(object):
         return rv
 
     def resolve_refs(self, schema):
-        if self.is_type(schema, "array"):
+
+        if self.validator.resolver.base_uri == self.schema.get('id', ''):
+            # no need to resolve refs in the context of the original schema - they 
+            # are still valid
+            return schema
+        elif self.is_type(schema, "array"):
             return [ self.resolve_refs(v) for v in schema ]
         elif self.is_type(schema, "object"):
             ref = schema.get("$ref")

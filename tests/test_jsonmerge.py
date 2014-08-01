@@ -482,3 +482,31 @@ class TestGetSchema(unittest.TestCase):
 
         d = {'bar': [] }
         jsonschema.validate(d, mschema)
+
+    def test_dont_resolve_refs(self):
+
+        schema = {
+                        'id': 'http://example.com/schema_1.json',
+                        'mergeStrategy': 'overwrite',
+                        'properties': {
+                            'foo': {
+                                '$ref': '#/definitions/bar'
+                            }
+                        },
+                        'definitions': {
+                            'bar': {
+                                'properties': {
+                                    'baz': {}
+                                }
+                            }
+                        }
+                    }
+
+        mschema_correct = dict(schema)
+        del mschema_correct['mergeStrategy']
+
+        merger = jsonmerge.Merger(schema)
+
+        mschema = merger.get_schema()
+
+        self.assertEqual(mschema_correct, mschema)
