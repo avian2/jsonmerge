@@ -104,6 +104,13 @@ class TestMerge(unittest.TestCase):
         base = None
         self.assertRaises(TypeError, jsonmerge.merge, base, "a", schema)
 
+    def test_append_type_error_base(self):
+
+        schema = {'mergeStrategy': 'append'}
+
+        base = "ab"
+        self.assertRaises(TypeError, jsonmerge.merge, base, ["a"], schema)
+
     def test_merge_default(self):
 
         schema = {}
@@ -139,6 +146,13 @@ class TestMerge(unittest.TestCase):
 
         base = None
         self.assertRaises(TypeError, jsonmerge.merge, base, "a", schema)
+
+    def test_merge_type_error_base(self):
+
+        schema = {'mergeStrategy': 'objectMerge'}
+
+        base = "ab"
+        self.assertRaises(TypeError, jsonmerge.merge, base, {'foo': 1}, schema)
 
     def test_merge_overwrite(self):
 

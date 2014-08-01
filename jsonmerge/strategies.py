@@ -51,6 +51,9 @@ class Append(Strategy):
         if base is None:
             base = []
         else:
+            if not merger.is_type(base, "array"):
+                raise TypeError("Base for an 'append' merge strategy is not an array")
+
             base = list(base)
 
         base += head
@@ -67,6 +70,9 @@ class ObjectMerge(Strategy):
         if base is None:
             base = {}
         else:
+            if not merger.is_type(base, "object"):
+                raise TypeError("Base for an 'object' merge strategy is not an object")
+
             base = dict(base)
 
         for k, v in head.items():
