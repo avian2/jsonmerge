@@ -91,7 +91,7 @@ class ObjectMerge(Strategy):
                     if p is not None:
                         subschema = p.get(k)
 
-            base[k] = merger.descend(base.get(k), v, subschema, meta)
+            base[k] = merger.descend(subschema, base.get(k), v, meta)
 
         return base
 
@@ -107,7 +107,7 @@ class ObjectMerge(Strategy):
             p = schema.get(keyword)
             if p is not None:
                 for k, v in p.items():
-                    schema2[keyword][k] = merger.descend_schema(v, meta)
+                    schema2[keyword][k] = merger.descend(v, meta)
 
         descend_keyword("properties")
         descend_keyword("patternProperties")
