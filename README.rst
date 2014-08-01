@@ -60,6 +60,11 @@ The module exports a Merger class::
     >>> base
     {'foo': 1, 'bar': 2}
 
+The module can also make a schema for the merged document::
+
+    >>> merger.get_schema()
+    {}
+
 
 Merge strategies
 ----------------
@@ -98,7 +103,8 @@ Limitations
 -----------
 
 Schemas that do not have a well-defined type (e.g. schemas using *allOf*,
-*anyOf* and *oneOf*) do not work well.
+*anyOf* and *oneOf*) do not work well. Documents conforming to such schemas
+could require merging, for example, a string to an object.
 
 
 Requirements
