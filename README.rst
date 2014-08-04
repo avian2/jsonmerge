@@ -2,37 +2,134 @@ Merge a series of JSON documents
 ================================
 
 This Python module allows you to merge a series of JSON documents into a
-single one. A trivial example of this would be:
+single one.
 
-Document A::
+This problem often occurs for example when different authors fill in
+different parts of a common document and you need to construct a document
+that includes contributions from all the authors. It also helps when
+dealing with consecutive versions of a document where different fields get
+updated over time.
 
-    {
-        "foo": 1
-    }
+Consider a trivial example with two documents::
 
-Document B::
+    >>> base = {
+    ...         "foo": 1,
+    ...         "bar": [ "one" ],
+    ...      }
 
-    {
-        "bar": 2
-    }
+    >>> head = {
+    ...         "bar": [ "two" ],
+    ...         "baz": "Hello, world!"
+    ...     }
 
-Result of the merge::
+We call the document we are merging changes into *base* and the changed
+document *head*. To merge these two documents using *jsonmerge*::
 
-    {
-        "foo": 1,
-        "bar": 2,
-    }
+    >>> from pprint import pprint
 
-Real life documents typically involve more complicated merge operations.
-For example, what happens when both A and B contain a *foo* property? Are
-arrays in the document appended, replaced or merged item-by-item?
+    >>> from jsonmerge import merge
+    >>> result = merge(base, head)
 
-jsonmerge allows you to specify merge strategies for each object, array and
-value in the document. The specification is based on JSON Schema. On each
-level of the hierarchy, the *mergeStrategy* keyword specifies the merge
-strategy used for that instance.
+    >>> pprint(result, width=40)
+    {'bar': ['two'],
+     'baz': 'Hello, world!',
+     'foo': 1}
 
-*mergeOptions* keyword specifies any options for the selected strategy.
+As you can see, when encountering an JSON object, *jsonmerge* by default
+returns fields that appear in either *base* or *head* document. For other
+JSON types, it simply replaces the older value. This principles are also
+applied in case of multiple nested JSON objects.
+
+In a more realistic use case however, you might want to apply different
+*merge strategies* to different parts of the document. You can tell
+*jsonmerge* how to do that using a syntax based on `JSON schema`_.
+
+If you already have schemas for your document, you can simply expand them
+with additional keywords recognized by *jsonmerge*.
+
+You use the *mergeStrategy* schema keyword to specify the strategy. The
+default two strategies mentioned above are called *objectMerge* for objects
+and *overwrite* for all other types.
+
+Let's say you want to specify that the merged *bar* field in the example
+document above should contain elements from all documents, not just the
+latest one. You can do this with a schema like this::
+
+    >>> schema = {
+    ...             "properties": {
+    ...                 "bar": {
+    ...                     "mergeStrategy": "append"
+    ...                 }
+    ...             }
+    ...         }
+
+    >>> from jsonmerge import Merger
+    >>> merger = Merger(schema)
+    >>> result = merger.merge(base, head)
+
+    >>> pprint(result, width=40)
+    {'bar': ['one', 'two'],
+     'baz': 'Hello, world!',
+     'foo': 1}
+
+Another common example is when you need to keep a versioned list of values
+that appeared in the series of documents::
+
+    >>> schema = {
+    ...             "properties": {
+    ...                 "foo": {
+    ...                     "type": "object",
+    ...                     "mergeStrategy": "version",
+    ...                     "mergeOptions": { "limit": 5 }
+    ...                 }
+    ...             }
+    ...         }
+    >>> from jsonmerge import Merger
+    >>> merger = Merger(schema)
+
+    >>> v1 = {
+    ...     'foo': {
+    ...         'greeting': 'Hello, World!'
+    ...     }
+    ... }
+
+    >>> v2 = {
+    ...     'foo': {
+    ...         'greeting': 'Howdy, World!'
+    ...     }
+    ... }
+
+    >>> base = None
+    >>> base = merger.merge(base, v1, meta={'version': 1})
+    >>> base = merger.merge(base, v2, meta={'version': 2})
+
+    >>> pprint(base, width=40)
+    {'foo': [{'value': {'greeting': 'Hello, World!'},
+              'version': 1},
+             {'value': {'greeting': 'Howdy, World!'},
+              'version': 2}]}
+
+Note that we use the *mergeOptions* keyword to supply additional options to
+the merge strategy. In this case, we tell the *version* strategy to retain
+only 5 most recent versions of this field.
+
+Example above also demonstrates how *jsonmerge* is typically used when
+merging more than two documents. Typically you start with an empty *base*
+and then consecutively merge different *heads* into it.
+
+If you care about well-formedness of your documents, you might also want to
+obtain a schema for the documents that the *merge* method creates.
+*jsonmerge* provides a way to automatically generate it from a schema for
+the input document::
+
+    >>> result_schema = merger.get_schema()
+
+    >>> pprint(result_schema, width=80)
+    {'properties': {'foo': {'items': {'properties': {'value': {'type': 'object'}}},
+                            'maxItems': 5}}}
+
+Note that because of the *version* strategy, the type of the *foo* field
+changed from *object* to *array*.
 
 
 Module content
@@ -69,9 +166,7 @@ The module can also make a schema for the merged document::
 Merge strategies
 ----------------
 
-These are the currently implemented merge strategies. Here *base* refers to
-the old document you are merging changes into and *head* refers to the
-newer document.
+These are the currently implemented merge strategies.
 
 overwrite
   Overwrite with the value in *base* with value in *head*. Works with any
@@ -98,13 +193,22 @@ version
 If a merge strategy is not specified in the schema, *objectMerge* is used
 to objects and *overwrite* for all other values.
 
+You can implement your own strategies by making subclasses of
+jsonmerge.strategies.Strategy and passing them to Merger() constructor.
+
 
 Limitations
 -----------
 
-Schemas that do not have a well-defined type (e.g. schemas using *allOf*,
-*anyOf* and *oneOf*) do not work well. Documents conforming to such schemas
-could require merging, for example, a string to an object.
+Merging of documents with schemas that do not have a well-defined type
+(e.g. schemas using *allOf*, *anyOf* and *oneOf*) will likely fail. Such
+documents could require merging of two values of different types. For
+example, *jsonmerge* does not know how to merge a string to an object.
+
+You can work around this limitation by defining for your own strategy that
+defines what to do in such cases. See docstring documentation for the
+*Strategy* class on how to do that. get_schema() however currently provides
+no support for ambiguous schemas like that.
 
 
 Requirements
@@ -117,7 +221,7 @@ installed.
 Installation
 ------------
 
-You install Unidecode, as you would install any Python module, by running
+You install *jsonmerge*, as you would install any Python module, by running
 these commands::
 
     python setup.py install
@@ -153,5 +257,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
+.. _JSON schema: http://json-schema.org
+
 ..
-    vim: tw=75
+    vim: tw=75 ts=4 sw=4 expandtab softtabstop=4
