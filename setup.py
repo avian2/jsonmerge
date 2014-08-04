@@ -6,6 +6,7 @@ import unittest
 
 UNITTESTS = [
         "test_jsonmerge",
+        "test_readme",
     ]
 
 class TestCommand(Command):
