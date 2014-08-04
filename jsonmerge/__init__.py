@@ -117,7 +117,7 @@ class Merger(object):
         "objectMerge": strategies.ObjectMerge(),
     }
 
-    def __init__(self, schema={}, strategies=()):
+    def __init__(self, schema, strategies=()):
         """Create a new Merger object.
 
         schema -- JSON schema to use when merging.
@@ -195,7 +195,7 @@ class Merger(object):
         walk = WalkSchema(self)
         return walk.descend(self.schema, meta)
 
-def merge(base, head, schema):
+def merge(base, head, schema={}):
     """Merge two JSON documents using strategies defined in schema.
 
     base -- Old JSON document you are merging into.
