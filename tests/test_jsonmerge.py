@@ -1,6 +1,7 @@
 # vim:ts=4 sw=4 expandtab softtabstop=4
 import unittest
 import jsonmerge
+import jsonmerge.strategies
 import jsonschema
 
 class TestMerge(unittest.TestCase):
@@ -314,6 +315,24 @@ class TestMerge(unittest.TestCase):
         base = merger.merge(base, {'b': 2})
 
         self.assertEqual(base, {'a': 1, 'b': 2})
+
+    def test_custom_strategy(self):
+
+        schema = {
+                    'mergeStrategy': 'myStrategy'
+                }
+
+        class MyStrategy(jsonmerge.strategies.Strategy):
+            def merge(self, walk, base, head, schema, meta, **kwargs):
+                return "foo"
+
+        merger = jsonmerge.Merger(schema=schema, strategies={'myStrategy': MyStrategy()})
+
+        base = None
+        base = merger.merge(base, {'a': 1})
+
+        self.assertEqual(base, "foo")
+
 
 class TestGetSchema(unittest.TestCase):
 

@@ -8,6 +8,7 @@ class Walk(object):
         self.resolver = merger.validator.resolver
 
     def is_type(self, instance, type):
+        """Check if instance if a specific JSON type."""
         return self.merger.validator.is_type(instance, type)
 
     def descend(self, schema, *args):
@@ -28,7 +29,7 @@ class Walk(object):
         if name is None:
             name = self.default_strategy(schema, *args, **opts)
 
-        strategy = self.merger.STRATEGIES[name]
+        strategy = self.merger.strategies[name]
 
         return self.work(strategy, schema, *args, **opts)
 
@@ -116,14 +117,21 @@ class Merger(object):
         "objectMerge": strategies.ObjectMerge(),
     }
 
-    def __init__(self, schema):
+    def __init__(self, schema={}, strategies=()):
         """Create a new Merger object.
 
         schema -- JSON schema to use when merging.
+        strategies -- Any additional merge strategies to use during merge.
+
+        strategies argument should be a dict mapping strategy names to
+        instances of Strategy subclasses.
         """
 
         self.schema = schema
         self.validator = Draft4Validator(schema)
+
+        self.strategies = dict(self.STRATEGIES)
+        self.strategies.update(strategies)
 
     def cache_schema(self, schema, uri=None):
         """Cache an external schema reference.
