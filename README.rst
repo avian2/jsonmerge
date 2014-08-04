@@ -132,37 +132,6 @@ Note that because of the *version* strategy, the type of the *foo* field
 changed from *object* to *array*.
 
 
-Module content
---------------
-
-The module exports a Merger class::
-
-    >>> from jsonmerge import Merger
-
-    # load schema document
-    >>> schema = {}
-    >>> merger = Merger(schema)
-
-    # start with an empty base document
-    >>> base = None
-
-    # load version 1 of the document and merge it into base)
-    >>> v1 = {'foo': 1}
-    >>> base = merger.merge(base, v1)
-
-    # load version 2 of the document and merge it into base)
-    >>> v2 = {'bar': 2}
-    >>> base = merger.merge(base, v2)
-
-    >>> base
-    {'foo': 1, 'bar': 2}
-
-The module can also make a schema for the merged document::
-
-    >>> merger.get_schema()
-    {}
-
-
 Merge strategies
 ----------------
 
