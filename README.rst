@@ -37,7 +37,7 @@ document *head*. To merge these two documents using *jsonmerge*::
 
 As you can see, when encountering an JSON object, *jsonmerge* by default
 returns fields that appear in either *base* or *head* document. For other
-JSON types, it simply replaces the older value. This principles are also
+JSON types, it simply replaces the older value. These principles are also
 applied in case of multiple nested JSON objects.
 
 In a more realistic use case however, you might want to apply different
@@ -111,7 +111,9 @@ that appeared in the series of documents::
 
 Note that we use the *mergeOptions* keyword to supply additional options to
 the merge strategy. In this case, we tell the *version* strategy to retain
-only 5 most recent versions of this field.
+only 5 most recent versions of this field. We also used the *meta* argument
+to supply some document meta-data that is included for each version of the
+field. *meta* can contain an arbitrary JSON object.
 
 Example above also demonstrates how *jsonmerge* is typically used when
 merging more than two documents. Typically you start with an empty *base*
