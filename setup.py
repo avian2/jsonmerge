@@ -37,5 +37,7 @@ setup(name='jsonmerge',
 
     packages = [ 'jsonmerge' ],
 
+    requires = [ 'jsonschema' ],
+
     cmdclass = { 'test': TestCommand },
 )
