@@ -1,2 +1,5 @@
+MANIFEST
 *.pyc
 build
+dist
+.tox
