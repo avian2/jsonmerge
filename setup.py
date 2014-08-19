@@ -28,7 +28,7 @@ class TestCommand(Command):
         result = unittest.TextTestRunner(verbosity=2).run(suite)
 
 setup(name='jsonmerge',
-    version='0.0.1',
+    version='1.0.0',
     description='Merge a series of JSON documents.',
     license='MIT',
     long_description=open("README.rst").read(),
