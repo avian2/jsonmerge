@@ -1,4 +1,5 @@
 #!/usr/bin/python
+# vim:ts=4 sw=4 expandtab softtabstop=4
 
 from distutils.core import Command, setup
 from sys import version_info
@@ -40,4 +41,12 @@ setup(name='jsonmerge',
     requires = [ 'jsonschema' ],
 
     cmdclass = { 'test': TestCommand },
+
+	classifiers = [
+		"License :: OSI Approved :: MIT License",
+		"Programming Language :: Python",
+		"Programming Language :: Python :: 2",
+		"Programming Language :: Python :: 3",
+        "Intended Audience :: Developers",
+	],
 )
