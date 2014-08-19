@@ -1,8 +1,17 @@
 language: python
 python:
+  - "pypy"
+  - 2.6
   - 2.7
-  - 3.2
+  - 3.3
+  - 3.4
+env:
+  - JSONSCHEMA="jsonschema"
+matrix:
+  include:
+    - python: "3.2"
+      env: JSONSCHEMA="jsonschema==2.3.0"
 install:
-  - pip install jsonschema
+  - pip install $JSONSCHEMA
 script:
   - python setup.py test
