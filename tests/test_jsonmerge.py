@@ -344,6 +344,14 @@ class TestGetSchema(unittest.TestCase):
 
         self.assertEqual(schema2, { 'description': 'test' })
 
+    def test_default_object_merge_trivial(self):
+        schema = { 'type': 'object' }
+
+        merger = jsonmerge.Merger(schema)
+        schema2 = merger.get_schema()
+
+        self.assertEqual(schema2, { 'type': 'object' })
+
     def test_default_object_merge(self):
         schema = { 'properties': {
                         'foo': {
@@ -582,3 +590,37 @@ class TestGetSchema(unittest.TestCase):
                     }
                 }
             })
+
+    def test_array_in_schema(self):
+
+        schema_1 = {
+                        'id': 'http://example.com/schema_1.json',
+                        '$ref': 'schema_2.json#/definitions/foo'
+                }
+
+        schema_2 = {
+                        'id': 'http://example.com/schema_2.json',
+                        'definitions': {
+                            'foo': {
+                                'mergeStrategy': 'overwrite',
+                                'enum': [
+                                    "foo",
+                                    "bar",
+                                ]
+                            },
+                        }
+                    }
+
+        merger = jsonmerge.Merger(schema_1)
+        merger.cache_schema(schema_2)
+
+        mschema = merger.get_schema()
+
+        d = {
+                'enum': [
+                    "foo",
+                    "bar",
+                ]
+            }
+
+        self.assertEqual(d, mschema)
