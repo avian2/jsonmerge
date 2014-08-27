@@ -38,11 +38,11 @@ setup(name='jsonmerge',
     packages = [ 'jsonmerge' ],
     install_requires = [ 'jsonschema' ],
     cmdclass = { 'test': TestCommand },
-	classifiers = [
-		"License :: OSI Approved :: MIT License",
-		"Programming Language :: Python",
-		"Programming Language :: Python :: 2",
-		"Programming Language :: Python :: 3",
+    classifiers = [
+        "License :: OSI Approved :: MIT License",
+        "Programming Language :: Python",
+        "Programming Language :: Python :: 2",
+        "Programming Language :: Python :: 3",
         "Intended Audience :: Developers",
-	],
+    ],
 )
