@@ -3,7 +3,6 @@
 
 from distutils.core import Command
 from setuptools import setup
-from sys import version_info
 import unittest
 
 UNITTESTS = [
