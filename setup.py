@@ -1,7 +1,8 @@
 #!/usr/bin/python
 # vim:ts=4 sw=4 expandtab softtabstop=4
 
-from distutils.core import Command, setup
+from distutils.core import Command
+from setuptools import setup
 from sys import version_info
 import unittest
 
@@ -35,13 +36,9 @@ setup(name='jsonmerge',
     long_description=open("README.rst").read(),
     author='Tomaz Solc',
     author_email='tomaz.solc@tablix.org',
-
     packages = [ 'jsonmerge' ],
-
-    requires = [ 'jsonschema' ],
-
+    install_requires = [ 'jsonschema' ],
     cmdclass = { 'test': TestCommand },
-
 	classifiers = [
 		"License :: OSI Approved :: MIT License",
 		"Programming Language :: Python",
