@@ -110,6 +110,39 @@ class Append(Strategy):
     def get_schema(self, walk, schema, meta, **kwargs):
         return walk.resolve_refs(schema)
 
+
+class OverwriteByKey(Strategy):
+    def merge(self, walk, base, head, schema, meta, match_key=None, **kwargs):
+        if not match_key:
+            raise TypeError("Must have a key to match items on")
+
+        if not walk.is_type(head, "array"):
+            raise TypeError("Head for an 'overwriteByKey' merge strategy is not an array")  # nopep8
+
+        if base is None:
+            base = []
+        else:
+            if not walk.is_type(base, "array"):
+                raise TypeError("Base for an 'overwriteByKey' merge strategy is not an array")  # nopep8
+            base = list(base)
+
+        for head_item in head:
+            key_count = 0
+            for i, base_item in enumerate(base):
+                if base_item[match_key] == head_item[match_key]:
+                    key_count += 1
+                    base[i] = walk.descend(None, base_item, head_item, meta)
+            if key_count == 0:
+                base.append(head_item)
+            if key_count > 1:
+                raise TypeError("Key id was not unique")
+
+        return base
+
+    def get_schema(self, walk, schema, meta, **kwargs):
+        return walk.resolve_refs(schema)
+
+
 class ObjectMerge(Strategy):
     def merge(self, walk, base, head, schema, meta, **kwargs):
         if not walk.is_type(head, "object"):
