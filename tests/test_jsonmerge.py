@@ -333,6 +333,109 @@ class TestMerge(unittest.TestCase):
 
         self.assertEqual(base, "foo")
 
+    def test_override_with_key(self):
+        schema = {
+            "properties": {
+                "awards": {
+                    "type": "array",
+                    "mergeStrategy": "overwriteByKey",
+                    "mergeOptions": {"match_key": "id"},
+                    "items": {
+                        "properties": {
+                            "id": {"type": "string"},
+                            "field": {"type": "number"},
+                        }
+                    }
+                }
+            }
+        }
+
+        a = {
+            "awards": [
+                {"id": "A", "field": 1},
+                {"id": "B", "field": 2}
+            ]
+        }
+
+        b = {
+            "awards": [
+                {"id": "B", "field": 3},
+                {"id": "C", "field": 4}
+            ]
+        }
+
+        expected = {
+            "awards": [
+                {"id": "A", "field": 1},
+                {"id": "B", "field": 3},
+                {"id": "C", "field": 4}
+            ]
+        }
+
+        merger = jsonmerge.Merger(schema)
+
+        base = None
+        base = merger.merge(base, a)
+        base = merger.merge(base, b)
+
+        self.assertEqual(base, expected)
+
+    def test_override_with_key_with_complex_array(self):
+        schema = {
+            "properties": {
+                "awards": {
+                    "type": "array",
+                    "mergeStrategy": "overwriteByKey",
+                    "mergeOptions": {"match_key": "id"},
+                    "items": {
+                        "properties": {
+                            "id": {"type": "string"},
+                            "field": {
+                                "type": "array",
+                                "items": {
+                                    "properties": {
+                                        "xx": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        a = {
+            "awards": [
+                {"id": "A", "field": [{"xx": "testA1"}, {"xx": "testA2"}]},
+                {"id": "B", "field": [{"xx": "testA3"}, {"xx": "testA4"}]}
+            ]
+        }
+
+        b = {
+            "awards": [
+                {"id": "B", "field": [{"xx": "testA3"}, {"xx": "testA6"}]},
+                {"id": "C", "field": [{"xx": "testA7"}, {"xx": "testA8"}]}
+            ]
+        }
+
+        expected = {
+            "awards": [
+                {"id": "A", "field": [{"xx": "testA1"}, {"xx": "testA2"}]},
+                {"id": "B", "field": [{"xx": "testA3"}, {"xx": "testA6"}]},
+                {"id": "C", "field": [{"xx": "testA7"}, {"xx": "testA8"}]}
+            ]
+        }
+
+        merger = jsonmerge.Merger(schema)
+
+        base = None
+        base = merger.merge(base, a)
+        base = merger.merge(base, b)
+
+        self.assertEqual(base, expected)
+
 
 class TestGetSchema(unittest.TestCase):
 
