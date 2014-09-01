@@ -333,7 +333,7 @@ class TestMerge(unittest.TestCase):
 
         self.assertEqual(base, "foo")
 
-    def test_override_with_key(self):
+    def test_overwrite_with_key(self):
         schema = {
             "properties": {
                 "awards": {
@@ -380,7 +380,7 @@ class TestMerge(unittest.TestCase):
 
         self.assertEqual(base, expected)
 
-    def test_override_with_key_with_complex_array(self):
+    def test_overwrite_with_key_with_complex_array(self):
         schema = {
             "properties": {
                 "awards": {
