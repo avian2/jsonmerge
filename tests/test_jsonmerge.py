@@ -36,6 +36,18 @@ class TestMerge(unittest.TestCase):
 
         self.assertEqual(base, [{'value': "a"}, {'value': "b"}])
 
+    def test_version_does_not_duplicate(self):
+        # Don't record change if it didn't change
+
+        schema = {'mergeStrategy': 'version'}
+
+        base = None
+        base = jsonmerge.merge(base, "a", schema)
+        base = jsonmerge.merge(base, "b", schema)
+        base = jsonmerge.merge(base, "b", schema)
+
+        self.assertEqual(base, [{'value': "a"}, {'value': "b"}])
+
     def test_version_meta(self):
 
         schema = {'mergeStrategy': 'version'}
