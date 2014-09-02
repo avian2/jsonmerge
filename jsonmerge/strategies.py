@@ -126,14 +126,19 @@ class OverwriteByKey(Strategy):
                 raise TypeError("Base for an 'overwriteByKey' merge strategy is not an array")  # nopep8
             base = list(base)
 
+        subschema = None
+
+        if schema:
+            subschema = schema['items']
+
         for head_item in head:
             key_count = 0
             for i, base_item in enumerate(base):
                 if base_item[match_key] == head_item[match_key]:
                     key_count += 1
-                    base[i] = walk.descend(None, base_item, head_item, meta)
+                    base[i] = walk.descend(subschema, base_item, head_item, meta, **kwargs)
             if key_count == 0:
-                base.append(head_item)
+                base.append(walk.descend(subschema, None, head_item, meta, **kwargs))
             if key_count > 1:
                 raise TypeError("Key id was not unique")
 

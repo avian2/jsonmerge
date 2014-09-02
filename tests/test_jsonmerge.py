@@ -436,6 +436,59 @@ class TestMerge(unittest.TestCase):
 
         self.assertEqual(base, expected)
 
+    def test_overwrite_by_key_with_subschema(self):
+        schema = {
+            "properties": {
+                "awards": {
+                    "type": "array",
+                    "mergeStrategy": "overwriteByKey",
+                    "mergeOptions": {"match_key": "id"},
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "id": {
+                                "type": "string"
+                            },
+                            "field": {
+                                "type": "number",
+                                "mergeStrategy": "version"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        a = {
+            "awards": [
+                {"id": "A", "field": 1},
+                {"id": "B", "field": 2}
+            ]
+        }
+
+        b = {
+            "awards": [
+                {"id": "B", "field": 3},
+                {"id": "C", "field": 4}
+            ]
+        }
+
+        expected = {
+            "awards": [
+                {"id": "A", "field": [{"value": 1}]},
+                {"id": "B", "field": [{"value": 2}, {"value": 3}]},
+                {"id": "C", "field": [{"value": 4}]}
+            ]
+        }
+
+        merger = jsonmerge.Merger(schema)
+
+        base = None
+        base = merger.merge(base, a)
+        base = merger.merge(base, b)
+
+        self.assertEqual(base, expected)
+
 
 class TestGetSchema(unittest.TestCase):
 
