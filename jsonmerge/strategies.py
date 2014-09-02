@@ -132,12 +132,17 @@ class OverwriteByKey(Strategy):
             subschema = schema['items']
 
         for head_item in head:
+            # Do nothing if there's nothing in the match_key field
+            if head_item[match_key] == "":
+                continue
             key_count = 0
             for i, base_item in enumerate(base):
                 if base_item[match_key] == head_item[match_key]:
                     key_count += 1
+                    # If there was a match, we replace with a merged item
                     base[i] = walk.descend(subschema, base_item, head_item, meta, **kwargs)
             if key_count == 0:
+                # If there wasn't a match, we append a new object
                 base.append(walk.descend(subschema, None, head_item, meta, **kwargs))
             if key_count > 1:
                 raise TypeError("Key id was not unique")

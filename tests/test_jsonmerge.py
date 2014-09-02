@@ -333,7 +333,7 @@ class TestMerge(unittest.TestCase):
 
         self.assertEqual(base, "foo")
 
-    def test_overwrite_with_key(self):
+    def test_overwrite_by_key(self):
         schema = {
             "properties": {
                 "awards": {
@@ -380,7 +380,54 @@ class TestMerge(unittest.TestCase):
 
         self.assertEqual(base, expected)
 
-    def test_overwrite_with_key_with_complex_array(self):
+    def test_overwrite_by_key_when_key_is_empty_should_do_nothing(self):
+        schema = {
+            "properties": {
+                "awards": {
+                    "type": "array",
+                    "mergeStrategy": "overwriteByKey",
+                    "mergeOptions": {"match_key": "id"},
+                    "items": {
+                        "properties": {
+                            "id": {"type": "string"},
+                            "field": {"type": "number"},
+                        }
+                    }
+                }
+            }
+        }
+
+        a = {
+            "awards": [
+                {"id": "A", "field": 1},
+                {"id": "", "field": ""}
+            ]
+        }
+
+        b = {
+            "awards": [
+                {"id": "B", "field": 3},
+                {"id": "C", "field": 4}
+            ]
+        }
+
+        expected = {
+            "awards": [
+                {"id": "A", "field": 1},
+                {"id": "B", "field": 3},
+                {"id": "C", "field": 4}
+            ]
+        }
+
+        merger = jsonmerge.Merger(schema)
+
+        base = None
+        base = merger.merge(base, a)
+        base = merger.merge(base, b)
+
+        self.assertEqual(base, expected)
+
+    def test_overwrite_by_key_with_complex_array(self):
         schema = {
             "properties": {
                 "awards": {
