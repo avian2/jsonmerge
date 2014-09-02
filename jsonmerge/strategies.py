@@ -65,7 +65,7 @@ class Version(Strategy):
         else:
             base = list(base)
 
-        if not unique or not base or base[0]['value'] != head:
+        if not unique or not base or base[-1]['value'] != head:
             base.append(walk.add_meta(head, meta))
             if limit is not None:
                 base = base[-limit:]
