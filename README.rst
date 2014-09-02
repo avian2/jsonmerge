@@ -161,6 +161,10 @@ version
   You can limit the length of the list using the *limit* option in the
   *mergeOptions* keyword.
 
+  By default, if a *head* document contains the same value as the *base*,
+  document, no new version will be appended. You can change this by setting
+  *unique* option to *false*.
+
 If a merge strategy is not specified in the schema, *objectMerge* is used
 to objects and *overwrite* for all other values.
 
