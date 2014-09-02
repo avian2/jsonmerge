@@ -103,7 +103,7 @@ that appeared in the series of documents::
     >>> base = merger.merge(base, v1, meta={'version': 1})
     >>> base = merger.merge(base, v2, meta={'version': 2})
 
-    >>> pprint(base, width=40)
+    >>> pprint(base, width=49)
     {'foo': [{'value': {'greeting': 'Hello, World!'},
               'version': 1},
              {'value': {'greeting': 'Howdy, World!'},
