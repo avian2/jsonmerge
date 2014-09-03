@@ -427,6 +427,33 @@ class TestMerge(unittest.TestCase):
 
         self.assertEqual(base, expected)
 
+    def test_overwrite_by_key_no_items(self):
+        schema = {
+            "mergeStrategy": "overwriteByKey",
+            "mergeOptions": {"match_key": "id"},
+        }
+
+        a = [
+            {"id": "A", "field": 1},
+        ]
+
+        b = [
+            {"id": "A", "field": 2},
+        ]
+
+        # by default, it should fall back to "replace" strategy for integers.
+        expected = [
+            {"id": "A", "field": 2},
+        ]
+
+        merger = jsonmerge.Merger(schema)
+
+        base = None
+        base = merger.merge(base, a)
+        base = merger.merge(base, b)
+
+        self.assertEqual(base, expected)
+
     def test_overwrite_by_key_with_complex_array(self):
         schema = {
             "properties": {

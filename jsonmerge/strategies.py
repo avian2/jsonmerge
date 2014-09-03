@@ -129,7 +129,7 @@ class OverwriteByKey(Strategy):
         subschema = None
 
         if schema:
-            subschema = schema['items']
+            subschema = schema.get('items')
 
         for head_item in head:
             # Do nothing if there's nothing in the match_key field
