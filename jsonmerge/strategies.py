@@ -84,7 +84,8 @@ class Version(Strategy):
 
         item['properties']['value'] = walk.resolve_refs(schema)
 
-        rv = { "items": item }
+        rv = {  "type": "array",
+                "items": item }
 
         if limit is not None:
             rv['maxItems'] = limit

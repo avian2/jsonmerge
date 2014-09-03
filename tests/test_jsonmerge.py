@@ -376,6 +376,7 @@ class TestGetSchema(unittest.TestCase):
 
         self.assertEqual(schema2, { 'properties': {
                                         'foo': {
+                                            'type': 'array',
                                             'items': {
                                                 'properties': {
                                                     'value': {},
@@ -410,6 +411,7 @@ class TestGetSchema(unittest.TestCase):
 
         self.assertEqual(schema2,
                 {
+                    'type': 'array',
                     'items': {
                         'properties': {
                             'value': {}
@@ -432,6 +434,7 @@ class TestGetSchema(unittest.TestCase):
 
         self.assertEqual(schema2,
                 {
+                    'type': 'array',
                     'items': {
                         'properties': {
                             'value': { 'type': 'object' },
@@ -450,6 +453,7 @@ class TestGetSchema(unittest.TestCase):
 
         self.assertEqual(schema2,
                 {
+                    'type': 'array',
                     'items': {
                         'properties': {
                             'value': {}
@@ -481,6 +485,7 @@ class TestGetSchema(unittest.TestCase):
         self.assertEqual(schema2,
                 {   'properties': {
                         'foo': {
+                            'type': 'array',
                             'items': {
                                 'properties': {
                                     'value': {}
@@ -595,6 +600,7 @@ class TestGetSchema(unittest.TestCase):
 
         self.assertEqual(mschema,
             {
+                'type': 'array',
                 'items': {
                     'properties': {
                         'value': {},
@@ -636,3 +642,53 @@ class TestGetSchema(unittest.TestCase):
             }
 
         self.assertEqual(d, mschema)
+
+    def test_version_adds_array_type(self):
+        schema = {
+            "type": "object",
+            "properties": {
+                "buyer": {
+                    "properties": {
+                        "id": {
+                            "type": "object",
+                            "properties": {
+                                "name": {
+                                    "type": "string",
+                                    "mergeStrategy": "version"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        expected = {
+            "type": "object",
+            "properties": {
+                "buyer": {
+                    "properties": {
+                        "id": {
+                            "type": "object",
+                            "properties": {
+                                "name": {
+                                    "type": "array",
+                                    "items": {
+                                        "properties": {
+                                            "value": {
+                                                "type": "string"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        merger = jsonmerge.Merger(schema)
+        schema2 = merger.get_schema()
+
+        self.assertEqual(schema2, expected)

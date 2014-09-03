@@ -128,7 +128,8 @@ the input document::
 
     >>> pprint(result_schema, width=80)
     {'properties': {'foo': {'items': {'properties': {'value': {'type': 'object'}}},
-                            'maxItems': 5}}}
+                            'maxItems': 5,
+                            'type': 'array'}}}
 
 Note that because of the *version* strategy, the type of the *foo* field
 changed from *object* to *array*.
