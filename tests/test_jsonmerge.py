@@ -364,6 +364,7 @@ class TestGetSchema(unittest.TestCase):
 
         self.assertEqual(schema2, { 'properties': {
                                         'foo': {
+                                            'type': 'array',
                                             'items': {
                                                 'properties': {
                                                     'value': {},
@@ -398,6 +399,7 @@ class TestGetSchema(unittest.TestCase):
 
         self.assertEqual(schema2,
                 {
+                    'type': 'array',
                     'items': {
                         'properties': {
                             'value': {}
@@ -420,6 +422,7 @@ class TestGetSchema(unittest.TestCase):
 
         self.assertEqual(schema2,
                 {
+                    'type': 'array',
                     'items': {
                         'properties': {
                             'value': { 'type': 'object' },
@@ -438,6 +441,7 @@ class TestGetSchema(unittest.TestCase):
 
         self.assertEqual(schema2,
                 {
+                    'type': 'array',
                     'items': {
                         'properties': {
                             'value': {}
@@ -469,6 +473,7 @@ class TestGetSchema(unittest.TestCase):
         self.assertEqual(schema2,
                 {   'properties': {
                         'foo': {
+                            'type': 'array',
                             'items': {
                                 'properties': {
                                     'value': {}
@@ -583,6 +588,7 @@ class TestGetSchema(unittest.TestCase):
 
         self.assertEqual(mschema,
             {
+                'type': 'array',
                 'items': {
                     'properties': {
                         'value': {},
