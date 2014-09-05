@@ -113,10 +113,7 @@ class Append(Strategy):
 
 
 class ArrayMergeById(Strategy):
-    def merge(self, walk, base, head, schema, meta, idRef=None, **kwargs):
-        if not idRef:
-            raise TypeError("Must have a idRef to match items on")
-
+    def merge(self, walk, base, head, schema, meta, idRef="id", **kwargs):
         if not walk.is_type(head, "array"):
             raise TypeError("Head for an 'arrayMergeById' merge strategy is not an array")  # nopep8
 

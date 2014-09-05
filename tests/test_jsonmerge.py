@@ -339,7 +339,6 @@ class TestMerge(unittest.TestCase):
                 "awards": {
                     "type": "array",
                     "mergeStrategy": "arrayMergeById",
-                    "mergeOptions": {"idRef": "id"},
                     "items": {
                         "properties": {
                             "id": {"type": "string"},
@@ -386,7 +385,6 @@ class TestMerge(unittest.TestCase):
                 "awards": {
                     "type": "array",
                     "mergeStrategy": "arrayMergeById",
-                    "mergeOptions": {"idRef": "id"},
                     "items": {
                         "properties": {
                             "id": {"type": "string"},
@@ -454,10 +452,35 @@ class TestMerge(unittest.TestCase):
 
         self.assertEqual(base, expected)
 
+    def test_merge_by_id_simple_ref(self):
+        schema = {
+            "mergeStrategy": "arrayMergeById",
+            "mergeOptions": { "idRef": "key" }
+        }
+
+        a = [
+            {"key": "A", "field": 1},
+        ]
+
+        b = [
+            {"key": "A", "field": 2},
+        ]
+
+        expected = [
+            {"key": "A", "field": 2},
+        ]
+
+        merger = jsonmerge.Merger(schema)
+
+        base = None
+        base = merger.merge(base, a)
+        base = merger.merge(base, b)
+
+        self.assertEqual(base, expected)
+
     def test_merge_by_id_no_key(self):
         schema = {
             "mergeStrategy": "arrayMergeById",
-            "mergeOptions": {"idRef": "id"},
         }
 
         a = [
@@ -477,7 +500,7 @@ class TestMerge(unittest.TestCase):
         # it should ignore array elements that do not have the id
         self.assertEqual(base, a)
 
-    def test_merge_by_id_ref(self):
+    def test_merge_by_id_compex_ref(self):
         schema = {
             "mergeStrategy": "arrayMergeById",
             "mergeOptions": {"idRef": "/foo/bar"},
@@ -516,7 +539,6 @@ class TestMerge(unittest.TestCase):
                 "awards": {
                     "type": "array",
                     "mergeStrategy": "arrayMergeById",
-                    "mergeOptions": {"idRef": "id"},
                     "items": {
                         "properties": {
                             "id": {"type": "string"},
@@ -572,7 +594,6 @@ class TestMerge(unittest.TestCase):
                 "awards": {
                     "type": "array",
                     "mergeStrategy": "arrayMergeById",
-                    "mergeOptions": {"idRef": "id"},
                     "items": {
                         "type": "object",
                         "properties": {
