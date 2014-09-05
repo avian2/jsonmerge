@@ -129,6 +129,9 @@ class ArrayMergeById(Strategy):
         if schema:
             subschema = schema.get('items')
 
+        if walk.is_type(subschema, "array"):
+            raise TypeError("'arrayMergeById' not supported when 'items' is an array")
+
         for head_item in head:
 
             try:
