@@ -1,4 +1,5 @@
 # vim:ts=4 sw=4 expandtab softtabstop=4
+import jsonschema
 import re
 
 class Strategy(object):
@@ -132,12 +133,20 @@ class OverwriteByKey(Strategy):
             subschema = schema.get('items')
 
         for head_item in head:
-            # Do nothing if there's nothing in the match_key field
-            if head_item.get(match_key, "") == "":
+
+            try:
+                head_key = walk.resolver.resolve_fragment(head_item, match_key)
+            except jsonschema.RefResolutionError:
+                # Do nothing if match_key field cannot be found.
                 continue
+
+            if head_key == "":
+                continue
+
             key_count = 0
             for i, base_item in enumerate(base):
-                if base_item[match_key] == head_item[match_key]:
+                base_key = walk.resolver.resolve_fragment(base_item, match_key)
+                if base_key == head_key:
                     key_count += 1
                     # If there was a match, we replace with a merged item
                     base[i] = walk.descend(subschema, base_item, head_item, meta, **kwargs)

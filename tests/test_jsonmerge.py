@@ -477,6 +477,39 @@ class TestMerge(unittest.TestCase):
         # it should ignore array elements that do not have the id
         self.assertEqual(base, a)
 
+    def test_overwrite_by_key_ref(self):
+        schema = {
+            "mergeStrategy": "overwriteByKey",
+            "mergeOptions": {"match_key": "/foo/bar"},
+        }
+
+        a = [
+            {'foo': {'bar': 1}, 'baz': 1 }
+        ]
+
+        b = [
+            {'foo': {'bar': 2} }
+        ]
+
+        c = [
+            {'foo': {'bar': 1}, 'baz': 2 }
+        ]
+
+        # by default, it should fall back to "replace" strategy for integers.
+        expected = [
+            {'foo': {'bar': 1}, 'baz': 2 },
+            {'foo': {'bar': 2} }
+        ]
+
+        merger = jsonmerge.Merger(schema)
+
+        base = None
+        base = merger.merge(base, a)
+        base = merger.merge(base, b)
+        base = merger.merge(base, c)
+
+        self.assertEqual(base, expected)
+
     def test_overwrite_by_key_with_complex_array(self):
         schema = {
             "properties": {
