@@ -133,7 +133,7 @@ class OverwriteByKey(Strategy):
 
         for head_item in head:
             # Do nothing if there's nothing in the match_key field
-            if head_item[match_key] == "":
+            if head_item.get(match_key, "") == "":
                 continue
             key_count = 0
             for i, base_item in enumerate(base):
