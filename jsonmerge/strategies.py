@@ -146,10 +146,10 @@ class ArrayMergeById(Strategy):
                 if base_key == head_key:
                     key_count += 1
                     # If there was a match, we replace with a merged item
-                    base[i] = walk.descend(subschema, base_item, head_item, meta, **kwargs)
+                    base[i] = walk.descend(subschema, base_item, head_item, meta)
             if key_count == 0:
                 # If there wasn't a match, we append a new object
-                base.append(walk.descend(subschema, None, head_item, meta, **kwargs))
+                base.append(walk.descend(subschema, None, head_item, meta))
             if key_count > 1:
                 raise TypeError("Key id was not unique")
 
