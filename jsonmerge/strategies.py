@@ -154,7 +154,7 @@ class ArrayMergeById(Strategy):
                 # If there wasn't a match, we append a new object
                 base.append(walk.descend(subschema, None, head_item, meta))
             if key_count > 1:
-                raise TypeError("Key id was not unique")
+                raise TypeError("Id was not unique")
 
         return base
 
