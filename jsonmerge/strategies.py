@@ -112,19 +112,19 @@ class Append(Strategy):
         return walk.resolve_refs(schema)
 
 
-class OverwriteByKey(Strategy):
-    def merge(self, walk, base, head, schema, meta, match_key=None, **kwargs):
-        if not match_key:
-            raise TypeError("Must have a key to match items on")
+class ArrayMergeById(Strategy):
+    def merge(self, walk, base, head, schema, meta, idRef=None, **kwargs):
+        if not idRef:
+            raise TypeError("Must have a idRef to match items on")
 
         if not walk.is_type(head, "array"):
-            raise TypeError("Head for an 'overwriteByKey' merge strategy is not an array")  # nopep8
+            raise TypeError("Head for an 'arrayMergeById' merge strategy is not an array")  # nopep8
 
         if base is None:
             base = []
         else:
             if not walk.is_type(base, "array"):
-                raise TypeError("Base for an 'overwriteByKey' merge strategy is not an array")  # nopep8
+                raise TypeError("Base for an 'arrayMergeById' merge strategy is not an array")  # nopep8
             base = list(base)
 
         subschema = None
@@ -135,9 +135,9 @@ class OverwriteByKey(Strategy):
         for head_item in head:
 
             try:
-                head_key = walk.resolver.resolve_fragment(head_item, match_key)
+                head_key = walk.resolver.resolve_fragment(head_item, idRef)
             except jsonschema.RefResolutionError:
-                # Do nothing if match_key field cannot be found.
+                # Do nothing if idRef field cannot be found.
                 continue
 
             if head_key == "":
@@ -145,7 +145,7 @@ class OverwriteByKey(Strategy):
 
             key_count = 0
             for i, base_item in enumerate(base):
-                base_key = walk.resolver.resolve_fragment(base_item, match_key)
+                base_key = walk.resolver.resolve_fragment(base_item, idRef)
                 if base_key == head_key:
                     key_count += 1
                     # If there was a match, we replace with a merged item

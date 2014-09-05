@@ -333,13 +333,13 @@ class TestMerge(unittest.TestCase):
 
         self.assertEqual(base, "foo")
 
-    def test_overwrite_by_key(self):
+    def test_merge_by_id(self):
         schema = {
             "properties": {
                 "awards": {
                     "type": "array",
-                    "mergeStrategy": "overwriteByKey",
-                    "mergeOptions": {"match_key": "id"},
+                    "mergeStrategy": "arrayMergeById",
+                    "mergeOptions": {"idRef": "id"},
                     "items": {
                         "properties": {
                             "id": {"type": "string"},
@@ -380,13 +380,13 @@ class TestMerge(unittest.TestCase):
 
         self.assertEqual(base, expected)
 
-    def test_overwrite_by_key_when_key_is_empty_should_do_nothing(self):
+    def test_merge_by_id_when_key_is_empty_should_do_nothing(self):
         schema = {
             "properties": {
                 "awards": {
                     "type": "array",
-                    "mergeStrategy": "overwriteByKey",
-                    "mergeOptions": {"match_key": "id"},
+                    "mergeStrategy": "arrayMergeById",
+                    "mergeOptions": {"idRef": "id"},
                     "items": {
                         "properties": {
                             "id": {"type": "string"},
@@ -427,10 +427,10 @@ class TestMerge(unittest.TestCase):
 
         self.assertEqual(base, expected)
 
-    def test_overwrite_by_key_no_items(self):
+    def test_merge_by_id_no_items(self):
         schema = {
-            "mergeStrategy": "overwriteByKey",
-            "mergeOptions": {"match_key": "id"},
+            "mergeStrategy": "arrayMergeById",
+            "mergeOptions": {"idRef": "id"},
         }
 
         a = [
@@ -454,10 +454,10 @@ class TestMerge(unittest.TestCase):
 
         self.assertEqual(base, expected)
 
-    def test_overwrite_by_key_no_key(self):
+    def test_merge_by_id_no_key(self):
         schema = {
-            "mergeStrategy": "overwriteByKey",
-            "mergeOptions": {"match_key": "id"},
+            "mergeStrategy": "arrayMergeById",
+            "mergeOptions": {"idRef": "id"},
         }
 
         a = [
@@ -477,10 +477,10 @@ class TestMerge(unittest.TestCase):
         # it should ignore array elements that do not have the id
         self.assertEqual(base, a)
 
-    def test_overwrite_by_key_ref(self):
+    def test_merge_by_id_ref(self):
         schema = {
-            "mergeStrategy": "overwriteByKey",
-            "mergeOptions": {"match_key": "/foo/bar"},
+            "mergeStrategy": "arrayMergeById",
+            "mergeOptions": {"idRef": "/foo/bar"},
         }
 
         a = [
@@ -510,13 +510,13 @@ class TestMerge(unittest.TestCase):
 
         self.assertEqual(base, expected)
 
-    def test_overwrite_by_key_with_complex_array(self):
+    def test_merge_by_id_with_complex_array(self):
         schema = {
             "properties": {
                 "awards": {
                     "type": "array",
-                    "mergeStrategy": "overwriteByKey",
-                    "mergeOptions": {"match_key": "id"},
+                    "mergeStrategy": "arrayMergeById",
+                    "mergeOptions": {"idRef": "id"},
                     "items": {
                         "properties": {
                             "id": {"type": "string"},
@@ -566,13 +566,13 @@ class TestMerge(unittest.TestCase):
 
         self.assertEqual(base, expected)
 
-    def test_overwrite_by_key_with_subschema(self):
+    def test_merge_by_id_with_subschema(self):
         schema = {
             "properties": {
                 "awards": {
                     "type": "array",
-                    "mergeStrategy": "overwriteByKey",
-                    "mergeOptions": {"match_key": "id"},
+                    "mergeStrategy": "arrayMergeById",
+                    "mergeOptions": {"idRef": "id"},
                     "items": {
                         "type": "object",
                         "properties": {
