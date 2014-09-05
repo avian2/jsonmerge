@@ -113,7 +113,7 @@ class Append(Strategy):
 
 
 class ArrayMergeById(Strategy):
-    def merge(self, walk, base, head, schema, meta, idRef="id", **kwargs):
+    def merge(self, walk, base, head, schema, meta, idRef="id", ignoreId=None, **kwargs):
         if not walk.is_type(head, "array"):
             raise TypeError("Head for an 'arrayMergeById' merge strategy is not an array")  # nopep8
 
@@ -137,7 +137,7 @@ class ArrayMergeById(Strategy):
                 # Do nothing if idRef field cannot be found.
                 continue
 
-            if head_key == "":
+            if head_key == ignoreId:
                 continue
 
             key_count = 0

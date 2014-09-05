@@ -385,6 +385,7 @@ class TestMerge(unittest.TestCase):
                 "awards": {
                     "type": "array",
                     "mergeStrategy": "arrayMergeById",
+                    "mergeOptions": { "ignoreId": "" },
                     "items": {
                         "properties": {
                             "id": {"type": "string"},
