@@ -103,7 +103,7 @@ that appeared in the series of documents::
     >>> base = merger.merge(base, v1, meta={'version': 1})
     >>> base = merger.merge(base, v2, meta={'version': 2})
 
-    >>> pprint(base, width=40)
+    >>> pprint(base, width=55)
     {'foo': [{'value': {'greeting': 'Hello, World!'},
               'version': 1},
              {'value': {'greeting': 'Howdy, World!'},
@@ -128,7 +128,8 @@ the input document::
 
     >>> pprint(result_schema, width=80)
     {'properties': {'foo': {'items': {'properties': {'value': {'type': 'object'}}},
-                            'maxItems': 5}}}
+                            'maxItems': 5,
+                            'type': 'array'}}}
 
 Note that because of the *version* strategy, the type of the *foo* field
 changed from *object* to *array*.
@@ -180,6 +181,10 @@ version
 
   You can limit the length of the list using the *limit* option in the
   *mergeOptions* keyword.
+
+  By default, if a *head* document contains the same value as the *base*,
+  document, no new version will be appended. You can change this by setting
+  *unique* option to *false*.
 
 If a merge strategy is not specified in the schema, *objectMerge* is used
 to objects and *overwrite* for all other values.

@@ -2,6 +2,9 @@
 import unittest
 import jsonmerge
 import jsonmerge.strategies
+from jsonmerge.exceptions import HeadInstanceError, \
+                                 BaseInstanceError, \
+                                 SchemaError
 import jsonschema
 
 class TestMerge(unittest.TestCase):
@@ -32,6 +35,18 @@ class TestMerge(unittest.TestCase):
 
         base = None
         base = jsonmerge.merge(base, "a", schema)
+        base = jsonmerge.merge(base, "b", schema)
+
+        self.assertEqual(base, [{'value': "a"}, {'value': "b"}])
+
+    def test_version_does_not_duplicate(self):
+        # Don't record change if it didn't change
+
+        schema = {'mergeStrategy': 'version'}
+
+        base = None
+        base = jsonmerge.merge(base, "a", schema)
+        base = jsonmerge.merge(base, "b", schema)
         base = jsonmerge.merge(base, "b", schema)
 
         self.assertEqual(base, [{'value': "a"}, {'value': "b"}])
@@ -103,14 +118,14 @@ class TestMerge(unittest.TestCase):
         schema = {'mergeStrategy': 'append'}
 
         base = None
-        self.assertRaises(TypeError, jsonmerge.merge, base, "a", schema)
+        self.assertRaises(HeadInstanceError, jsonmerge.merge, base, "a", schema)
 
     def test_append_type_error_base(self):
 
         schema = {'mergeStrategy': 'append'}
 
         base = "ab"
-        self.assertRaises(TypeError, jsonmerge.merge, base, ["a"], schema)
+        self.assertRaises(BaseInstanceError, jsonmerge.merge, base, ["a"], schema)
 
     def test_merge_default(self):
 
@@ -146,14 +161,14 @@ class TestMerge(unittest.TestCase):
         schema = {'mergeStrategy': 'objectMerge'}
 
         base = None
-        self.assertRaises(TypeError, jsonmerge.merge, base, "a", schema)
+        self.assertRaises(HeadInstanceError, jsonmerge.merge, base, "a", schema)
 
     def test_merge_type_error_base(self):
 
         schema = {'mergeStrategy': 'objectMerge'}
 
         base = "ab"
-        self.assertRaises(TypeError, jsonmerge.merge, base, {'foo': 1}, schema)
+        self.assertRaises(BaseInstanceError, jsonmerge.merge, base, {'foo': 1}, schema)
 
     def test_merge_overwrite(self):
 
@@ -732,6 +747,7 @@ class TestGetSchema(unittest.TestCase):
 
         self.assertEqual(schema2, { 'properties': {
                                         'foo': {
+                                            'type': 'array',
                                             'items': {
                                                 'properties': {
                                                     'value': {},
@@ -766,6 +782,7 @@ class TestGetSchema(unittest.TestCase):
 
         self.assertEqual(schema2,
                 {
+                    'type': 'array',
                     'items': {
                         'properties': {
                             'value': {}
@@ -788,6 +805,7 @@ class TestGetSchema(unittest.TestCase):
 
         self.assertEqual(schema2,
                 {
+                    'type': 'array',
                     'items': {
                         'properties': {
                             'value': { 'type': 'object' },
@@ -806,6 +824,7 @@ class TestGetSchema(unittest.TestCase):
 
         self.assertEqual(schema2,
                 {
+                    'type': 'array',
                     'items': {
                         'properties': {
                             'value': {}
@@ -837,6 +856,7 @@ class TestGetSchema(unittest.TestCase):
         self.assertEqual(schema2,
                 {   'properties': {
                         'foo': {
+                            'type': 'array',
                             'items': {
                                 'properties': {
                                     'value': {}
@@ -857,7 +877,7 @@ class TestGetSchema(unittest.TestCase):
                     }
 
         merger = jsonmerge.Merger(schema)
-        self.assertRaises(TypeError, merger.get_schema)
+        self.assertRaises(SchemaError, merger.get_schema)
 
     def test_resolve_refs(self):
 
@@ -951,6 +971,7 @@ class TestGetSchema(unittest.TestCase):
 
         self.assertEqual(mschema,
             {
+                'type': 'array',
                 'items': {
                     'properties': {
                         'value': {},
@@ -992,3 +1013,53 @@ class TestGetSchema(unittest.TestCase):
             }
 
         self.assertEqual(d, mschema)
+
+    def test_version_adds_array_type(self):
+        schema = {
+            "type": "object",
+            "properties": {
+                "buyer": {
+                    "properties": {
+                        "id": {
+                            "type": "object",
+                            "properties": {
+                                "name": {
+                                    "type": "string",
+                                    "mergeStrategy": "version"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        expected = {
+            "type": "object",
+            "properties": {
+                "buyer": {
+                    "properties": {
+                        "id": {
+                            "type": "object",
+                            "properties": {
+                                "name": {
+                                    "type": "array",
+                                    "items": {
+                                        "properties": {
+                                            "value": {
+                                                "type": "string"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        merger = jsonmerge.Merger(schema)
+        schema2 = merger.get_schema()
+
+        self.assertEqual(schema2, expected)
