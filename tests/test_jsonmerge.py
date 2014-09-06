@@ -673,7 +673,7 @@ class TestMerge(unittest.TestCase):
         merger = jsonmerge.Merger(schema)
 
         base = None
-        self.assertRaises(TypeError, merger.merge, base, head)
+        self.assertRaises(SchemaError, merger.merge, base, head)
 
     def test_merge_by_id_non_unique_base(self):
         schema = {
@@ -692,7 +692,7 @@ class TestMerge(unittest.TestCase):
 
         merger = jsonmerge.Merger(schema)
 
-        self.assertRaises(TypeError, merger.merge, base, head)
+        self.assertRaises(BaseInstanceError, merger.merge, base, head)
 
     def test_merge_by_id_non_unique_head(self):
         schema = {

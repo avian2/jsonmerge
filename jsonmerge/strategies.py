@@ -119,13 +119,13 @@ class Append(Strategy):
 class ArrayMergeById(Strategy):
     def merge(self, walk, base, head, schema, meta, idRef="id", ignoreId=None, **kwargs):
         if not walk.is_type(head, "array"):
-            raise TypeError("Head for an 'arrayMergeById' merge strategy is not an array")  # nopep8
+            raise HeadInstanceError("Head for an 'arrayMergeById' merge strategy is not an array")  # nopep8
 
         if base is None:
             base = []
         else:
             if not walk.is_type(base, "array"):
-                raise TypeError("Base for an 'arrayMergeById' merge strategy is not an array")  # nopep8
+                raise BaseInstanceError("Base for an 'arrayMergeById' merge strategy is not an array")  # nopep8
             base = list(base)
 
         subschema = None
@@ -134,7 +134,7 @@ class ArrayMergeById(Strategy):
             subschema = schema.get('items')
 
         if walk.is_type(subschema, "array"):
-            raise TypeError("'arrayMergeById' not supported when 'items' is an array")
+            raise SchemaError("'arrayMergeById' not supported when 'items' is an array")
 
         for head_item in head:
 
@@ -158,7 +158,7 @@ class ArrayMergeById(Strategy):
                 # If there wasn't a match, we append a new object
                 base.append(walk.descend(subschema, None, head_item, meta))
             if key_count > 1:
-                raise TypeError("Id was not unique")
+                raise BaseInstanceError("Id was not unique")
 
         return base
 
