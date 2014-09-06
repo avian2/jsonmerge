@@ -1,4 +1,7 @@
 # vim:ts=4 sw=4 expandtab softtabstop=4
+from jsonmerge.exceptions import HeadInstanceError, \
+                                 BaseInstanceError, \
+                                 SchemaError
 import re
 
 class Strategy(object):
@@ -95,13 +98,13 @@ class Version(Strategy):
 class Append(Strategy):
     def merge(self, walk, base, head, schema, meta, **kwargs):
         if not walk.is_type(head, "array"):
-            raise TypeError("Head for an 'append' merge strategy is not an array")
+            raise HeadInstanceError("Head for an 'append' merge strategy is not an array")
 
         if base is None:
             base = []
         else:
             if not walk.is_type(base, "array"):
-                raise TypeError("Base for an 'append' merge strategy is not an array")
+                raise BaseInstanceError("Base for an 'append' merge strategy is not an array")
 
             base = list(base)
 
@@ -114,13 +117,13 @@ class Append(Strategy):
 class ObjectMerge(Strategy):
     def merge(self, walk, base, head, schema, meta, **kwargs):
         if not walk.is_type(head, "object"):
-            raise TypeError("Head for an 'object' merge strategy is not an object")
+            raise HeadInstanceError("Head for an 'object' merge strategy is not an object")
 
         if base is None:
             base = {}
         else:
             if not walk.is_type(base, "object"):
-                raise TypeError("Base for an 'object' merge strategy is not an object")
+                raise BaseInstanceError("Base for an 'object' merge strategy is not an object")
 
             base = dict(base)
 
@@ -154,7 +157,7 @@ class ObjectMerge(Strategy):
 
         for forbidden in ("oneOf", "allOf", "anyOf"):
             if forbidden in schema:
-                raise TypeError("Type ambiguous schema")
+                raise SchemaError("Type ambiguous schema")
 
         schema2 = dict(schema)
 

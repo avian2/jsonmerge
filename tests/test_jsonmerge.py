@@ -2,6 +2,9 @@
 import unittest
 import jsonmerge
 import jsonmerge.strategies
+from jsonmerge.exceptions import HeadInstanceError, \
+                                 BaseInstanceError, \
+                                 SchemaError
 import jsonschema
 
 class TestMerge(unittest.TestCase):
@@ -115,14 +118,14 @@ class TestMerge(unittest.TestCase):
         schema = {'mergeStrategy': 'append'}
 
         base = None
-        self.assertRaises(TypeError, jsonmerge.merge, base, "a", schema)
+        self.assertRaises(HeadInstanceError, jsonmerge.merge, base, "a", schema)
 
     def test_append_type_error_base(self):
 
         schema = {'mergeStrategy': 'append'}
 
         base = "ab"
-        self.assertRaises(TypeError, jsonmerge.merge, base, ["a"], schema)
+        self.assertRaises(BaseInstanceError, jsonmerge.merge, base, ["a"], schema)
 
     def test_merge_default(self):
 
@@ -158,14 +161,14 @@ class TestMerge(unittest.TestCase):
         schema = {'mergeStrategy': 'objectMerge'}
 
         base = None
-        self.assertRaises(TypeError, jsonmerge.merge, base, "a", schema)
+        self.assertRaises(HeadInstanceError, jsonmerge.merge, base, "a", schema)
 
     def test_merge_type_error_base(self):
 
         schema = {'mergeStrategy': 'objectMerge'}
 
         base = "ab"
-        self.assertRaises(TypeError, jsonmerge.merge, base, {'foo': 1}, schema)
+        self.assertRaises(BaseInstanceError, jsonmerge.merge, base, {'foo': 1}, schema)
 
     def test_merge_overwrite(self):
 
@@ -506,7 +509,7 @@ class TestGetSchema(unittest.TestCase):
                     }
 
         merger = jsonmerge.Merger(schema)
-        self.assertRaises(TypeError, merger.get_schema)
+        self.assertRaises(SchemaError, merger.get_schema)
 
     def test_resolve_refs(self):
 
