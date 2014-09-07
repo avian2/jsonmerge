@@ -675,6 +675,28 @@ class TestMerge(unittest.TestCase):
         base = None
         self.assertRaises(SchemaError, merger.merge, base, head)
 
+    def test_merge_by_id_bad_head_type(self):
+        schema = {
+            'mergeStrategy': 'arrayMergeById'
+        }
+
+        head = {'foo': 'bar'}
+        base = []
+
+        merger = jsonmerge.Merger(schema)
+        self.assertRaises(HeadInstanceError, merger.merge, base, head)
+
+    def test_merge_by_id_bad_base_type(self):
+        schema = {
+            'mergeStrategy': 'arrayMergeById'
+        }
+
+        head = []
+        base = {'foo': 'bar'}
+
+        merger = jsonmerge.Merger(schema)
+        self.assertRaises(BaseInstanceError, merger.merge, base, head)
+
     def test_merge_by_id_non_unique_base(self):
         schema = {
             "mergeStrategy": "arrayMergeById",
@@ -1058,6 +1080,27 @@ class TestGetSchema(unittest.TestCase):
                 }
             }
         }
+
+        merger = jsonmerge.Merger(schema)
+        schema2 = merger.get_schema()
+
+        self.assertEqual(schema2, expected)
+
+    def test_merge_by_id(self):
+
+        schema = {
+            "mergeStrategy": "arrayMergeById",
+            "items": {
+                'type': 'object'
+            }
+        }
+
+        expected = {
+            "items": {
+                'type': 'object'
+            }
+        }
+
 
         merger = jsonmerge.Merger(schema)
         schema2 = merger.get_schema()
