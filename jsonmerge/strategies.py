@@ -62,13 +62,18 @@ class Overwrite(Strategy):
         return walk.resolve_refs(schema)
 
 class Version(Strategy):
-    def merge(self, walk, base, head, schema, meta, limit=None, unique=True, **kwargs):
+    def merge(self, walk, base, head, schema, meta, limit=None, unique=None, ignoreDups=True, **kwargs):
+
+        # backwards compatibility
+        if unique is False:
+            ignoreDups = False
+
         if base is None:
             base = []
         else:
             base = list(base)
 
-        if not unique or not base or base[-1]['value'] != head:
+        if not ignoreDups or not base or base[-1]['value'] != head:
             base.append(walk.add_meta(head, meta))
             if limit is not None:
                 base = base[-limit:]

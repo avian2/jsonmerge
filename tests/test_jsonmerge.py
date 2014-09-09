@@ -67,6 +67,19 @@ class TestMerge(unittest.TestCase):
             {'value': "b",
             'uri': 'http://example.com/b' }])
 
+    def test_version_ignoredups_false(self):
+
+        schema = {  'mergeStrategy': 'version',
+                    'mergeOptions': { 'ignoreDups': False } }
+
+        merger = jsonmerge.Merger(schema)
+
+        base = None
+        base = merger.merge(base, "a")
+        base = merger.merge(base, "a")
+
+        self.assertEqual(base, [ {'value': "a"}, {'value': "a"} ])
+
     def test_version_unique_false(self):
 
         schema = {  'mergeStrategy': 'version',
@@ -80,7 +93,7 @@ class TestMerge(unittest.TestCase):
 
         self.assertEqual(base, [ {'value': "a"}, {'value': "a"} ])
 
-    def test_version_unique_true(self):
+    def test_version_ignoredups_true(self):
 
         schema = {  'mergeStrategy': 'version' }
 

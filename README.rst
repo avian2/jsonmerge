@@ -164,7 +164,7 @@ version
 
   By default, if a *head* document contains the same value as the *base*,
   document, no new version will be appended. You can change this by setting
-  *unique* option to *false*.
+  *ignoreDups* option to *false*.
 
 If a merge strategy is not specified in the schema, *objectMerge* is used
 to objects and *overwrite* for all other values.
