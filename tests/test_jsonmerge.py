@@ -361,6 +361,396 @@ class TestMerge(unittest.TestCase):
 
         self.assertEqual(base, "foo")
 
+    def test_merge_by_id(self):
+        schema = {
+            "properties": {
+                "awards": {
+                    "type": "array",
+                    "mergeStrategy": "arrayMergeById",
+                    "items": {
+                        "properties": {
+                            "id": {"type": "string"},
+                            "field": {"type": "number"},
+                        }
+                    }
+                }
+            }
+        }
+
+        a = {
+            "awards": [
+                {"id": "A", "field": 1},
+                {"id": "B", "field": 2}
+            ]
+        }
+
+        b = {
+            "awards": [
+                {"id": "B", "field": 3},
+                {"id": "C", "field": 4}
+            ]
+        }
+
+        expected = {
+            "awards": [
+                {"id": "A", "field": 1},
+                {"id": "B", "field": 3},
+                {"id": "C", "field": 4}
+            ]
+        }
+
+        merger = jsonmerge.Merger(schema)
+
+        base = None
+        base = merger.merge(base, a)
+        base = merger.merge(base, b)
+
+        self.assertEqual(base, expected)
+
+    def test_merge_by_id_when_key_is_empty_should_do_nothing(self):
+        schema = {
+            "properties": {
+                "awards": {
+                    "type": "array",
+                    "mergeStrategy": "arrayMergeById",
+                    "mergeOptions": { "ignoreId": "" },
+                    "items": {
+                        "properties": {
+                            "id": {"type": "string"},
+                            "field": {"type": "number"},
+                        }
+                    }
+                }
+            }
+        }
+
+        a = {
+            "awards": [
+                {"id": "A", "field": 1},
+                {"id": "", "field": ""}
+            ]
+        }
+
+        b = {
+            "awards": [
+                {"id": "B", "field": 3},
+                {"id": "C", "field": 4}
+            ]
+        }
+
+        expected = {
+            "awards": [
+                {"id": "A", "field": 1},
+                {"id": "B", "field": 3},
+                {"id": "C", "field": 4}
+            ]
+        }
+
+        merger = jsonmerge.Merger(schema)
+
+        base = None
+        base = merger.merge(base, a)
+        base = merger.merge(base, b)
+
+        self.assertEqual(base, expected)
+
+    def test_merge_by_id_no_items(self):
+        schema = {
+            "mergeStrategy": "arrayMergeById",
+            "mergeOptions": {"idRef": "id"},
+        }
+
+        a = [
+            {"id": "A", "field": 1},
+        ]
+
+        b = [
+            {"id": "A", "field": 2},
+        ]
+
+        # by default, it should fall back to "replace" strategy for integers.
+        expected = [
+            {"id": "A", "field": 2},
+        ]
+
+        merger = jsonmerge.Merger(schema)
+
+        base = None
+        base = merger.merge(base, a)
+        base = merger.merge(base, b)
+
+        self.assertEqual(base, expected)
+
+    def test_merge_by_id_simple_ref(self):
+        schema = {
+            "mergeStrategy": "arrayMergeById",
+            "mergeOptions": { "idRef": "key" }
+        }
+
+        a = [
+            {"key": "A", "field": 1},
+        ]
+
+        b = [
+            {"key": "A", "field": 2},
+        ]
+
+        expected = [
+            {"key": "A", "field": 2},
+        ]
+
+        merger = jsonmerge.Merger(schema)
+
+        base = None
+        base = merger.merge(base, a)
+        base = merger.merge(base, b)
+
+        self.assertEqual(base, expected)
+
+    def test_merge_by_id_no_key(self):
+        schema = {
+            "mergeStrategy": "arrayMergeById",
+        }
+
+        a = [
+            {"id": "A", "field": 1},
+        ]
+
+        b = [
+            {'field': 2}
+        ]
+
+        merger = jsonmerge.Merger(schema)
+
+        base = None
+        base = merger.merge(base, a)
+        base = merger.merge(base, b)
+
+        # it should ignore array elements that do not have the id
+        self.assertEqual(base, a)
+
+    def test_merge_by_id_compex_ref(self):
+        schema = {
+            "mergeStrategy": "arrayMergeById",
+            "mergeOptions": {"idRef": "/foo/bar"},
+        }
+
+        a = [
+            {'foo': {'bar': 1}, 'baz': 1 }
+        ]
+
+        b = [
+            {'foo': {'bar': 2} }
+        ]
+
+        c = [
+            {'foo': {'bar': 1}, 'baz': 2 }
+        ]
+
+        # by default, it should fall back to "replace" strategy for integers.
+        expected = [
+            {'foo': {'bar': 1}, 'baz': 2 },
+            {'foo': {'bar': 2} }
+        ]
+
+        merger = jsonmerge.Merger(schema)
+
+        base = None
+        base = merger.merge(base, a)
+        base = merger.merge(base, b)
+        base = merger.merge(base, c)
+
+        self.assertEqual(base, expected)
+
+    def test_merge_by_id_with_complex_array(self):
+        schema = {
+            "properties": {
+                "awards": {
+                    "type": "array",
+                    "mergeStrategy": "arrayMergeById",
+                    "items": {
+                        "properties": {
+                            "id": {"type": "string"},
+                            "field": {
+                                "type": "array",
+                                "items": {
+                                    "properties": {
+                                        "xx": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        a = {
+            "awards": [
+                {"id": "A", "field": [{"xx": "testA1"}, {"xx": "testA2"}]},
+                {"id": "B", "field": [{"xx": "testA3"}, {"xx": "testA4"}]}
+            ]
+        }
+
+        b = {
+            "awards": [
+                {"id": "B", "field": [{"xx": "testA3"}, {"xx": "testA6"}]},
+                {"id": "C", "field": [{"xx": "testA7"}, {"xx": "testA8"}]}
+            ]
+        }
+
+        expected = {
+            "awards": [
+                {"id": "A", "field": [{"xx": "testA1"}, {"xx": "testA2"}]},
+                {"id": "B", "field": [{"xx": "testA3"}, {"xx": "testA6"}]},
+                {"id": "C", "field": [{"xx": "testA7"}, {"xx": "testA8"}]}
+            ]
+        }
+
+        merger = jsonmerge.Merger(schema)
+
+        base = None
+        base = merger.merge(base, a)
+        base = merger.merge(base, b)
+
+        self.assertEqual(base, expected)
+
+    def test_merge_by_id_with_subschema(self):
+        schema = {
+            "properties": {
+                "awards": {
+                    "type": "array",
+                    "mergeStrategy": "arrayMergeById",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "id": {
+                                "type": "string"
+                            },
+                            "field": {
+                                "type": "number",
+                                "mergeStrategy": "version"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        a = {
+            "awards": [
+                {"id": "A", "field": 1},
+                {"id": "B", "field": 2}
+            ]
+        }
+
+        b = {
+            "awards": [
+                {"id": "B", "field": 3},
+                {"id": "C", "field": 4}
+            ]
+        }
+
+        expected = {
+            "awards": [
+                {"id": "A", "field": [{"value": 1}]},
+                {"id": "B", "field": [{"value": 2}, {"value": 3}]},
+                {"id": "C", "field": [{"value": 4}]}
+            ]
+        }
+
+        merger = jsonmerge.Merger(schema)
+
+        base = None
+        base = merger.merge(base, a)
+        base = merger.merge(base, b)
+
+        self.assertEqual(base, expected)
+
+    def test_merge_by_id_items_array(self):
+        schema = {
+            "mergeStrategy": "arrayMergeById",
+            "items": [
+                {},
+                {},
+            ]
+        }
+
+        head = [
+                {'id': 'A'},
+                {'id': 'B'}
+        ]
+
+        merger = jsonmerge.Merger(schema)
+
+        base = None
+        self.assertRaises(SchemaError, merger.merge, base, head)
+
+    def test_merge_by_id_bad_head_type(self):
+        schema = {
+            'mergeStrategy': 'arrayMergeById'
+        }
+
+        head = {'foo': 'bar'}
+        base = []
+
+        merger = jsonmerge.Merger(schema)
+        self.assertRaises(HeadInstanceError, merger.merge, base, head)
+
+    def test_merge_by_id_bad_base_type(self):
+        schema = {
+            'mergeStrategy': 'arrayMergeById'
+        }
+
+        head = []
+        base = {'foo': 'bar'}
+
+        merger = jsonmerge.Merger(schema)
+        self.assertRaises(BaseInstanceError, merger.merge, base, head)
+
+    def test_merge_by_id_non_unique_base(self):
+        schema = {
+            "mergeStrategy": "arrayMergeById",
+        }
+
+        base = [
+                {'id': 'a'},
+                {'id': 'a'}
+        ]
+
+        head = [
+                {'id': 'a',
+                'foo': 1}
+        ]
+
+        merger = jsonmerge.Merger(schema)
+
+        self.assertRaises(BaseInstanceError, merger.merge, base, head)
+
+    def test_merge_by_id_non_unique_head(self):
+        schema = {
+            "mergeStrategy": "arrayMergeById",
+        }
+
+        base = [
+                {'id': 'a',
+                'foo': 1},
+        ]
+
+        head = [
+                {'id': 'a',
+                'foo': 2},
+                {'id': 'a',
+                'foo': 3}
+        ]
+
+        merger = jsonmerge.Merger(schema)
+        base = merger.merge(base, head)
+
+        self.assertEqual(base, [{'id': 'a', 'foo': 3}])
+
 
 class TestGetSchema(unittest.TestCase):
 
@@ -703,6 +1093,27 @@ class TestGetSchema(unittest.TestCase):
                 }
             }
         }
+
+        merger = jsonmerge.Merger(schema)
+        schema2 = merger.get_schema()
+
+        self.assertEqual(schema2, expected)
+
+    def test_merge_by_id(self):
+
+        schema = {
+            "mergeStrategy": "arrayMergeById",
+            "items": {
+                'type': 'object'
+            }
+        }
+
+        expected = {
+            "items": {
+                'type': 'object'
+            }
+        }
+
 
         merger = jsonmerge.Merger(schema)
         schema2 = merger.get_schema()

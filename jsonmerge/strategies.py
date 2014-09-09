@@ -2,6 +2,7 @@
 from jsonmerge.exceptions import HeadInstanceError, \
                                  BaseInstanceError, \
                                  SchemaError
+import jsonschema
 import re
 
 class Strategy(object):
@@ -118,6 +119,57 @@ class Append(Strategy):
 
     def get_schema(self, walk, schema, meta, **kwargs):
         return walk.resolve_refs(schema)
+
+
+class ArrayMergeById(Strategy):
+    def merge(self, walk, base, head, schema, meta, idRef="id", ignoreId=None, **kwargs):
+        if not walk.is_type(head, "array"):
+            raise HeadInstanceError("Head for an 'arrayMergeById' merge strategy is not an array")  # nopep8
+
+        if base is None:
+            base = []
+        else:
+            if not walk.is_type(base, "array"):
+                raise BaseInstanceError("Base for an 'arrayMergeById' merge strategy is not an array")  # nopep8
+            base = list(base)
+
+        subschema = None
+
+        if schema:
+            subschema = schema.get('items')
+
+        if walk.is_type(subschema, "array"):
+            raise SchemaError("'arrayMergeById' not supported when 'items' is an array")
+
+        for head_item in head:
+
+            try:
+                head_key = walk.resolver.resolve_fragment(head_item, idRef)
+            except jsonschema.RefResolutionError:
+                # Do nothing if idRef field cannot be found.
+                continue
+
+            if head_key == ignoreId:
+                continue
+
+            key_count = 0
+            for i, base_item in enumerate(base):
+                base_key = walk.resolver.resolve_fragment(base_item, idRef)
+                if base_key == head_key:
+                    key_count += 1
+                    # If there was a match, we replace with a merged item
+                    base[i] = walk.descend(subschema, base_item, head_item, meta)
+            if key_count == 0:
+                # If there wasn't a match, we append a new object
+                base.append(walk.descend(subschema, None, head_item, meta))
+            if key_count > 1:
+                raise BaseInstanceError("Id was not unique")
+
+        return base
+
+    def get_schema(self, walk, schema, meta, **kwargs):
+        return walk.resolve_refs(schema)
+
 
 class ObjectMerge(Strategy):
     def merge(self, walk, base, head, schema, meta, **kwargs):

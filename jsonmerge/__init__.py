@@ -115,6 +115,7 @@ class Merger(object):
         "version": strategies.Version(),
         "append": strategies.Append(),
         "objectMerge": strategies.ObjectMerge(),
+        "arrayMergeById": strategies.ArrayMergeById()
     }
 
     def __init__(self, schema, strategies=()):

@@ -147,6 +147,26 @@ overwrite
 append
   Append arrays. Works only with arrays.
 
+arrayMergeById
+  Merge arrays, identifying items to be merged by an ID field. Resulting
+  arrays have items from both *base* and *head* arrays.  Any items that
+  have identical an ID are merged based on the strategy specified further
+  down in the hierarchy.
+
+  By default, array items are expected to be objects and ID of the item is
+  obtained from the *id* property of the object.
+
+  You can specify an arbitrary *JSON pointer* to point to the ID of the
+  item using the *idRef* merge option. When resolving the pointer, document
+  root is placed at the root of the array item (e.g. by default, *idRef* is
+  '/id')
+
+  Array items in *head* for which the ID cannot be identified (e.g. *idRef*
+  pointer is invalid) are ignored.
+
+  You can specify an additional item ID to be ignored using the *ignoreId*
+  merge option.
+
 objectMerge
   Merge objects. Resulting objects have properties from both *base* and
   *head*. Any properties that are present both in *base* and *head* are
