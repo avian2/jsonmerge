@@ -751,6 +751,46 @@ class TestMerge(unittest.TestCase):
 
         self.assertEqual(base, [{'id': 'a', 'foo': 3}])
 
+    def test_append_with_maxitems(self):
+
+        schema = {
+                "mergeStrategy": "append",
+                "maxItems": 2,
+        }
+
+        merger = jsonmerge.Merger(schema)
+
+        head = ["a"]
+        base = None
+
+        base = merger.merge(base, head)
+        base = merger.merge(base, head)
+        base = merger.merge(base, head)
+
+        schema2 = merger.get_schema()
+
+        jsonschema.validate(head, schema2)
+        jsonschema.validate(base, schema2)
+
+    def test_append_with_unique(self):
+
+        schema = {
+                "mergeStrategy": "append",
+                "uniqueItems": True,
+        }
+
+        merger = jsonmerge.Merger(schema)
+
+        head = ["a"]
+        base = None
+
+        base = merger.merge(base, head)
+        base = merger.merge(base, head)
+
+        schema2 = merger.get_schema()
+
+        jsonschema.validate(head, schema2)
+        jsonschema.validate(base, schema2)
 
 class TestGetSchema(unittest.TestCase):
 

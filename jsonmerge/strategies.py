@@ -118,6 +118,9 @@ class Append(Strategy):
         return base
 
     def get_schema(self, walk, schema, meta, **kwargs):
+        schema.pop('maxItems', None)
+        schema.pop('uniqueItems', None)
+
         return walk.resolve_refs(schema)
 
 
