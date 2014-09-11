@@ -1,4 +1,8 @@
 # vim:ts=4 sw=4 expandtab softtabstop=4
+from jsonmerge.exceptions import HeadInstanceError, \
+                                 BaseInstanceError, \
+                                 SchemaError
+import jsonschema
 import re
 
 class Strategy(object):
@@ -59,13 +63,18 @@ class Overwrite(Strategy):
         return walk.resolve_refs(schema)
 
 class Version(Strategy):
-    def merge(self, walk, base, head, schema, meta, limit=None, unique=True, **kwargs):
+    def merge(self, walk, base, head, schema, meta, limit=None, unique=None, ignoreDups=True, **kwargs):
+
+        # backwards compatibility
+        if unique is False:
+            ignoreDups = False
+
         if base is None:
             base = []
         else:
             base = list(base)
 
-        if not unique or not base or base[0]['value'] != head:
+        if not ignoreDups or not base or base[-1]['value'] != head:
             base.append(walk.add_meta(head, meta))
             if limit is not None:
                 base = base[-limit:]
@@ -84,7 +93,8 @@ class Version(Strategy):
 
         item['properties']['value'] = walk.resolve_refs(schema)
 
-        rv = { "items": item }
+        rv = {  "type": "array",
+                "items": item }
 
         if limit is not None:
             rv['maxItems'] = limit
@@ -94,13 +104,13 @@ class Version(Strategy):
 class Append(Strategy):
     def merge(self, walk, base, head, schema, meta, **kwargs):
         if not walk.is_type(head, "array"):
-            raise TypeError("Head for an 'append' merge strategy is not an array")
+            raise HeadInstanceError("Head for an 'append' merge strategy is not an array")
 
         if base is None:
             base = []
         else:
             if not walk.is_type(base, "array"):
-                raise TypeError("Base for an 'append' merge strategy is not an array")
+                raise BaseInstanceError("Base for an 'append' merge strategy is not an array")
 
             base = list(base)
 
@@ -108,39 +118,55 @@ class Append(Strategy):
         return base
 
     def get_schema(self, walk, schema, meta, **kwargs):
+        schema.pop('maxItems', None)
+        schema.pop('uniqueItems', None)
+
         return walk.resolve_refs(schema)
 
 
-class OverwriteByKey(Strategy):
-    def merge(self, walk, base, head, schema, meta, match_key=None, **kwargs):
-        if not match_key:
-            raise TypeError("Must have a key to match items on")
-
+class ArrayMergeById(Strategy):
+    def merge(self, walk, base, head, schema, meta, idRef="id", ignoreId=None, **kwargs):
         if not walk.is_type(head, "array"):
-            raise TypeError("Head for an 'overwriteByKey' merge strategy is not an array")  # nopep8
+            raise HeadInstanceError("Head for an 'arrayMergeById' merge strategy is not an array")  # nopep8
 
         if base is None:
             base = []
         else:
             if not walk.is_type(base, "array"):
-                raise TypeError("Base for an 'overwriteByKey' merge strategy is not an array")  # nopep8
+                raise BaseInstanceError("Base for an 'arrayMergeById' merge strategy is not an array")  # nopep8
             base = list(base)
 
         subschema = None
 
         if schema:
-            subschema = schema['items']
+            subschema = schema.get('items')
+
+        if walk.is_type(subschema, "array"):
+            raise SchemaError("'arrayMergeById' not supported when 'items' is an array")
 
         for head_item in head:
+
+            try:
+                head_key = walk.resolver.resolve_fragment(head_item, idRef)
+            except jsonschema.RefResolutionError:
+                # Do nothing if idRef field cannot be found.
+                continue
+
+            if head_key == ignoreId:
+                continue
+
             key_count = 0
             for i, base_item in enumerate(base):
-                if base_item[match_key] == head_item[match_key]:
+                base_key = walk.resolver.resolve_fragment(base_item, idRef)
+                if base_key == head_key:
                     key_count += 1
-                    base[i] = walk.descend(subschema, base_item, head_item, meta, **kwargs)
+                    # If there was a match, we replace with a merged item
+                    base[i] = walk.descend(subschema, base_item, head_item, meta)
             if key_count == 0:
-                base.append(walk.descend(subschema, None, head_item, meta, **kwargs))
+                # If there wasn't a match, we append a new object
+                base.append(walk.descend(subschema, None, head_item, meta))
             if key_count > 1:
-                raise TypeError("Key id was not unique")
+                raise BaseInstanceError("Id was not unique")
 
         return base
 
@@ -151,13 +177,13 @@ class OverwriteByKey(Strategy):
 class ObjectMerge(Strategy):
     def merge(self, walk, base, head, schema, meta, **kwargs):
         if not walk.is_type(head, "object"):
-            raise TypeError("Head for an 'object' merge strategy is not an object")
+            raise HeadInstanceError("Head for an 'object' merge strategy is not an object")
 
         if base is None:
             base = {}
         else:
             if not walk.is_type(base, "object"):
-                raise TypeError("Base for an 'object' merge strategy is not an object")
+                raise BaseInstanceError("Base for an 'object' merge strategy is not an object")
 
             base = dict(base)
 
@@ -191,7 +217,7 @@ class ObjectMerge(Strategy):
 
         for forbidden in ("oneOf", "allOf", "anyOf"):
             if forbidden in schema:
-                raise TypeError("Type ambiguous schema")
+                raise SchemaError("Type ambiguous schema")
 
         schema2 = dict(schema)
 
