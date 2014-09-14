@@ -171,7 +171,12 @@ class ArrayMergeById(Strategy):
         return base
 
     def get_schema(self, walk, schema, meta, **kwargs):
-        return walk.resolve_refs(schema)
+        subschema = None
+        if schema:
+            subschema = schema.get('items')
+
+        schema2 = walk.descend(subschema, meta)
+        return schema
 
 
 class ObjectMerge(Strategy):
