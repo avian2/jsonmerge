@@ -171,7 +171,21 @@ class ArrayMergeById(Strategy):
         return base
 
     def get_schema(self, walk, schema, meta, **kwargs):
-        return walk.resolve_refs(schema)
+        subschema = None
+        if schema:
+            subschema = schema.get('items')
+
+        # Note we're discarding the walk.descend() result here. This is because
+        # it would de-reference the $ref if the subschema is a reference - i.e.
+        # in the result it would replace the reference with the copy of the
+        # target.
+        #
+        # But we want to keep the $ref and do the walk.descend() only on the target of the reference.
+        #
+        # This seems to work, but is an ugly workaround. walk.descend() should
+        # be fixed instead to not dereference $refs when not necessary.
+        walk.descend(subschema, meta)
+        return schema
 
 
 class ObjectMerge(Strategy):
