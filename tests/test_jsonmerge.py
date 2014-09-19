@@ -116,6 +116,71 @@ class TestMerge(unittest.TestCase):
 
         self.assertEqual(base, [{'value': "b"}])
 
+    def test_version_on_ref_with_list(self):
+        schema = {
+            "type": "object",
+            "properties": {
+                "item": {
+                    "mergeStrategy": "version",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/item"
+                    }
+                }
+            },
+            "definitions": {
+                "item": {
+                    "type": "string"
+                }
+            }
+        }
+
+        a = {"item": ["test"]}
+        b = {"item": ["test2"]}
+
+        expected_base = {
+            "item": [
+                {"value": ["test"]},
+                {"value": ["test2"]}
+            ]
+        }
+
+        base = None
+        base = jsonmerge.merge(base, a, schema)
+        base = jsonmerge.merge(base, b, schema)
+        self.assertEqual(expected_base, base)
+
+    def test_version_on_ref(self):
+        schema = {
+            "type": "object",
+            "properties": {
+                "item": {
+                    "mergeStrategy": "version",
+                    "$ref": "#/definitions/item"
+                }
+            },
+            "definitions": {
+                "item": {
+                    "type": "string"
+                }
+            }
+        }
+
+        a = {"item": "test"}
+        b = {"item": "test2"}
+
+        expected_base = {
+            "item": [
+                {"value": "test"},
+                {"value": "test2"}
+            ]
+        }
+
+        base = None
+        base = jsonmerge.merge(base, a, schema)
+        base = jsonmerge.merge(base, b, schema)
+        self.assertEqual(expected_base, base)
+
     def test_append(self):
 
         schema = {'mergeStrategy': 'append'}
