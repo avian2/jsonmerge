@@ -13,15 +13,15 @@ class Walk(object):
 
     def descend(self, schema, *args):
         if schema is not None:
+            name = schema.get("mergeStrategy")
+            opts = schema.get("mergeOptions")
+            if opts is None:
+                opts = {}
+
             ref = schema.get("$ref")
-            if ref is not None:
+            if name is None and ref is not None:
                 with self.resolver.resolving(ref) as resolved:
                     return self.descend(resolved, *args)
-            else:
-                name = schema.get("mergeStrategy")
-                opts = schema.get("mergeOptions")
-                if opts is None:
-                    opts = {}
         else:
             name = None
             opts = {}
@@ -196,7 +196,7 @@ class Merger(object):
         walk = WalkSchema(self)
         return walk.descend(self.schema, meta)
 
-def merge(base, head, schema={}):
+def merge(base, head, schema=None):
     """Merge two JSON documents using strategies defined in schema.
 
     base -- Old JSON document you are merging into.
@@ -208,6 +208,7 @@ def merge(base, head, schema={}):
     strategy is to use "objectMerge" for objects and "overwrite"
     for all other types.
     """
-
+    if not schema:
+        schema = {}
     merger = Merger(schema)
     return merger.merge(base, head)
