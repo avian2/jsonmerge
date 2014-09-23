@@ -7,6 +7,7 @@ from jsonmerge.exceptions import (
     BaseInstanceError,
     SchemaError
 )
+from jsonmerge.jsonvalue import JSONValue
 
 import jsonschema
 
@@ -348,7 +349,12 @@ class TestMerge(unittest.TestCase):
 
         class MyStrategy(jsonmerge.strategies.Strategy):
             def merge(self, walk, base, head, schema, meta, **kwargs):
-                return "foo"
+                if base is None:
+                    ref = ""
+                else:
+                    ref = base.ref
+
+                return JSONValue("foo", ref)
 
         merger = jsonmerge.Merger(schema=schema,
                                   strategies={'myStrategy': MyStrategy()})
