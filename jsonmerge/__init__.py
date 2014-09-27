@@ -12,7 +12,7 @@ class Walk(object):
     def __init__(self, merger):
         self.merger = merger
         self.resolver = merger.validator.resolver
-        self.lvl = 0
+        self.lvl = -1
 
     def _indent(self):
         return "  " * self.lvl
@@ -28,6 +28,7 @@ class Walk(object):
 
     def descend(self, schema, *args):
         assert isinstance(schema, JSONValue)
+        self.lvl += 1
 
         log.debug("descend: %sschema %s" % (self._indent(), schema.ref,))
 
@@ -39,7 +40,9 @@ class Walk(object):
             ref = schema.val.get("$ref")
             if ref is not None:
                 with self.resolver.resolving(ref) as resolved:
-                    return self.descend(JSONValue(resolved), *args)
+                    rv = self.descend(JSONValue(resolved, ref), *args)
+                    self.lvl -= 1
+                    return rv
             else:
                 name = schema.val.get("mergeStrategy")
                 opts = schema.val.get("mergeOptions")
@@ -56,10 +59,9 @@ class Walk(object):
 
         strategy = self.merger.strategies[name]
 
-        self.lvl += 1
         rv = self.work(strategy, schema, *args, **opts)
-        self.lvl -= 1
 
+        self.lvl -= 1
         return rv
 
 class WalkInstance(Walk):
