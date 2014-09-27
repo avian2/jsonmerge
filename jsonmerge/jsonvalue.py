@@ -30,5 +30,7 @@ class JSONValue(object):
         return list(self.iteritems())
 
     def __iter__(self):
+        assert isinstance(self.val, list)
+
         for i, v in enumerate(self.val):
             yield self._subval(v, i)
