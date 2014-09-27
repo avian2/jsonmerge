@@ -10,19 +10,17 @@ class Walk(object):
 
     def is_type(self, instance, type):
         """Check if instance if a specific JSON type."""
-        assert instance is None or isinstance(instance, JSONValue)
+        assert isinstance(instance, JSONValue)
 
-        if instance is None:
-            val = None
-        else:
-            val = instance.val
+        if instance.is_undef():
+            return False
 
-        return self.merger.validator.is_type(val, type)
+        return self.merger.validator.is_type(instance.val, type)
 
     def descend(self, schema, *args):
-        assert schema is None or isinstance(schema, JSONValue)
+        assert isinstance(schema, JSONValue)
 
-        if schema is not None:
+        if not schema.is_undef():
             ref = schema.val.get("$ref")
             if ref is not None:
                 with self.resolver.resolving(ref) as resolved:
@@ -61,8 +59,8 @@ class WalkInstance(Walk):
             return "overwrite"
 
     def work(self, strategy, schema, base, head, meta, **kwargs):
-        assert schema is None or isinstance(schema, JSONValue)
-        assert base is None or isinstance(base, JSONValue)
+        assert isinstance(schema, JSONValue)
+        assert isinstance(base, JSONValue)
         assert isinstance(head, JSONValue)
 
         rv = strategy.merge(self, base, head, schema, meta, **kwargs)
@@ -189,7 +187,9 @@ class Merger(object):
 
         schema = JSONValue(self.schema)
 
-        if base is not None:
+        if base is None:
+            base = JSONValue(undef=True)
+        else:
             base = JSONValue(base)
 
         head = JSONValue(head)

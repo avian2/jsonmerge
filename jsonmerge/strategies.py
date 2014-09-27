@@ -70,8 +70,8 @@ class Version(Strategy):
         if unique is False:
             ignoreDups = False
 
-        if base is None:
-            base = JSONValue([])
+        if base.is_undef():
+            base = JSONValue(val=[], ref=base.ref)
         else:
             base = JSONValue(list(base.val), base.ref)
 
@@ -107,8 +107,8 @@ class Append(Strategy):
         if not walk.is_type(head, "array"):
             raise HeadInstanceError("Head for an 'append' merge strategy is not an array")
 
-        if base is None:
-            base = JSONValue([])
+        if base.is_undef():
+            base = JSONValue([], base.ref)
         else:
             if not walk.is_type(base, "array"):
                 raise BaseInstanceError("Base for an 'append' merge strategy is not an array")
@@ -130,17 +130,14 @@ class ArrayMergeById(Strategy):
         if not walk.is_type(head, "array"):
             raise HeadInstanceError("Head for an 'arrayMergeById' merge strategy is not an array")  # nopep8
 
-        if base is None:
-            base = JSONValue([])
+        if base.is_undef():
+            base = JSONValue([], base.ref)
         else:
             if not walk.is_type(base, "array"):
                 raise BaseInstanceError("Base for an 'arrayMergeById' merge strategy is not an array")  # nopep8
             base = JSONValue(list(base.val), base.ref)
 
-        subschema = None
-
-        if schema:
-            subschema = schema.get('items')
+        subschema = schema.get('items')
 
         if walk.is_type(subschema, "array"):
             raise SchemaError("'arrayMergeById' not supported when 'items' is an array")
@@ -165,16 +162,14 @@ class ArrayMergeById(Strategy):
                     base.val[i] = walk.descend(subschema, base_item, head_item, meta).val
             if key_count == 0:
                 # If there wasn't a match, we append a new object
-                base.val.append(walk.descend(subschema, None, head_item, meta).val)
+                base.val.append(walk.descend(subschema, JSONValue(undef=True), head_item, meta).val)
             if key_count > 1:
                 raise BaseInstanceError("Id was not unique")
 
         return base
 
     def get_schema(self, walk, schema, meta, **kwargs):
-        subschema = None
-        if schema:
-            subschema = schema.get('items')
+        subschema = schema.get('items')
 
         # Note we're discarding the walk.descend() result here. This is because
         # it would de-reference the $ref if the subschema is a reference - i.e.
@@ -194,8 +189,8 @@ class ObjectMerge(Strategy):
         if not walk.is_type(head, "object"):
             raise HeadInstanceError("Head for an 'object' merge strategy is not an object")
 
-        if base is None:
-            base = JSONValue({})
+        if base.is_undef():
+            base = JSONValue({}, base.ref)
         else:
             if not walk.is_type(base, "object"):
                 raise BaseInstanceError("Base for an 'object' merge strategy is not an object")
@@ -204,24 +199,24 @@ class ObjectMerge(Strategy):
 
         for k, v in head.items():
 
-            subschema = None
+            subschema = JSONValue(undef=True)
 
             # get subschema for this element
-            if schema is not None:
+            if not schema.is_undef():
                 p = schema.get('properties')
-                if p is not None:
+                if not p.is_undef():
                     subschema = p.get(k)
 
-                if subschema is None:
+                if subschema.is_undef():
                     p = schema.get('patternProperties')
-                    if p is not None:
+                    if not p.is_undef():
                         for pattern, s in p.items():
                             if re.search(pattern, k):
                                 subschema = s
 
-                if subschema is None:
+                if subschema.is_undef():
                     p = schema.get('additionalProperties')
-                    if p is not None:
+                    if not p.is_undef():
                         subschema = p.get(k)
 
             base.val[k] = walk.descend(subschema, base.get(k), v, meta).val
@@ -238,7 +233,7 @@ class ObjectMerge(Strategy):
 
         def descend_keyword(keyword):
             p = schema.get(keyword)
-            if p is not None:
+            if not p.is_undef():
                 for k, v in p.items():
                     schema2.val[keyword][k] = walk.descend(v, meta).val
 

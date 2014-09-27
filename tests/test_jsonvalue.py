@@ -15,7 +15,7 @@ class TestJSONValue(unittest.TestCase):
         v = JSONValue({})
 
         va = v.get('a')
-        self.assertTrue(va is None)
+        self.assertTrue(va.is_undef())
 
     def test_get(self):
         v = JSONValue({'a': 'b'})
