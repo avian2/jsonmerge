@@ -713,6 +713,19 @@ class TestMerge(unittest.TestCase):
         merger = jsonmerge.Merger(schema)
         self.assertRaises(BaseInstanceError, merger.merge, base, head)
 
+    def test_merge_by_id_no_base_id(self):
+        schema = {
+            'mergeStrategy': 'arrayMergeById'
+        }
+
+        head = [ {'id': 'a'} ]
+        base = [ {} ]
+
+        merger = jsonmerge.Merger(schema)
+        r = merger.merge(base, head)
+
+        self.assertEqual(r, [ {'id': 'a'}, {} ])
+
     def test_merge_by_id_non_unique_base(self):
         schema = {
             "mergeStrategy": "arrayMergeById",
