@@ -142,24 +142,36 @@ class ArrayMergeById(Strategy):
         if walk.is_type(subschema, "array"):
             raise SchemaError("'arrayMergeById' not supported when 'items' is an array")
 
-        for head_item in head:
+        def iter_index_key_item(jv):
+            for i, item in enumerate(jv):
+                try:
+                    key = walk.resolver.resolve_fragment(item.val, idRef)
+                except jsonschema.RefResolutionError:
+                    continue
 
-            try:
-                head_key = walk.resolver.resolve_fragment(head_item.val, idRef)
-            except jsonschema.RefResolutionError:
-                # Do nothing if idRef field cannot be found.
-                continue
+                yield i, key, item
+
+        for i, key_1, item_1 in iter_index_key_item(head):
+            for j, key_2, item_2 in iter_index_key_item(head):
+                if j < i:
+                    if key_1 == key_2:
+                        raise HeadInstanceError("Id was not unique")
+                else:
+                    break
+
+        for i, head_key, head_item in iter_index_key_item(head):
 
             if head_key == ignoreId:
                 continue
 
             key_count = 0
-            for i, base_item in enumerate(base):
-                base_key = walk.resolver.resolve_fragment(base_item.val, idRef)
+            for j, base_key, base_item in iter_index_key_item(base):
+
                 if base_key == head_key:
                     key_count += 1
                     # If there was a match, we replace with a merged item
-                    base.val[i] = walk.descend(subschema, base_item, head_item, meta).val
+                    base.val[j] = walk.descend(subschema, base_item, head_item, meta).val
+
             if key_count == 0:
                 # If there wasn't a match, we append a new object
                 base.val.append(walk.descend(subschema, JSONValue(undef=True), head_item, meta).val)

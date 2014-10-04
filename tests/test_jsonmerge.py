@@ -724,7 +724,7 @@ class TestMerge(unittest.TestCase):
         merger = jsonmerge.Merger(schema)
         r = merger.merge(base, head)
 
-        self.assertEqual(r, [ {'id': 'a'}, {} ])
+        self.assertEqual(r, [ {}, {'id': 'a'} ])
 
     def test_merge_by_id_non_unique_base(self):
         schema = {
@@ -763,9 +763,8 @@ class TestMerge(unittest.TestCase):
         ]
 
         merger = jsonmerge.Merger(schema)
-        base = merger.merge(base, head)
 
-        self.assertEqual(base, [{'id': 'a', 'foo': 3}])
+        self.assertRaises(HeadInstanceError, merger.merge, base, head)
 
     def test_append_with_maxitems(self):
 
