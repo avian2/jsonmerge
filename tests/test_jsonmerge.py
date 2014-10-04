@@ -172,6 +172,17 @@ class TestMerge(unittest.TestCase):
 
         self.assertEqual(base, {'a': "a", 'b': "b"})
 
+    def test_merge_null(self):
+
+        schema = {'mergeStrategy': 'objectMerge'}
+
+        base = {'a': 'a'}
+        head = {'a': None}
+
+        r = jsonmerge.merge(base, head, schema)
+
+        self.assertEqual(head, r)
+
     def test_merge_type_error(self):
 
         schema = {'mergeStrategy': 'objectMerge'}
