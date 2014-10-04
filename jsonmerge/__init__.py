@@ -1,7 +1,7 @@
 # vim:ts=4 sw=4 expandtab softtabstop=4
 from jsonmerge.jsonvalue import JSONValue
 from jsonmerge import strategies
-from jsonschema.validators import Draft4Validator
+from jsonschema.validators import Draft4Validator, RefResolver
 
 class Walk(object):
     def __init__(self, merger):
@@ -19,6 +19,10 @@ class Walk(object):
 
     def descend(self, schema, *args):
         assert isinstance(schema, JSONValue)
+
+        if not schema.is_undef():
+            with self.resolver.resolving(schema.ref) as resolved:
+                assert schema.val == resolved
 
         if not schema.is_undef():
             ref = schema.val.get("$ref")
@@ -43,6 +47,11 @@ class Walk(object):
 
 class WalkInstance(Walk):
 
+    def __init__(self, merger, base, head):
+        Walk.__init__(self, merger)
+        self.base_resolver = RefResolver("", base.val)
+        self.head_resolver = RefResolver("", head.val)
+
     def add_meta(self, head, meta):
         if meta is None:
             rv = dict()
@@ -62,6 +71,14 @@ class WalkInstance(Walk):
         assert isinstance(schema, JSONValue)
         assert isinstance(base, JSONValue)
         assert isinstance(head, JSONValue)
+
+        if not base.is_undef():
+            with self.base_resolver.resolving(base.ref) as resolved:
+                assert base.val == resolved
+
+        if not head.is_undef():
+            with self.head_resolver.resolving(head.ref) as resolved:
+                assert head.val == resolved
 
         rv = strategy.merge(self, base, head, schema, meta, **kwargs)
 
@@ -194,7 +211,7 @@ class Merger(object):
 
         head = JSONValue(head)
 
-        walk = WalkInstance(self)
+        walk = WalkInstance(self, base, head)
         return walk.descend(schema, base, head, meta).val
 
     def get_schema(self, meta=None):
