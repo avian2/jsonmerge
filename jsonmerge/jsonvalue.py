@@ -29,12 +29,9 @@ class JSONValue(object):
         else:
             return 'JSONValue(%r,%r)' % (self.val, self.ref)
 
-    def iteritems(self):
-        for k, v in self.val.iteritems():
-            yield (k, self._subval(k, val=v))
-
     def items(self):
-        return list(self.iteritems())
+        for k, v in self.val.items():
+            yield (k, self._subval(k, val=v))
 
     def __iter__(self):
         assert isinstance(self.val, list)
