@@ -28,7 +28,7 @@ class Walk(object):
             ref = schema.val.get("$ref")
             if ref is not None:
                 with self.resolver.resolving(ref) as resolved:
-                    return self.descend(JSONValue(resolved), *args)
+                    return self.descend(JSONValue(resolved, ref), *args)
             else:
                 name = schema.val.get("mergeStrategy")
                 opts = schema.val.get("mergeOptions")
