@@ -2,11 +2,20 @@
 from jsonmerge.jsonvalue import JSONValue
 from jsonmerge import strategies
 from jsonschema.validators import Draft4Validator, RefResolver
+import logging
+
+log = logging.getLogger(name=__name__)
+
+#logging.basicConfig(level=logging.DEBUG)
 
 class Walk(object):
     def __init__(self, merger):
         self.merger = merger
         self.resolver = merger.validator.resolver
+        self.lvl = -1
+
+    def _indent(self):
+        return "  " * self.lvl
 
     def is_type(self, instance, type):
         """Check if instance if a specific JSON type."""
@@ -19,6 +28,9 @@ class Walk(object):
 
     def descend(self, schema, *args):
         assert isinstance(schema, JSONValue)
+        self.lvl += 1
+
+        log.debug("descend: %sschema %s" % (self._indent(), schema.ref,))
 
         if not schema.is_undef():
             with self.resolver.resolving(schema.ref) as resolved:
@@ -28,7 +40,9 @@ class Walk(object):
             ref = schema.val.get("$ref")
             if ref is not None:
                 with self.resolver.resolving(ref) as resolved:
-                    return self.descend(JSONValue(resolved, ref), *args)
+                    rv = self.descend(JSONValue(resolved, ref), *args)
+                    self.lvl -= 1
+                    return rv
             else:
                 name = schema.val.get("mergeStrategy")
                 opts = schema.val.get("mergeOptions")
@@ -41,9 +55,14 @@ class Walk(object):
         if name is None:
             name = self.default_strategy(schema, *args, **opts)
 
+        log.debug("descend: %sinvoke strategy %s" % (self._indent(), name))
+
         strategy = self.merger.strategies[name]
 
-        return self.work(strategy, schema, *args, **opts)
+        rv = self.work(strategy, schema, *args, **opts)
+
+        self.lvl -= 1
+        return rv
 
 class WalkInstance(Walk):
 
@@ -72,6 +91,8 @@ class WalkInstance(Walk):
         assert isinstance(base, JSONValue)
         assert isinstance(head, JSONValue)
 
+        log.debug("work   : %sbase %s, head %s" % (self._indent(), base.ref, head.ref))
+
         if not base.is_undef():
             with self.base_resolver.resolving(base.ref) as resolved:
                 assert base.val == resolved
@@ -87,10 +108,13 @@ class WalkInstance(Walk):
 
 class WalkSchema(Walk):
 
+    def is_base_context(self):
+        return self.resolver.base_uri == self.merger.schema.get('id', '')
+
     def resolve_refs(self, schema, resolve_base=False):
         assert isinstance(schema, JSONValue)
 
-        if (not resolve_base) and self.resolver.base_uri == self.merger.schema.get('id', ''):
+        if (not resolve_base) and self.is_base_context():
             # no need to resolve refs in the context of the original schema - they 
             # are still valid
             return schema
