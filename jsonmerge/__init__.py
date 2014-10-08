@@ -1,6 +1,7 @@
 # vim:ts=4 sw=4 expandtab softtabstop=4
+from jsonmerge.jsonvalue import JSONValue
 from jsonmerge import strategies
-from jsonschema.validators import Draft4Validator
+from jsonschema.validators import Draft4Validator, RefResolver
 
 class Walk(object):
     def __init__(self, merger):
@@ -9,17 +10,28 @@ class Walk(object):
 
     def is_type(self, instance, type):
         """Check if instance if a specific JSON type."""
-        return self.merger.validator.is_type(instance, type)
+        assert isinstance(instance, JSONValue)
+
+        if instance.is_undef():
+            return False
+
+        return self.merger.validator.is_type(instance.val, type)
 
     def descend(self, schema, *args):
-        if schema is not None:
-            ref = schema.get("$ref")
+        assert isinstance(schema, JSONValue)
+
+        if not schema.is_undef():
+            with self.resolver.resolving(schema.ref) as resolved:
+                assert schema.val == resolved
+
+        if not schema.is_undef():
+            ref = schema.val.get("$ref")
             if ref is not None:
                 with self.resolver.resolving(ref) as resolved:
-                    return self.descend(resolved, *args)
+                    return self.descend(JSONValue(resolved, ref), *args)
             else:
-                name = schema.get("mergeStrategy")
-                opts = schema.get("mergeOptions")
+                name = schema.val.get("mergeStrategy")
+                opts = schema.val.get("mergeOptions")
                 if opts is None:
                     opts = {}
         else:
@@ -34,6 +46,11 @@ class Walk(object):
         return self.work(strategy, schema, *args, **opts)
 
 class WalkInstance(Walk):
+
+    def __init__(self, merger, base, head):
+        Walk.__init__(self, merger)
+        self.base_resolver = RefResolver("", base.val)
+        self.head_resolver = RefResolver("", head.val)
 
     def add_meta(self, head, meta):
         if meta is None:
@@ -51,25 +68,41 @@ class WalkInstance(Walk):
             return "overwrite"
 
     def work(self, strategy, schema, base, head, meta, **kwargs):
-        return strategy.merge(self, base, head, schema, meta, **kwargs)
+        assert isinstance(schema, JSONValue)
+        assert isinstance(base, JSONValue)
+        assert isinstance(head, JSONValue)
+
+        if not base.is_undef():
+            with self.base_resolver.resolving(base.ref) as resolved:
+                assert base.val == resolved
+
+        if not head.is_undef():
+            with self.head_resolver.resolving(head.ref) as resolved:
+                assert head.val == resolved
+
+        rv = strategy.merge(self, base, head, schema, meta, **kwargs)
+
+        assert isinstance(rv, JSONValue)
+        return rv
 
 class WalkSchema(Walk):
 
     def resolve_refs(self, schema, resolve_base=False):
+        assert isinstance(schema, JSONValue)
 
         if (not resolve_base) and self.resolver.base_uri == self.merger.schema.get('id', ''):
             # no need to resolve refs in the context of the original schema - they 
             # are still valid
             return schema
         elif self.is_type(schema, "array"):
-            return [ self.resolve_refs(v) for v in schema ]
+            return JSONValue([ self.resolve_refs(v).val for v in schema ], schema.ref)
         elif self.is_type(schema, "object"):
-            ref = schema.get("$ref")
+            ref = schema.val.get("$ref")
             if ref is not None:
                 with self.resolver.resolving(ref) as resolved:
-                    return self.resolve_refs(resolved)
+                    return self.resolve_refs(JSONValue(resolved, ref))
             else:
-                return dict( ((k, self.resolve_refs(v)) for k, v in schema.items()) )
+                return JSONValue(dict( ((k, self.resolve_refs(v).val) for k, v in schema.items()) ), schema.ref)
         else:
             return schema
 
@@ -85,10 +118,10 @@ class WalkSchema(Walk):
                 'dependencies')
 
         for k in objonly:
-            if k in schema:
+            if k in schema.val:
                 return True
 
-        if schema.get('type') == 'object':
+        if schema.val.get('type') == 'object':
             return True
 
         return False
@@ -101,12 +134,15 @@ class WalkSchema(Walk):
             return "overwrite"
 
     def work(self, strategy, schema, meta, **kwargs):
+        assert isinstance(schema, JSONValue)
 
-        schema = dict(schema)
-        schema.pop("mergeStrategy", None)
-        schema.pop("mergeOptions", None)
+        schema = JSONValue(dict(schema.val), schema.ref)
+        schema.val.pop("mergeStrategy", None)
+        schema.val.pop("mergeOptions", None)
 
-        return strategy.get_schema(self, schema, meta, **kwargs)
+        rv = strategy.get_schema(self, schema, meta, **kwargs)
+        assert isinstance(rv, JSONValue)
+        return rv
 
 class Merger(object):
 
@@ -166,8 +202,17 @@ class Merger(object):
         Returns an updated base document
         """
 
-        walk = WalkInstance(self)
-        return walk.descend(self.schema, base, head, meta)
+        schema = JSONValue(self.schema)
+
+        if base is None:
+            base = JSONValue(undef=True)
+        else:
+            base = JSONValue(base)
+
+        head = JSONValue(head)
+
+        walk = WalkInstance(self, base, head)
+        return walk.descend(schema, base, head, meta).val
 
     def get_schema(self, meta=None):
         """Get JSON schema for the merged document.
@@ -191,10 +236,12 @@ class Merger(object):
             m.validator.resolver.store.update(self.validator.resolver.store)
 
             w = WalkSchema(m)
-            meta = w.resolve_refs(meta, resolve_base=True)
+            meta = w.resolve_refs(JSONValue(meta), resolve_base=True).val
+
+        schema = JSONValue(self.schema)
 
         walk = WalkSchema(self)
-        return walk.descend(self.schema, meta)
+        return walk.descend(schema, meta).val
 
 def merge(base, head, schema={}):
     """Merge two JSON documents using strategies defined in schema.

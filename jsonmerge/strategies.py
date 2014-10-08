@@ -2,6 +2,7 @@
 from jsonmerge.exceptions import HeadInstanceError, \
                                  BaseInstanceError, \
                                  SchemaError
+from jsonmerge.jsonvalue import JSONValue
 import jsonschema
 import re
 
@@ -13,9 +14,9 @@ class Strategy(object):
         """Merge head instance into base.
 
         walk -- WalkInstance object for the current context.
-        base -- Value being merged into.
-        head -- Value being merged.
-        schema -- Schema used for merging.
+        base -- JSONValue being merged into.
+        head -- JSONValue being merged.
+        schema -- Schema used for merging (also JSONValue)
         meta -- Meta data, as passed to the Merger.merge() method.
         kwargs -- Dict with any extra options given in the 'mergeOptions'
         keyword
@@ -69,15 +70,15 @@ class Version(Strategy):
         if unique is False:
             ignoreDups = False
 
-        if base is None:
-            base = []
+        if base.is_undef():
+            base = JSONValue(val=[], ref=base.ref)
         else:
-            base = list(base)
+            base = JSONValue(list(base.val), base.ref)
 
-        if not ignoreDups or not base or base[-1]['value'] != head:
-            base.append(walk.add_meta(head, meta))
+        if not ignoreDups or not base.val or base.val[-1]['value'] != head.val:
+            base.val.append(walk.add_meta(head.val, meta))
             if limit is not None:
-                base = base[-limit:]
+                base.val = base.val[-limit:]
 
         return base
 
@@ -91,7 +92,7 @@ class Version(Strategy):
         if 'properties' not in item:
             item['properties'] = {}
 
-        item['properties']['value'] = walk.resolve_refs(schema)
+        item['properties']['value'] = walk.resolve_refs(schema).val
 
         rv = {  "type": "array",
                 "items": item }
@@ -99,27 +100,27 @@ class Version(Strategy):
         if limit is not None:
             rv['maxItems'] = limit
 
-        return rv
+        return JSONValue(rv, schema.ref)
 
 class Append(Strategy):
     def merge(self, walk, base, head, schema, meta, **kwargs):
         if not walk.is_type(head, "array"):
             raise HeadInstanceError("Head for an 'append' merge strategy is not an array")
 
-        if base is None:
-            base = []
+        if base.is_undef():
+            base = JSONValue([], base.ref)
         else:
             if not walk.is_type(base, "array"):
                 raise BaseInstanceError("Base for an 'append' merge strategy is not an array")
 
-            base = list(base)
+            base = JSONValue(list(base.val), base.ref)
 
-        base += head
+        base.val += head.val
         return base
 
     def get_schema(self, walk, schema, meta, **kwargs):
-        schema.pop('maxItems', None)
-        schema.pop('uniqueItems', None)
+        schema.val.pop('maxItems', None)
+        schema.val.pop('uniqueItems', None)
 
         return walk.resolve_refs(schema)
 
@@ -129,51 +130,58 @@ class ArrayMergeById(Strategy):
         if not walk.is_type(head, "array"):
             raise HeadInstanceError("Head for an 'arrayMergeById' merge strategy is not an array")  # nopep8
 
-        if base is None:
-            base = []
+        if base.is_undef():
+            base = JSONValue([], base.ref)
         else:
             if not walk.is_type(base, "array"):
                 raise BaseInstanceError("Base for an 'arrayMergeById' merge strategy is not an array")  # nopep8
-            base = list(base)
+            base = JSONValue(list(base.val), base.ref)
 
-        subschema = None
-
-        if schema:
-            subschema = schema.get('items')
+        subschema = schema.get('items')
 
         if walk.is_type(subschema, "array"):
             raise SchemaError("'arrayMergeById' not supported when 'items' is an array")
 
-        for head_item in head:
+        def iter_index_key_item(jv):
+            for i, item in enumerate(jv):
+                try:
+                    key = walk.resolver.resolve_fragment(item.val, idRef)
+                except jsonschema.RefResolutionError:
+                    continue
 
-            try:
-                head_key = walk.resolver.resolve_fragment(head_item, idRef)
-            except jsonschema.RefResolutionError:
-                # Do nothing if idRef field cannot be found.
-                continue
+                yield i, key, item
+
+        for i, key_1, item_1 in iter_index_key_item(head):
+            for j, key_2, item_2 in iter_index_key_item(head):
+                if j < i:
+                    if key_1 == key_2:
+                        raise HeadInstanceError("Id was not unique")
+                else:
+                    break
+
+        for i, head_key, head_item in iter_index_key_item(head):
 
             if head_key == ignoreId:
                 continue
 
             key_count = 0
-            for i, base_item in enumerate(base):
-                base_key = walk.resolver.resolve_fragment(base_item, idRef)
+            for j, base_key, base_item in iter_index_key_item(base):
+
                 if base_key == head_key:
                     key_count += 1
                     # If there was a match, we replace with a merged item
-                    base[i] = walk.descend(subschema, base_item, head_item, meta)
+                    base.val[j] = walk.descend(subschema, base_item, head_item, meta).val
+
             if key_count == 0:
                 # If there wasn't a match, we append a new object
-                base.append(walk.descend(subschema, None, head_item, meta))
+                base.val.append(walk.descend(subschema, JSONValue(undef=True), head_item, meta).val)
             if key_count > 1:
                 raise BaseInstanceError("Id was not unique")
 
         return base
 
     def get_schema(self, walk, schema, meta, **kwargs):
-        subschema = None
-        if schema:
-            subschema = schema.get('items')
+        subschema = schema.get('items')
 
         # Note we're discarding the walk.descend() result here. This is because
         # it would de-reference the $ref if the subschema is a reference - i.e.
@@ -193,53 +201,53 @@ class ObjectMerge(Strategy):
         if not walk.is_type(head, "object"):
             raise HeadInstanceError("Head for an 'object' merge strategy is not an object")
 
-        if base is None:
-            base = {}
+        if base.is_undef():
+            base = JSONValue({}, base.ref)
         else:
             if not walk.is_type(base, "object"):
                 raise BaseInstanceError("Base for an 'object' merge strategy is not an object")
 
-            base = dict(base)
+            base = JSONValue(dict(base.val), base.ref)
 
         for k, v in head.items():
 
-            subschema = None
+            subschema = JSONValue(undef=True)
 
             # get subschema for this element
-            if schema is not None:
+            if not schema.is_undef():
                 p = schema.get('properties')
-                if p is not None:
+                if not p.is_undef():
                     subschema = p.get(k)
 
-                if subschema is None:
+                if subschema.is_undef():
                     p = schema.get('patternProperties')
-                    if p is not None:
+                    if not p.is_undef():
                         for pattern, s in p.items():
                             if re.search(pattern, k):
                                 subschema = s
 
-                if subschema is None:
+                if subschema.is_undef():
                     p = schema.get('additionalProperties')
-                    if p is not None:
+                    if not p.is_undef():
                         subschema = p.get(k)
 
-            base[k] = walk.descend(subschema, base.get(k), v, meta)
+            base.val[k] = walk.descend(subschema, base.get(k), v, meta).val
 
         return base
 
     def get_schema(self, walk, schema, meta, **kwargs):
 
         for forbidden in ("oneOf", "allOf", "anyOf"):
-            if forbidden in schema:
+            if forbidden in schema.val:
                 raise SchemaError("Type ambiguous schema")
 
-        schema2 = dict(schema)
+        schema2 = JSONValue(dict(schema.val), schema.ref)
 
         def descend_keyword(keyword):
             p = schema.get(keyword)
-            if p is not None:
+            if not p.is_undef():
                 for k, v in p.items():
-                    schema2[keyword][k] = walk.descend(v, meta)
+                    schema2.val[keyword][k] = walk.descend(v, meta).val
 
         descend_keyword("properties")
         descend_keyword("patternProperties")
