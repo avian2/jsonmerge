@@ -239,8 +239,11 @@ class TestMerge(unittest.TestCase):
     def test_merge_append_additional(self):
 
         schema = {'mergeStrategy': 'objectMerge',
+                  'properties': {
+                      'b': {'mergeStrategy': 'overwrite'}
+                  },
                   'additionalProperties': {
-                      'a': {'mergeStrategy': 'append'}
+                      'mergeStrategy': 'append'
                   }}
 
         base = None
