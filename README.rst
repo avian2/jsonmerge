@@ -237,7 +237,7 @@ The latest version is available on GitHub: https://github.com/avian2/jsonmerge
 License
 -------
 
-Copyright 2014, Tomaz Solc <tomaz.solc@tablix.org>
+Copyright 2016, Tomaz Solc <tomaz.solc@tablix.org>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

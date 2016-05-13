@@ -1,3 +1,9 @@
+2016-05-13	jsonmerge	1.2.0
+
+	* Fix handling of additionalProperties (thanks to nxkb).
+	* Add optional debug output through the logging module.
+	* Fix arrayMergeById strategy when base instance has no "id" property.
+
 2014-09-20	jsonmerge	1.1.0
 
 	* Add ArrayMergeById strategy (thanks to Sarah Bird).
