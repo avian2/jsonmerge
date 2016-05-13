@@ -5,13 +5,10 @@ python:
   - 2.7
   - 3.3
   - 3.4
-env:
-  - JSONSCHEMA="jsonschema"
 matrix:
   include:
     - python: "3.2"
-      env: JSONSCHEMA="jsonschema==2.3.0"
-install:
-  - pip install $JSONSCHEMA
+      install:
+        - pip install jsonschema==2.3.0
 script:
   - python setup.py test

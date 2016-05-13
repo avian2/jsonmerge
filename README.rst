@@ -213,6 +213,10 @@ Requirements
 You need *jsonschema* (https://pypi.python.org/pypi/jsonschema) module
 installed.
 
+*jsonschema* 2.4.0 is recommended. With versions newer than 2.4.0,
+*get_schema()* method might not work correctly
+(https://github.com/avian2/jsonmerge/issues/20)
+
 
 Installation
 ------------
