@@ -239,8 +239,11 @@ class TestMerge(unittest.TestCase):
     def test_merge_append_additional(self):
 
         schema = {'mergeStrategy': 'objectMerge',
+                  'properties': {
+                      'b': {'mergeStrategy': 'overwrite'}
+                  },
                   'additionalProperties': {
-                      'a': {'mergeStrategy': 'append'}
+                      'mergeStrategy': 'append'
                   }}
 
         base = None
@@ -1366,6 +1369,27 @@ class TestGetSchema(unittest.TestCase):
                 }
             },
         }
+
+        merger = jsonmerge.Merger(schema)
+        schema2 = merger.get_schema()
+
+        self.assertEqual(schema2, expected)
+
+    def test_merge_append_additional(self):
+
+        schema = {'mergeStrategy': 'objectMerge',
+                  'properties': {
+                      'b': {'mergeStrategy': 'overwrite'}
+                  },
+                  'additionalProperties': {
+                      'mergeStrategy': 'append'
+                  }}
+
+        expected = {'properties': {
+                        'b': {},
+                    },
+                    'additionalProperties': {}
+                }
 
         merger = jsonmerge.Merger(schema)
         schema2 = merger.get_schema()
