@@ -1374,3 +1374,24 @@ class TestGetSchema(unittest.TestCase):
         schema2 = merger.get_schema()
 
         self.assertEqual(schema2, expected)
+
+    def test_merge_append_additional(self):
+
+        schema = {'mergeStrategy': 'objectMerge',
+                  'properties': {
+                      'b': {'mergeStrategy': 'overwrite'}
+                  },
+                  'additionalProperties': {
+                      'mergeStrategy': 'append'
+                  }}
+
+        expected = {'properties': {
+                        'b': {},
+                    },
+                    'additionalProperties': {}
+                }
+
+        merger = jsonmerge.Merger(schema)
+        schema2 = merger.get_schema()
+
+        self.assertEqual(schema2, expected)

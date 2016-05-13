@@ -251,6 +251,9 @@ class ObjectMerge(Strategy):
 
         descend_keyword("properties")
         descend_keyword("patternProperties")
-        descend_keyword("additionalProperties")
+
+        p = schema.get("additionalProperties")
+        if not p.is_undef():
+            schema2.val["additionalProperties"] = walk.descend(p, meta).val
 
         return schema2
