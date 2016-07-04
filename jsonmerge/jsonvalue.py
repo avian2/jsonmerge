@@ -10,8 +10,11 @@ class JSONValue(object):
     def is_undef(self):
         return self.undef
 
+    def _ref_escape(self, key):
+        return key.replace('~', '~0').replace('/', '~1')
+
     def _subval(self, key, **kwargs):
-        return JSONValue(ref=self.ref+'/'+str(key), **kwargs)
+        return JSONValue(ref=self.ref+'/'+self._ref_escape(str(key)), **kwargs)
 
     def __getitem__(self, key):
         return self._subval(key, val=self.val[key])

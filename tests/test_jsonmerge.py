@@ -821,6 +821,23 @@ class TestMerge(unittest.TestCase):
         jsonschema.validate(head, schema2)
         jsonschema.validate(base, schema2)
 
+    def test_slash_in_property_name(self):
+
+        base = {'a': 0}
+        head = {'b': {'c/d': 1}}
+
+        base = jsonmerge.merge(base, head)
+
+        self.assertEqual(base, {'a': 0, 'b': {'c/d': 1}})
+
+    def test_tilde_in_property_name(self):
+
+        base = {'a': 0}
+        head = {'~1': 1}
+
+        base = jsonmerge.merge(base, head)
+
+        self.assertEqual(base, {'a': 0, '~1': 1})
 
 class TestGetSchema(unittest.TestCase):
 
