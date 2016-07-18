@@ -1,3 +1,9 @@
+2016-07-18	jsonmerge	1.2.1
+
+	* Fix RefResolutionError when merging properties with slash or tilde
+	  characters.
+	* Add LICENSE file.
+
 2016-05-13	jsonmerge	1.2.0
 
 	* Fix handling of additionalProperties (thanks to nxkb).
