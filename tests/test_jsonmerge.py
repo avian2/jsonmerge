@@ -705,6 +705,30 @@ class TestMerge(unittest.TestCase):
         base = None
         self.assertRaises(SchemaError, merger.merge, base, head)
 
+    def test_merge_by_id_only_integers(self):
+
+        # arrayMergeById strategy can be used to treat simple arrays of
+        # integers as Python sets by setting idRef to root (i.e. pointing to
+        # the array element itself)
+        #
+        # https://github.com/avian2/jsonmerge/issues/24
+
+        schema = {
+            "mergeStrategy": "arrayMergeById",
+            "mergeOptions": {"idRef": "/"},
+        }
+
+        base = [ 1, 2 ]
+        head = [ 2, 3 ]
+
+        expected = [ 1, 2, 3]
+
+        merger = jsonmerge.Merger(schema)
+
+        base = merger.merge(base, head)
+
+        self.assertEqual(base, expected)
+
     def test_merge_by_id_bad_head_type(self):
         schema = {
             'mergeStrategy': 'arrayMergeById'

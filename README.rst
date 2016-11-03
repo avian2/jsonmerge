@@ -159,7 +159,8 @@ arrayMergeById
   You can specify an arbitrary *JSON pointer* to point to the ID of the
   item using the *idRef* merge option. When resolving the pointer, document
   root is placed at the root of the array item (e.g. by default, *idRef* is
-  '/id')
+  '/id'). You can also set *idRef* to '/' to treat an array of integers or
+  strings as a set of unique values.
 
   Array items in *head* for which the ID cannot be identified (e.g. *idRef*
   pointer is invalid) are ignored.
