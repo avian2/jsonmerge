@@ -41,3 +41,9 @@ class JSONValue(object):
 
         for i, v in enumerate(self.val):
             yield self._subval(i, val=v)
+
+    def __eq__(self, other):
+        return self.val == other.val and self.ref == other.ref
+
+    def __ne__(self, other):
+        return self.val != other.val or self.ref != other.ref
