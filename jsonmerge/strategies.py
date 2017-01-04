@@ -197,7 +197,8 @@ class ArrayMergeById(Strategy):
 
 
 class ObjectMerge(Strategy):
-    def merge(self, walk, base, head, schema, meta, **kwargs):
+    def merge(self, walk, base, head, schema, meta, renameConflicts=False,
+              renamePrefix='', renameSuffix='-conflict', **kwargs):
         if not walk.is_type(head, "object"):
             raise HeadInstanceError("Head for an 'object' merge strategy is not an object")
 
@@ -230,8 +231,14 @@ class ObjectMerge(Strategy):
                     p = schema.get('additionalProperties')
                     if not p.is_undef():
                         subschema = p
-
-            base.val[k] = walk.descend(subschema, base.get(k), v, meta).val
+            both_def = not (base.get(k).is_undef() or head.get(k).is_undef())
+            if renameConflicts and both_def and base.get(k) != head.get(k):
+                na = JSONValue(undef=True)
+                base.val[k] = walk.descend(subschema, na, base.get(k), meta, validate=False).val
+                new_key = renamePrefix + k + renameSuffix
+                base.val[new_key] = walk.descend(subschema, na, v, meta).val
+            else:
+                base.val[k] = walk.descend(subschema, base.get(k), v, meta).val
 
         return base
 
