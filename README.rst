@@ -175,6 +175,14 @@ objectMerge
   (e.g. in *properties*, *patternProperties* or *additionalProperties*
   schema keywords).
 
+  The *objclass* option allows one to request a different dictionary class
+  to be used to hold the JSON object.  The possible values are names
+  that correspond to specific Python classes.  Built-in names include
+  'OrderedDict', to use the collections.OrderedDict class, or 'default',
+  which uses whatever class was configured as the default class
+  (normally, dict).  Note that additional classes can be configured in
+  via the Merger class.  
+  
 version
   Changes the type of the value to an array. New values are appended to the
   array in the form of an object with a *value* property. This way all
@@ -191,8 +199,50 @@ If a merge strategy is not specified in the schema, *objectMerge* is used
 to objects and *overwrite* for all other values.
 
 You can implement your own strategies by making subclasses of
-jsonmerge.strategies.Strategy and passing them to Merger() constructor.
+jsonmerge.strategies.Strategy and passing them to Merger() constructor
+(see below).
 
+The Merger Class
+----------------
+
+The Merger class allows you to further customize the merging of JSON
+data by allowing you to:
+
+- set the schema containing the merge stategy configuration
+- provide additional strategy implementations
+- set a default class to use for holding JSON object data
+- configure additional available JSON object classes
+    
+The Merger constructor takes the following arguments
+
+`schema`
+   The JSON Schema that contains the merge strategy directives
+   provided as a JSON object.  An empty dictionary should be provided
+   if strategy configuration is needed.
+
+`strategies`
+   a dictionary mapping strategy names to instances of Strategy
+   classes.  These will be combined with the built-in strategies
+   (overriding them with the instances having the same name).
+
+`def_objclass`
+   the name of a supported dictionary-like class to use hold JSON
+   data by default in the merged result.  The name must match a
+   built-in name or one provided in the `obj_cls_menu` parameter.
+   Built-in names include *OrderedDict*, which will cause the
+   `collections.OrderedDict` class to be used, and *default*, which will
+   use the configured default class.  If the *default* name has not been
+   overridden by the `obj_cls_menu` parameter, which will be a vanilla
+   `dict`. 
+
+`obj_cls_menu`
+   a dictionary providing possible classes to use as JSON object
+   containers.  The keys are names that can be used as values for the
+   *objectMerge* strategy's *objclass* option (in addition to the
+   built-in *OrderedDict* and *default*).  Each value is a
+   function or class that produces an instance of the JSON object
+   container; it must support an optional dictionary-like object as a
+   parameter which initializes its contents.  
 
 Limitations
 -----------

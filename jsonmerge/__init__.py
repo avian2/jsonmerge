@@ -3,6 +3,7 @@ from jsonmerge.jsonvalue import JSONValue
 from jsonmerge import strategies
 from jsonschema.validators import Draft4Validator, RefResolver
 import logging
+from collections import OrderedDict
 
 log = logging.getLogger(name=__name__)
 
@@ -101,7 +102,7 @@ class WalkInstance(Walk):
             with self.head_resolver.resolving(head.ref) as resolved:
                 assert head.val == resolved
 
-        rv = strategy.merge(self, base, head, schema, meta, **kwargs)
+        rv = strategy.merge(self, base, head, schema, meta, obj_cls_menu=self.merger.obj_cls_menu, **kwargs)
 
         assert isinstance(rv, JSONValue)
         return rv
@@ -178,14 +179,27 @@ class Merger(object):
         "arrayMergeById": strategies.ArrayMergeById()
     }
 
-    def __init__(self, schema, strategies=()):
+    def __init__(self, schema, strategies=(), def_objclass='default', obj_cls_menu=None):
         """Create a new Merger object.
 
         schema -- JSON schema to use when merging.
         strategies -- Any additional merge strategies to use during merge.
+        def_objclass -- the name of a supported class to use to hold JSON 
+           object data when one is not specified in the schema; must
+           be a built-in name or one in obj_cls_menu.
+        obj_cls_menu -- a dictionary that maps a string name to a 
+            function or class that will return an empty dictionary-like 
+            object to use as a JSON object.  The function must accept 
+            either no arguments or a dictionary-like object.  
 
         strategies argument should be a dict mapping strategy names to
         instances of Strategy subclasses.
+
+        objclass names that are built-in include 'OrderedDict', which 
+        uses collections.OrderedDict as an JSON object type, and 
+        'default', which uses a vanilla dict.  If def_objclass is not
+        set to 'default', the class associated with 'default' with the 
+        class associated with that given name.  
         """
 
         self.schema = schema
@@ -193,6 +207,12 @@ class Merger(object):
 
         self.strategies = dict(self.STRATEGIES)
         self.strategies.update(strategies)
+
+        self.obj_cls_menu = { 'default': dict, 'OrderedDict': OrderedDict }
+        if obj_cls_menu:
+            self.obj_cls_menu.update(obj_cls_menu)
+        if def_objclass is not None and def_objclass != 'default' and def_objclass in self.obj_cls_menu:
+            self.obj_cls_menu['default'] = self.obj_cls_menu[def_objclass]
 
     def cache_schema(self, schema, uri=None):
         """Cache an external schema reference.

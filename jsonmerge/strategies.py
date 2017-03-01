@@ -197,17 +197,55 @@ class ArrayMergeById(Strategy):
 
 
 class ObjectMerge(Strategy):
-    def merge(self, walk, base, head, schema, meta, **kwargs):
+    """A Strategy for merging objects.
+
+    Resulting objects have properties from both base and head. Any
+    properties that are present both in base and head are merged based
+    on the strategy specified further down in the hierarchy (e.g. in
+    properties, patternProperties or additionalProperties schema
+    keywords). 
+
+    walk -- WalkInstance object for the current context.
+    base -- JSONValue being merged into.
+    head -- JSONValue being merged.
+    schema -- Schema used for merging (also JSONValue)
+    meta -- Meta data, as passed to the Merger.merge() method.
+    obj_cls_menu -- a dictionary that maps a string name to a 
+        function or class that will return an empty dictionary-like 
+        object to use as a JSON object.  The function must accept 
+        either no arguments or a dictionary-like object.  The name
+        'default' represents the default object to use if not
+        overridden by the options. 
+    kwargs -- Dict with any extra options given in the 'mergeOptions'
+        keyword
+    
+    One mergeOption is supported:
+      objclass -- a name for the dictionary class to use as a JSON 
+          object in the output.  This name must correspond to a
+          defined class provided in the def_obj_cls.
+    """
+    def merge(self, walk, base, head, schema, meta, obj_cls_menu=None, objclass='default', **kwargs):
         if not walk.is_type(head, "object"):
             raise HeadInstanceError("Head for an 'object' merge strategy is not an object")
 
+        if not obj_cls_menu:
+            obj_cls_menu = { 'default': dict }
+        elif not hasattr(obj_cls_menu, 'get'):
+            raise TypeError("ObjectMerge: obj_cls_menu: not a dictionary-like object: " + repr(obj_cls_menu))
+        objcls = obj_cls_menu.get(objclass)
+        if not objcls:
+            if objclass == 'default':
+                objcls = dict
+            else:
+                raise SchemaError("ObjectMerge: objclass not recognized: " + objclass)
+
         if base.is_undef():
-            base = JSONValue({}, base.ref)
+            base = JSONValue(objcls(), base.ref)
         else:
             if not walk.is_type(base, "object"):
                 raise BaseInstanceError("Base for an 'object' merge strategy is not an object")
 
-            base = JSONValue(dict(base.val), base.ref)
+            base = JSONValue(objcls(base.val), base.ref)
 
         for k, v in head.items():
 
