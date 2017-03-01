@@ -221,11 +221,11 @@ class TestMerge(unittest.TestCase):
         base = None
         base = merger.merge(base, OrderedDict([('c', "a"), ('a', "a")]), schema)
         self.assertIsInstance(base, OrderedDict)
-        self.assertEquals(base.keys(), ['c', 'a'])
+        self.assertEquals([k for k in base], ['c', 'a'])
 
         base = merger.merge(base, {'a': "b"}, schema)
         self.assertIsInstance(base, OrderedDict)
-        self.assertEquals(base.keys(), ['c', 'a'])
+        self.assertEquals([k for k in base], ['c', 'a'])
 
         self.assertEqual(base, {'a': "b", 'c': "a"})
 
@@ -240,11 +240,11 @@ class TestMerge(unittest.TestCase):
         base = None
         base = merger.merge(base, OrderedDict([('c', "a"), ('a', "a")]), schema)
         self.assertIsInstance(base, OrderedDict)
-        self.assertEquals(base.keys(), ['c', 'a'])
+        self.assertEquals([k for k in base], ['c', 'a'])
 
         base = merger.merge(base, {'a': "b"}, schema)
         self.assertIsInstance(base, OrderedDict)
-        self.assertEquals(base.keys(), ['c', 'a'])
+        self.assertEquals([k for k in base], ['c', 'a'])
 
         self.assertEqual(base, {'a': "b", 'c': "a"})
 
@@ -258,11 +258,11 @@ class TestMerge(unittest.TestCase):
         base = None
         base = merger.merge(base, OrderedDict([('c', "a"), ('a', "a")]), schema)
         self.assertIsInstance(base, OrderedDict)
-        self.assertEquals(base.keys(), ['c', 'a'])
+        self.assertEquals([k for k in base], ['c', 'a'])
 
         base = merger.merge(base, {'a': "b"}, schema)
         self.assertIsInstance(base, OrderedDict)
-        self.assertEquals(base.keys(), ['c', 'a'])
+        self.assertEquals([k for k in base], ['c', 'a'])
 
         self.assertEqual(base, {'a': "b", 'c': "a"})
 
