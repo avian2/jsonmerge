@@ -181,7 +181,7 @@ objectMerge
   *OrderedDict*, to use the ``collections.OrderedDict`` class, or *default*,
   which uses whatever class was configured as the default class
   (normally, ``dict``).  Note that additional classes can be configured in
-  via the Merger class.  
+  via the Merger class.  (OrderedDict is not available in python 2.6.)
   
 version
   Changes the type of the value to an array. New values are appended to the
@@ -210,7 +210,8 @@ data by allowing you to:
 
 - set the schema containing the merge stategy configuration
 - provide additional strategy implementations
-- set a default class to use for holding JSON object data
+- set a default class to use for holding JSON object data; OrderedDict
+  provided as built-in option (python 2.7 or later).
 - configure additional available JSON object classes
     
 The Merger constructor takes the following arguments

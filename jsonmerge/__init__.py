@@ -3,7 +3,12 @@ from jsonmerge.jsonvalue import JSONValue
 from jsonmerge import strategies
 from jsonschema.validators import Draft4Validator, RefResolver
 import logging
-from collections import OrderedDict
+
+try:
+    # OrderedDict does not exist in python 2.4
+    from collections import OrderedDict
+except:
+    OrderedDict = None
 
 log = logging.getLogger(name=__name__)
 
@@ -199,7 +204,8 @@ class Merger(object):
         uses collections.OrderedDict as an JSON object type, and 
         'default', which uses a vanilla dict.  If def_objclass is not
         set to 'default', the class associated with 'default' with the 
-        class associated with that given name.  
+        class associated with that given name.  (Note: OrderedDict not 
+        available for python 2.6.)
         """
 
         self.schema = schema
@@ -208,7 +214,9 @@ class Merger(object):
         self.strategies = dict(self.STRATEGIES)
         self.strategies.update(strategies)
 
-        self.obj_cls_menu = { 'default': dict, 'OrderedDict': OrderedDict }
+        self.obj_cls_menu = { 'default': dict }
+        if OrderedDict:
+            self.obj_cls_menu['OrderedDict'] = OrderedDict
         if obj_cls_menu:
             self.obj_cls_menu.update(obj_cls_menu)
         if def_objclass is not None and def_objclass != 'default' and def_objclass in self.obj_cls_menu:
