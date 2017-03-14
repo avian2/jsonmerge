@@ -220,7 +220,7 @@ class TestMerge(unittest.TestCase):
     def test_merge_objclass(self):
 
         if OrderedDict:
-            schema = {'mergeStrategy': 'objectMerge', 'mergeOptions': { 'objclass': 'OrderedDict'}}
+            schema = {'mergeStrategy': 'objectMerge', 'mergeOptions': { 'objClass': 'OrderedDict'}}
 
             merger = jsonmerge.Merger(schema)
 
@@ -235,13 +235,13 @@ class TestMerge(unittest.TestCase):
 
             self.assertEqual(base, {'a': "b", 'c': "a"})
 
-    def test_merge_def_objclass(self):
+    def test_merge_objclass_def(self):
 
         if OrderedDict:
             schema = {'mergeStrategy': 'objectMerge'}
             menu = { 'default': OrderedDict }
 
-            merger = jsonmerge.Merger(schema, obj_cls_menu=menu)
+            merger = jsonmerge.Merger(schema, objclass_menu=menu)
 
             base = None
             base = merger.merge(base, OrderedDict([('c', "a"), ('a', "a")]), schema)
@@ -254,12 +254,12 @@ class TestMerge(unittest.TestCase):
 
             self.assertEqual(base, {'a': "b", 'c': "a"})
 
-    def test_merge_def_objclass2(self):
+    def test_merge_objclass_def2(self):
 
         if OrderedDict:
             schema = {'mergeStrategy': 'objectMerge'}
 
-            merger = jsonmerge.Merger(schema, def_objclass='OrderedDict')
+            merger = jsonmerge.Merger(schema, objclass_def='OrderedDict')
 
             base = None
             base = merger.merge(base, OrderedDict([('c', "a"), ('a', "a")]), schema)

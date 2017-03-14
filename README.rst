@@ -175,7 +175,7 @@ objectMerge
   (e.g. in *properties*, *patternProperties* or *additionalProperties*
   schema keywords).
 
-  The *objclass* option allows one to request a different dictionary class
+  The *objClass* option allows one to request a different dictionary class
   to be used to hold the JSON object.  The possible values are names
   that correspond to specific Python classes.  Built-in names include
   *OrderedDict*, to use the ``collections.OrderedDict`` class, or *default*,
@@ -226,20 +226,20 @@ The Merger constructor takes the following arguments
    classes.  These will be combined with the built-in strategies
    (overriding them with the instances having the same name).
 
-``def_objclass``
+``objclass_def``
    the name of a supported dictionary-like class to use hold JSON
    data by default in the merged result.  The name must match a
-   built-in name or one provided in the ``obj_cls_menu`` parameter.
+   built-in name or one provided in the ``objclass_menu`` parameter.
    Built-in names include *OrderedDict*, which will cause the
    ``collections.OrderedDict`` class to be used, and *default*, which will
    use the configured default class.  If the *default* name has not been
-   overridden by the ``obj_cls_menu`` parameter, the default JSON
+   overridden by the ``objclass_menu`` parameter, the default JSON
    object container will be a vanilla ``dict``. 
 
-``obj_cls_menu``
+``objclass_menu``
    a dictionary providing possible classes to use as JSON object
    containers.  The keys are names that can be used as values for the
-   *objectMerge* strategy's *objclass* option (in addition to the
+   *objectMerge* strategy's *objClass* option (in addition to the
    built-in *OrderedDict* and *default*).  Each value is a
    function or class that produces an instance of the JSON object
    container; it must support an optional dictionary-like object as a

@@ -210,7 +210,7 @@ class ObjectMerge(Strategy):
     head -- JSONValue being merged.
     schema -- Schema used for merging (also JSONValue)
     meta -- Meta data, as passed to the Merger.merge() method.
-    obj_cls_menu -- a dictionary that maps a string name to a 
+    objclass_menu -- a dictionary that maps a string name to a
         function or class that will return an empty dictionary-like 
         object to use as a JSON object.  The function must accept 
         either no arguments or a dictionary-like object.  The name
@@ -220,24 +220,24 @@ class ObjectMerge(Strategy):
         keyword
     
     One mergeOption is supported:
-      objclass -- a name for the dictionary class to use as a JSON 
+      objClass -- a name for the dictionary class to use as a JSON
           object in the output.  This name must correspond to a
           defined class provided in the def_obj_cls.
     """
-    def merge(self, walk, base, head, schema, meta, obj_cls_menu=None, objclass='default', **kwargs):
+    def merge(self, walk, base, head, schema, meta, objclass_menu=None, objClass='default', **kwargs):
         if not walk.is_type(head, "object"):
             raise HeadInstanceError("Head for an 'object' merge strategy is not an object")
 
-        if not obj_cls_menu:
-            obj_cls_menu = { 'default': dict }
-        elif not hasattr(obj_cls_menu, 'get'):
-            raise TypeError("ObjectMerge: obj_cls_menu: not a dictionary-like object: " + repr(obj_cls_menu))
-        objcls = obj_cls_menu.get(objclass)
+        if not objclass_menu:
+            objclass_menu = { 'default': dict }
+        elif not hasattr(objclass_menu, 'get'):
+            raise TypeError("ObjectMerge: objclass_menu: not a dictionary-like object: " + repr(objclass_menu))
+        objcls = objclass_menu.get(objClass)
         if not objcls:
-            if objclass == 'default':
+            if objClass == 'default':
                 objcls = dict
             else:
-                raise SchemaError("ObjectMerge: objclass not recognized: " + objclass)
+                raise SchemaError("ObjectMerge: objClass not recognized: " + objClass)
 
         if base.is_undef():
             base = JSONValue(objcls(), base.ref)

@@ -107,7 +107,7 @@ class WalkInstance(Walk):
             with self.head_resolver.resolving(head.ref) as resolved:
                 assert head.val == resolved
 
-        rv = strategy.merge(self, base, head, schema, meta, obj_cls_menu=self.merger.obj_cls_menu, **kwargs)
+        rv = strategy.merge(self, base, head, schema, meta, objclass_menu=self.merger.objclass_menu, **kwargs)
 
         assert isinstance(rv, JSONValue)
         return rv
@@ -184,15 +184,15 @@ class Merger(object):
         "arrayMergeById": strategies.ArrayMergeById()
     }
 
-    def __init__(self, schema, strategies=(), def_objclass='default', obj_cls_menu=None):
+    def __init__(self, schema, strategies=(), objclass_def='default', objclass_menu=None):
         """Create a new Merger object.
 
         schema -- JSON schema to use when merging.
         strategies -- Any additional merge strategies to use during merge.
-        def_objclass -- the name of a supported class to use to hold JSON 
+        objclass_def -- the name of a supported class to use to hold JSON
            object data when one is not specified in the schema; must
-           be a built-in name or one in obj_cls_menu.
-        obj_cls_menu -- a dictionary that maps a string name to a 
+           be a built-in name or one in objclass_menu.
+        objclass_menu -- a dictionary that maps a string name to a
             function or class that will return an empty dictionary-like 
             object to use as a JSON object.  The function must accept 
             either no arguments or a dictionary-like object.  
@@ -202,7 +202,7 @@ class Merger(object):
 
         objclass names that are built-in include 'OrderedDict', which 
         uses collections.OrderedDict as an JSON object type, and 
-        'default', which uses a vanilla dict.  If def_objclass is not
+        'default', which uses a vanilla dict.  If objclass_def is not
         set to 'default', the class associated with 'default' with the 
         class associated with that given name.  (Note: OrderedDict is not
         available in Python 2.6.)
@@ -214,13 +214,13 @@ class Merger(object):
         self.strategies = dict(self.STRATEGIES)
         self.strategies.update(strategies)
 
-        self.obj_cls_menu = { 'default': dict }
+        self.objclass_menu = { 'default': dict }
         if OrderedDict:
-            self.obj_cls_menu['OrderedDict'] = OrderedDict
-        if obj_cls_menu:
-            self.obj_cls_menu.update(obj_cls_menu)
-        if def_objclass is not None and def_objclass != 'default' and def_objclass in self.obj_cls_menu:
-            self.obj_cls_menu['default'] = self.obj_cls_menu[def_objclass]
+            self.objclass_menu['OrderedDict'] = OrderedDict
+        if objclass_menu:
+            self.objclass_menu.update(objclass_menu)
+        if objclass_def is not None and objclass_def != 'default' and objclass_def in self.objclass_menu:
+            self.objclass_menu['default'] = self.objclass_menu[objclass_def]
 
     def cache_schema(self, schema, uri=None):
         """Cache an external schema reference.
