@@ -1,6 +1,5 @@
 # vim:ts=4 sw=4 expandtab softtabstop=4
 import unittest
-import pdb
 
 try:
     from collections import OrderedDict
