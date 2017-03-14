@@ -204,8 +204,8 @@ class Merger(object):
         uses collections.OrderedDict as an JSON object type, and 
         'default', which uses a vanilla dict.  If def_objclass is not
         set to 'default', the class associated with 'default' with the 
-        class associated with that given name.  (Note: OrderedDict not 
-        available for python 2.6.)
+        class associated with that given name.  (Note: OrderedDict is not
+        available in Python 2.6.)
         """
 
         self.schema = schema
