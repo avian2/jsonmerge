@@ -5,7 +5,7 @@ from jsonschema.validators import Draft4Validator, RefResolver
 import logging
 
 try:
-    # OrderedDict does not exist in python 2.4
+    # OrderedDict does not exist before python 2.7
     from collections import OrderedDict
 except:
     OrderedDict = None
