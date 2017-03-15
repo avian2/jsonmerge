@@ -8,6 +8,9 @@ try:
     # OrderedDict does not exist before python 2.7
     from collections import OrderedDict
 except:
+    import warnings
+    warnings.warn("Support for Python <2.7 in jsonmerge will be removed soon", DeprecationWarning)
+
     OrderedDict = None
 
 log = logging.getLogger(name=__name__)
