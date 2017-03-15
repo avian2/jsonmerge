@@ -18,6 +18,19 @@ from jsonmerge.jsonvalue import JSONValue
 
 import jsonschema
 
+# workaround for Python < 2.7
+if not hasattr(unittest, 'skipIf'):
+    def skipIf(condition, reason):
+        def d(f):
+            def df(*args):
+                if condition:
+                    print("skipped %r" % (reason,))
+                else:
+                    return f(*args)
+            return df
+        return d
+    unittest.skipIf = skipIf
+
 class TestMerge(unittest.TestCase):
 
     def test_default(self):
