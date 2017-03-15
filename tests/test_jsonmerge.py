@@ -235,6 +235,22 @@ class TestMerge(unittest.TestCase):
         self.assertEqual(base, {'a': "b", 'c': "a"})
 
     @unittest.skipIf(OrderedDict is None, "Not supported on Python <2.7")
+    def test_merge_objclass2(self):
+        schema = {'mergeStrategy': 'objectMerge',
+                  'properties': {
+                      'a': {'mergeStrategy': 'objectMerge',
+                            'mergeOptions': { 'objClass': 'OrderedDict'}}}}
+
+        merger = jsonmerge.Merger(schema)
+
+        base = None
+        base = merger.merge(base, {'a': {'b': 'c'}, 'd': {'e': 'f'}}, schema)
+
+        self.assertIsInstance(base, dict)
+        self.assertIsInstance(base['a'], OrderedDict)
+        self.assertIsInstance(base['d'], dict)
+
+    @unittest.skipIf(OrderedDict is None, "Not supported on Python <2.7")
     def test_merge_objclass_bad_cls(self):
         schema = {'mergeStrategy': 'objectMerge', 'mergeOptions': { 'objClass': 'foo'}}
 
@@ -242,6 +258,21 @@ class TestMerge(unittest.TestCase):
 
         base = None
         self.assertRaises(SchemaError, merger.merge, base, OrderedDict([('c', "a"), ('a', "a")]), schema)
+
+    def test_merge_objclass_menu(self):
+        schema = {'mergeStrategy': 'objectMerge', 'mergeOptions': { 'objClass': 'foo'}}
+
+        class MyDict(dict):
+            pass
+
+        objclass_menu = {'foo': MyDict}
+
+        merger = jsonmerge.Merger(schema, objclass_menu=objclass_menu)
+
+        base = None
+        base = merger.merge(base, OrderedDict([('c', "a"), ('a', "a")]), schema)
+
+        self.assertIsInstance(base, MyDict)
 
     @unittest.skipIf(OrderedDict is None, "Not supported on Python <2.7")
     def test_merge_objclass_def(self):
