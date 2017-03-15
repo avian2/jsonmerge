@@ -217,23 +217,22 @@ class TestMerge(unittest.TestCase):
 
         self.assertEqual(base, {'a': "b"})
 
+    @unittest.skipIf(OrderedDict is None, "Not supported on Python <2.7")
     def test_merge_objclass(self):
+        schema = {'mergeStrategy': 'objectMerge', 'mergeOptions': { 'objClass': 'OrderedDict'}}
 
-        if OrderedDict:
-            schema = {'mergeStrategy': 'objectMerge', 'mergeOptions': { 'objClass': 'OrderedDict'}}
+        merger = jsonmerge.Merger(schema)
 
-            merger = jsonmerge.Merger(schema)
+        base = None
+        base = merger.merge(base, OrderedDict([('c', "a"), ('a', "a")]), schema)
+        self.assertIsInstance(base, OrderedDict)
+        self.assertEquals([k for k in base], ['c', 'a'])
 
-            base = None
-            base = merger.merge(base, OrderedDict([('c', "a"), ('a', "a")]), schema)
-            self.assertIsInstance(base, OrderedDict)
-            self.assertEquals([k for k in base], ['c', 'a'])
+        base = merger.merge(base, {'a': "b"}, schema)
+        self.assertIsInstance(base, OrderedDict)
+        self.assertEquals([k for k in base], ['c', 'a'])
 
-            base = merger.merge(base, {'a': "b"}, schema)
-            self.assertIsInstance(base, OrderedDict)
-            self.assertEquals([k for k in base], ['c', 'a'])
-
-            self.assertEqual(base, {'a': "b", 'c': "a"})
+        self.assertEqual(base, {'a': "b", 'c': "a"})
 
     @unittest.skipIf(OrderedDict is None, "Not supported on Python <2.7")
     def test_merge_objclass_bad_cls(self):
@@ -244,23 +243,22 @@ class TestMerge(unittest.TestCase):
         base = None
         self.assertRaises(SchemaError, merger.merge, base, OrderedDict([('c', "a"), ('a', "a")]), schema)
 
+    @unittest.skipIf(OrderedDict is None, "Not supported on Python <2.7")
     def test_merge_objclass_def(self):
+        schema = {'mergeStrategy': 'objectMerge'}
 
-        if OrderedDict:
-            schema = {'mergeStrategy': 'objectMerge'}
+        merger = jsonmerge.Merger(schema, objclass_def='OrderedDict')
 
-            merger = jsonmerge.Merger(schema, objclass_def='OrderedDict')
+        base = None
+        base = merger.merge(base, OrderedDict([('c', "a"), ('a', "a")]), schema)
+        self.assertIsInstance(base, OrderedDict)
+        self.assertEquals([k for k in base], ['c', 'a'])
 
-            base = None
-            base = merger.merge(base, OrderedDict([('c', "a"), ('a', "a")]), schema)
-            self.assertIsInstance(base, OrderedDict)
-            self.assertEquals([k for k in base], ['c', 'a'])
+        base = merger.merge(base, {'a': "b"}, schema)
+        self.assertIsInstance(base, OrderedDict)
+        self.assertEquals([k for k in base], ['c', 'a'])
 
-            base = merger.merge(base, {'a': "b"}, schema)
-            self.assertIsInstance(base, OrderedDict)
-            self.assertEquals([k for k in base], ['c', 'a'])
-
-            self.assertEqual(base, {'a': "b", 'c': "a"})
+        self.assertEqual(base, {'a': "b", 'c': "a"})
 
     def test_merge_append(self):
 
