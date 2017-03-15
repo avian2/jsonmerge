@@ -210,34 +210,29 @@ class ObjectMerge(Strategy):
     head -- JSONValue being merged.
     schema -- Schema used for merging (also JSONValue)
     meta -- Meta data, as passed to the Merger.merge() method.
-    objclass_menu -- a dictionary that maps a string name to a
-        function or class that will return an empty dictionary-like 
-        object to use as a JSON object.  The function must accept 
-        either no arguments or a dictionary-like object.  The name
-        'default' represents the default object to use if not
-        overridden by the options. 
-    kwargs -- Dict with any extra options given in the 'mergeOptions'
-        keyword
-    
+    objclass_menu -- A dictionary of classes to use as a JSON object.
+    kwargs -- Any extra options given in the 'mergeOptions' keyword.
+
+    objclass_menu should be a dictionary that maps a string name to a function
+    or class that will return an empty dictionary-like object to use as a JSON
+    object.  The function must accept either no arguments or a dictionary-like
+    object.  The name '_default' represents the default object to use if not
+    overridden by the objClass option.
+
     One mergeOption is supported:
-      objClass -- a name for the dictionary class to use as a JSON
-          object in the output.  This name must correspond to a
-          defined class provided in the def_obj_cls.
+
+    objClass -- a name for the class to use as a JSON object in the output.
     """
-    def merge(self, walk, base, head, schema, meta, objclass_menu=None, objClass='default', **kwargs):
+    def merge(self, walk, base, head, schema, meta, objclass_menu=None, objClass='_default', **kwargs):
         if not walk.is_type(head, "object"):
             raise HeadInstanceError("Head for an 'object' merge strategy is not an object")
 
-        if not objclass_menu:
-            objclass_menu = { 'default': dict }
-        elif not hasattr(objclass_menu, 'get'):
-            raise TypeError("ObjectMerge: objclass_menu: not a dictionary-like object: " + repr(objclass_menu))
+        if objclass_menu is None:
+            objclass_menu = { '_default': dict }
+
         objcls = objclass_menu.get(objClass)
-        if not objcls:
-            if objClass == 'default':
-                objcls = dict
-            else:
-                raise SchemaError("ObjectMerge: objClass not recognized: " + objClass)
+        if objcls is None:
+            raise SchemaError("objClass '%s' not recognized" % objClass)
 
         if base.is_undef():
             base = JSONValue(objcls(), base.ref)

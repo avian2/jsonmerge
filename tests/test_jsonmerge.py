@@ -4,7 +4,7 @@ import unittest
 try:
     from collections import OrderedDict
 except:
-    # OrderedDict not available in python 2.4
+    # OrderedDict not available in python <2.7
     OrderedDict = None
 
 import jsonmerge
@@ -177,6 +177,7 @@ class TestMerge(unittest.TestCase):
         base = jsonmerge.merge(base, {'a': "a"}, schema)
         base = jsonmerge.merge(base, {'b': "b"}, schema)
 
+        self.assertIsInstance(base, dict)
         self.assertEqual(base, {'a': "a", 'b': "b"})
 
     def test_merge_null(self):
@@ -234,26 +235,16 @@ class TestMerge(unittest.TestCase):
 
             self.assertEqual(base, {'a': "b", 'c': "a"})
 
+    @unittest.skipIf(OrderedDict is None, "Not supported on Python <2.7")
+    def test_merge_objclass_bad_cls(self):
+        schema = {'mergeStrategy': 'objectMerge', 'mergeOptions': { 'objClass': 'foo'}}
+
+        merger = jsonmerge.Merger(schema)
+
+        base = None
+        self.assertRaises(SchemaError, merger.merge, base, OrderedDict([('c', "a"), ('a', "a")]), schema)
+
     def test_merge_objclass_def(self):
-
-        if OrderedDict:
-            schema = {'mergeStrategy': 'objectMerge'}
-            menu = { 'default': OrderedDict }
-
-            merger = jsonmerge.Merger(schema, objclass_menu=menu)
-
-            base = None
-            base = merger.merge(base, OrderedDict([('c', "a"), ('a', "a")]), schema)
-            self.assertIsInstance(base, OrderedDict)
-            self.assertEquals([k for k in base], ['c', 'a'])
-
-            base = merger.merge(base, {'a': "b"}, schema)
-            self.assertIsInstance(base, OrderedDict)
-            self.assertEquals([k for k in base], ['c', 'a'])
-
-            self.assertEqual(base, {'a': "b", 'c': "a"})
-
-    def test_merge_objclass_def2(self):
 
         if OrderedDict:
             schema = {'mergeStrategy': 'objectMerge'}
