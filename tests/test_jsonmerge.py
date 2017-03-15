@@ -190,7 +190,7 @@ class TestMerge(unittest.TestCase):
         base = jsonmerge.merge(base, {'a': "a"}, schema)
         base = jsonmerge.merge(base, {'b': "b"}, schema)
 
-        self.assertIsInstance(base, dict)
+        self.assertTrue(isinstance(base, dict))
         self.assertEqual(base, {'a': "a", 'b': "b"})
 
     def test_merge_null(self):
@@ -283,9 +283,9 @@ class TestMerge(unittest.TestCase):
         merger = jsonmerge.Merger(schema, objclass_menu=objclass_menu)
 
         base = None
-        base = merger.merge(base, OrderedDict([('c', "a"), ('a', "a")]), schema)
+        base = merger.merge(base, {'c': "a", 'a': "a"}, schema)
 
-        self.assertIsInstance(base, MyDict)
+        self.assertTrue(isinstance(base, MyDict))
 
     @unittest.skipIf(OrderedDict is None, "Not supported on Python <2.7")
     def test_merge_objclass_def(self):
