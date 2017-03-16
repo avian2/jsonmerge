@@ -1,3 +1,9 @@
+2016-04-02	jsonmerge	1.3.0
+
+	* Add "objClass" option for selection of an alternative class for
+	  storage of JSON objects, like OrderedDict (thanks to Ray Plante).
+	* Deprecate jsonmerge use with Python 2.6.
+
 2016-07-18	jsonmerge	1.2.1
 
 	* Fix RefResolutionError when merging properties with slash or tilde

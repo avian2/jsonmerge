@@ -295,7 +295,7 @@ To install from source and run the test suite::
 License
 -------
 
-Copyright 2016, Tomaz Solc <tomaz.solc@tablix.org>
+Copyright 2017, Tomaz Solc <tomaz.solc@tablix.org>
 
 The MIT License (MIT)
 
