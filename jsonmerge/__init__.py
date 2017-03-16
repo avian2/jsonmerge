@@ -26,7 +26,7 @@ class Walk(object):
 
         return self.merger.validator.is_type(instance.val, type)
 
-    def descend(self, schema, *args):
+    def descend(self, schema, *args, **kwargs):
         assert isinstance(schema, JSONValue)
         self.lvl += 1
 
@@ -51,7 +51,8 @@ class Walk(object):
         else:
             name = None
             opts = {}
-
+        if 'validate' in kwargs:
+            opts['validate'] = kwargs['validate']
         if name is None:
             name = self.default_strategy(schema, *args, **opts)
 
@@ -86,20 +87,20 @@ class WalkInstance(Walk):
         else:
             return "overwrite"
 
-    def work(self, strategy, schema, base, head, meta, **kwargs):
+    def work(self, strategy, schema, base, head, meta, validate=True, **kwargs):
         assert isinstance(schema, JSONValue)
         assert isinstance(base, JSONValue)
         assert isinstance(head, JSONValue)
 
         log.debug("work   : %sbase %s, head %s" % (self._indent(), base.ref, head.ref))
+        if validate:
+            if not base.is_undef():
+                with self.base_resolver.resolving(base.ref) as resolved:
+                    assert base.val == resolved
 
-        if not base.is_undef():
-            with self.base_resolver.resolving(base.ref) as resolved:
-                assert base.val == resolved
-
-        if not head.is_undef():
-            with self.head_resolver.resolving(head.ref) as resolved:
-                assert head.val == resolved
+            if not head.is_undef():
+                with self.head_resolver.resolving(head.ref) as resolved:
+                    assert head.val == resolved
 
         rv = strategy.merge(self, base, head, schema, meta, **kwargs)
 
@@ -115,7 +116,7 @@ class WalkSchema(Walk):
         assert isinstance(schema, JSONValue)
 
         if (not resolve_base) and self.is_base_context():
-            # no need to resolve refs in the context of the original schema - they 
+            # no need to resolve refs in the context of the original schema - they
             # are still valid
             return schema
         elif self.is_type(schema, "array"):

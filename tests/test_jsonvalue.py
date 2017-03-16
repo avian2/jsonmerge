@@ -1,6 +1,8 @@
 # vim:ts=4 sw=4 expandtab softtabstop=4
 import unittest
+
 from jsonmerge.jsonvalue import JSONValue
+
 
 class TestJSONValue(unittest.TestCase):
 
@@ -37,3 +39,22 @@ class TestJSONValue(unittest.TestCase):
         va = v.get('a')
         self.assertTrue('b', va.val)
         self.assertEqual('#/a', va.ref)
+
+    def test_eq(self):
+        a = JSONValue({'a': 'b'}, '#')
+        b = JSONValue({'a': 'b'}, '#')
+        c = JSONValue({'a': 'b'}, '#/properties')
+        d = JSONValue("value", '#')
+        e = JSONValue(None, '#')
+        f = JSONValue(None, '#')
+        self.assertTrue(a == b)
+        self.assertTrue(e == f)
+        self.assertFalse(a == c)
+        self.assertFalse(a == d)
+
+    def test_ne(self):
+        a = JSONValue({'a': 'b'}, '#')
+        b = JSONValue({'a': 'b'}, '#')
+        c = JSONValue({'a': 'b'}, '#/properties')
+        self.assertTrue(a != c)
+        self.assertFalse(a != b)

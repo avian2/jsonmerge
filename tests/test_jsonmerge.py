@@ -1,15 +1,12 @@
 # vim:ts=4 sw=4 expandtab softtabstop=4
 import unittest
+
 import jsonmerge
 import jsonmerge.strategies
-from jsonmerge.exceptions import (
-    HeadInstanceError,
-    BaseInstanceError,
-    SchemaError
-)
-from jsonmerge.jsonvalue import JSONValue
-
 import jsonschema
+from jsonmerge.exceptions import (BaseInstanceError, HeadInstanceError,
+                                  SchemaError)
+from jsonmerge.jsonvalue import JSONValue
 
 
 class TestMerge(unittest.TestCase):
@@ -251,6 +248,89 @@ class TestMerge(unittest.TestCase):
         base = jsonmerge.merge(base, {'a': ["b"], 'b': 'c'}, schema)
 
         self.assertEqual(base, {'a': ["a", "b"], 'b': 'c'})
+
+    def test_rename_conflicts(self):
+        schema = {
+            'mergeStrategy': 'objectMerge',
+            'mergeOptions': {'renameConflicts': True}}
+
+        base = None
+        base = jsonmerge.merge(base, {'a': ["a"]}, schema)
+        base = jsonmerge.merge(base, {'a': ["b"], 'b': 'c'}, schema)
+        self.assertEqual(base, {'a': ["a"], 'a-conflict': ["b"], 'b': 'c'})
+
+    def test_rename_conflicts_suffix(self):
+        schema = {
+            'mergeStrategy': 'objectMerge',
+            'mergeOptions': {'renameConflicts': True, 'renameSuffix': '-test'}}
+        base = None
+        base = jsonmerge.merge(base, {'a': 'a', 'b': 'b'}, schema)
+        base = jsonmerge.merge(base, {'a': 'b', 'b': 'b'}, schema)
+        self.assertEqual(base, {'a': 'a', 'a-test': 'b', 'b': 'b'})
+
+    def test_rename_conflicts_prefix(self):
+        schema = {
+            'mergeStrategy': 'objectMerge',
+            'mergeOptions': {
+                'renameConflicts': True, 'renameSuffix': '',
+                'renamePrefix': 'conflict-'}}
+        base = None
+        base = jsonmerge.merge(base, {'a': 'a', 'b': 'b'}, schema)
+        base = jsonmerge.merge(base, {'a': 'b', 'b': 'b'}, schema)
+        self.assertEqual(base, {'a': 'a', 'conflict-a': 'b', 'b': 'b'})
+
+    def test_rename_conflicts_nested(self):
+        schema = {
+            'properties': {
+                'labels': {
+                    'mergeStrategy': 'objectMerge',
+                    'mergeOptions': {'renameConflicts': True}
+                },
+                'other': {
+                    'mergeStrategy': 'overwrite',
+                    'properties': {
+                        'nested_labels': {
+                            'mergeStrategy': 'overwrite',
+                            'mergeOptions': {'renameConflicts': True}
+                        }
+                    }
+                }}}
+        base = {
+            "labels": {
+                "a": "a"
+            },
+            "other": {
+                "a": "a",
+                "nested_labels": {
+                    "a": "a"
+                }
+            }
+        }
+        head = {
+            "labels": {
+                "a": "b"
+            },
+            "other": {
+                "a": "b",
+                "nested_labels": {
+                    "a": "b"
+                }
+            }
+        }
+        expected = {
+            "labels": {
+                "a": "a",
+                "a-conflict": "b"
+            },
+            "other": {
+                "a": "b",
+                "nested_labels": {
+                    "a": "b"
+                }
+            }
+        }
+        results = jsonmerge.merge(base, head, schema)
+        self.assertEqual(results, expected)
 
     def test_example(self):
 
