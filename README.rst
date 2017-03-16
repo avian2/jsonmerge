@@ -178,8 +178,8 @@ objectMerge
   The *objClass* option allows one to request a different dictionary class
   to be used to hold the JSON object. The possible values are names that
   correspond to specific Python classes. Built-in names include
-  *OrderedDict*, to use the ``collections.OrderedDict`` class, or *dict*,
-  which uses the Python's ``dict`` built-in. If not specified, *dict* is
+  *OrderedDict*, to use the collections.OrderedDict class, or *dict*,
+  which uses the Python's dict built-in. If not specified, *dict* is
   used by default. (*OrderedDict* is not available in Python 2.6.)
 
   Note that additional classes or a different default can be configured via
@@ -218,27 +218,27 @@ data by allowing you to:
 - configure additional JSON object classes selectable via the *objClass*
   merge option.
 
-The Merger constructor takes the following arguments
+The Merger constructor takes the following arguments:
 
-``schema``
+schema
    The JSON Schema that contains the merge strategy directives
    provided as a JSON object.  An empty dictionary should be provided
    if no strategy configuration is needed.
 
-``strategies``
+strategies
    A dictionary mapping strategy names to instances of Strategy
    classes.  These will be combined with the built-in strategies
    (overriding them with the instances having the same name).
 
-``objclass_def``
+objclass_def
    The name of a supported dictionary-like class to hold JSON data by
    default in the merged result. The name must match a built-in name or one
-   provided in the ``objclass_menu`` parameter.
+   provided in the *objclass_menu* parameter.
 
-``objclass_menu``
+objclass_menu
    A dictionary providing additional classes to use as JSON object
    containers.  The keys are names that can be used as values for the
-   *objectMerge* strategy's *objClass* option or the ``objclass_def``
+   *objectMerge* strategy's *objClass* option or the *objclass_def*
    argument. Each value is a function or class that produces an instance of
    the JSON object container. It must support an optional dictionary-like
    object as a parameter which initializes its contents.
