@@ -222,17 +222,21 @@ installed.
 Installation
 ------------
 
-You install *jsonmerge*, as you would install any Python module, by running
-these commands::
+To install the latest *jsonmerge* release from the Python package index::
 
-    python setup.py install
-    python setup.py test
+    pip install jsonmerge
 
 
 Source
 ------
 
-The latest version is available on GitHub: https://github.com/avian2/jsonmerge
+The latest development version is available on GitHub:
+https://github.com/avian2/jsonmerge
+
+To install from source and run the test suite::
+
+    python setup.py install
+    python setup.py test
 
 
 License
