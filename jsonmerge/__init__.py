@@ -4,6 +4,15 @@ from jsonmerge import strategies
 from jsonschema.validators import Draft4Validator, RefResolver
 import logging
 
+try:
+    # OrderedDict does not exist before python 2.7
+    from collections import OrderedDict
+except:
+    import warnings
+    warnings.warn("Support for Python <2.7 in jsonmerge will be removed soon", DeprecationWarning)
+
+    OrderedDict = None
+
 log = logging.getLogger(name=__name__)
 
 #logging.basicConfig(level=logging.DEBUG)
@@ -101,7 +110,7 @@ class WalkInstance(Walk):
             with self.head_resolver.resolving(head.ref) as resolved:
                 assert head.val == resolved
 
-        rv = strategy.merge(self, base, head, schema, meta, **kwargs)
+        rv = strategy.merge(self, base, head, schema, meta, objclass_menu=self.merger.objclass_menu, **kwargs)
 
         assert isinstance(rv, JSONValue)
         return rv
@@ -178,14 +187,28 @@ class Merger(object):
         "arrayMergeById": strategies.ArrayMergeById()
     }
 
-    def __init__(self, schema, strategies=()):
+    def __init__(self, schema, strategies=(), objclass_def='dict', objclass_menu=None):
         """Create a new Merger object.
 
         schema -- JSON schema to use when merging.
         strategies -- Any additional merge strategies to use during merge.
+        objclass_def -- Name of the default class for JSON objects.
+        objclass_menu -- Any additional classes for JSON objects.
 
         strategies argument should be a dict mapping strategy names to
         instances of Strategy subclasses.
+
+        objclass_def specifies the default class used for JSON objects when one
+        is not specified in the schema. It should be 'dict' (dict built-in),
+        'OrderedDict' (collections.OrderedDict) or one of the names specified
+        in the objclass_menu argument. If not specified, 'dict' is used.
+
+        Note: OrderedDict is not available in Python 2.6.
+
+        objclass_menu argument should be a dictionary that maps a string name
+        to a function or class that will return an empty dictionary-like object
+        to use as a JSON object. The function must accept either no arguments
+        or a dictionary-like object.
         """
 
         self.schema = schema
@@ -193,6 +216,14 @@ class Merger(object):
 
         self.strategies = dict(self.STRATEGIES)
         self.strategies.update(strategies)
+
+        self.objclass_menu = { 'dict': dict }
+        if OrderedDict:
+            self.objclass_menu['OrderedDict'] = OrderedDict
+        if objclass_menu:
+            self.objclass_menu.update(objclass_menu)
+
+        self.objclass_menu['_default'] = self.objclass_menu[objclass_def]
 
     def cache_schema(self, schema, uri=None):
         """Cache an external schema reference.

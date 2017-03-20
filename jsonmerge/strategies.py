@@ -197,17 +197,50 @@ class ArrayMergeById(Strategy):
 
 
 class ObjectMerge(Strategy):
-    def merge(self, walk, base, head, schema, meta, **kwargs):
+    """A Strategy for merging objects.
+
+    Resulting objects have properties from both base and head. Any
+    properties that are present both in base and head are merged based
+    on the strategy specified further down in the hierarchy (e.g. in
+    properties, patternProperties or additionalProperties schema
+    keywords). 
+
+    walk -- WalkInstance object for the current context.
+    base -- JSONValue being merged into.
+    head -- JSONValue being merged.
+    schema -- Schema used for merging (also JSONValue)
+    meta -- Meta data, as passed to the Merger.merge() method.
+    objclass_menu -- A dictionary of classes to use as a JSON object.
+    kwargs -- Any extra options given in the 'mergeOptions' keyword.
+
+    objclass_menu should be a dictionary that maps a string name to a function
+    or class that will return an empty dictionary-like object to use as a JSON
+    object.  The function must accept either no arguments or a dictionary-like
+    object.  The name '_default' represents the default object to use if not
+    overridden by the objClass option.
+
+    One mergeOption is supported:
+
+    objClass -- a name for the class to use as a JSON object in the output.
+    """
+    def merge(self, walk, base, head, schema, meta, objclass_menu=None, objClass='_default', **kwargs):
         if not walk.is_type(head, "object"):
             raise HeadInstanceError("Head for an 'object' merge strategy is not an object")
 
+        if objclass_menu is None:
+            objclass_menu = { '_default': dict }
+
+        objcls = objclass_menu.get(objClass)
+        if objcls is None:
+            raise SchemaError("objClass '%s' not recognized" % objClass)
+
         if base.is_undef():
-            base = JSONValue({}, base.ref)
+            base = JSONValue(objcls(), base.ref)
         else:
             if not walk.is_type(base, "object"):
                 raise BaseInstanceError("Base for an 'object' merge strategy is not an object")
 
-            base = JSONValue(dict(base.val), base.ref)
+            base = JSONValue(objcls(base.val), base.ref)
 
         for k, v in head.items():
 

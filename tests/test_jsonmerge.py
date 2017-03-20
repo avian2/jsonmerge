@@ -1,5 +1,12 @@
 # vim:ts=4 sw=4 expandtab softtabstop=4
 import unittest
+
+try:
+    from collections import OrderedDict
+except:
+    # OrderedDict not available in python <2.7
+    OrderedDict = None
+
 import jsonmerge
 import jsonmerge.strategies
 from jsonmerge.exceptions import (
@@ -11,6 +18,18 @@ from jsonmerge.jsonvalue import JSONValue
 
 import jsonschema
 
+# workaround for Python < 2.7
+if not hasattr(unittest, 'skipIf'):
+    def skipIf(condition, reason):
+        def d(f):
+            def df(*args):
+                if condition:
+                    print("skipped %r" % (reason,))
+                else:
+                    return f(*args)
+            return df
+        return d
+    unittest.skipIf = skipIf
 
 class TestMerge(unittest.TestCase):
 
@@ -171,6 +190,7 @@ class TestMerge(unittest.TestCase):
         base = jsonmerge.merge(base, {'a': "a"}, schema)
         base = jsonmerge.merge(base, {'b': "b"}, schema)
 
+        self.assertTrue(isinstance(base, dict))
         self.assertEqual(base, {'a': "a", 'b': "b"})
 
     def test_merge_null(self):
@@ -209,6 +229,80 @@ class TestMerge(unittest.TestCase):
         base = jsonmerge.merge(base, {'a': "b"}, schema)
 
         self.assertEqual(base, {'a': "b"})
+
+    @unittest.skipIf(OrderedDict is None, "Not supported on Python <2.7")
+    def test_merge_objclass(self):
+        schema = {'mergeStrategy': 'objectMerge', 'mergeOptions': { 'objClass': 'OrderedDict'}}
+
+        merger = jsonmerge.Merger(schema)
+
+        base = None
+        base = merger.merge(base, OrderedDict([('c', "a"), ('a', "a")]), schema)
+        self.assertIsInstance(base, OrderedDict)
+        self.assertEquals([k for k in base], ['c', 'a'])
+
+        base = merger.merge(base, {'a': "b"}, schema)
+        self.assertIsInstance(base, OrderedDict)
+        self.assertEquals([k for k in base], ['c', 'a'])
+
+        self.assertEqual(base, {'a': "b", 'c': "a"})
+
+    @unittest.skipIf(OrderedDict is None, "Not supported on Python <2.7")
+    def test_merge_objclass2(self):
+        schema = {'mergeStrategy': 'objectMerge',
+                  'properties': {
+                      'a': {'mergeStrategy': 'objectMerge',
+                            'mergeOptions': { 'objClass': 'OrderedDict'}}}}
+
+        merger = jsonmerge.Merger(schema)
+
+        base = None
+        base = merger.merge(base, {'a': {'b': 'c'}, 'd': {'e': 'f'}}, schema)
+
+        self.assertIsInstance(base, dict)
+        self.assertIsInstance(base['a'], OrderedDict)
+        self.assertIsInstance(base['d'], dict)
+
+    @unittest.skipIf(OrderedDict is None, "Not supported on Python <2.7")
+    def test_merge_objclass_bad_cls(self):
+        schema = {'mergeStrategy': 'objectMerge', 'mergeOptions': { 'objClass': 'foo'}}
+
+        merger = jsonmerge.Merger(schema)
+
+        base = None
+        self.assertRaises(SchemaError, merger.merge, base, OrderedDict([('c', "a"), ('a', "a")]), schema)
+
+    def test_merge_objclass_menu(self):
+        schema = {'mergeStrategy': 'objectMerge', 'mergeOptions': { 'objClass': 'foo'}}
+
+        class MyDict(dict):
+            pass
+
+        objclass_menu = {'foo': MyDict}
+
+        merger = jsonmerge.Merger(schema, objclass_menu=objclass_menu)
+
+        base = None
+        base = merger.merge(base, {'c': "a", 'a': "a"}, schema)
+
+        self.assertTrue(isinstance(base, MyDict))
+
+    @unittest.skipIf(OrderedDict is None, "Not supported on Python <2.7")
+    def test_merge_objclass_def(self):
+        schema = {'mergeStrategy': 'objectMerge'}
+
+        merger = jsonmerge.Merger(schema, objclass_def='OrderedDict')
+
+        base = None
+        base = merger.merge(base, OrderedDict([('c', "a"), ('a', "a")]), schema)
+        self.assertIsInstance(base, OrderedDict)
+        self.assertEquals([k for k in base], ['c', 'a'])
+
+        base = merger.merge(base, {'a': "b"}, schema)
+        self.assertIsInstance(base, OrderedDict)
+        self.assertEquals([k for k in base], ['c', 'a'])
+
+        self.assertEqual(base, {'a': "b", 'c': "a"})
 
     def test_merge_append(self):
 
@@ -1436,3 +1530,7 @@ class TestGetSchema(unittest.TestCase):
         schema2 = merger.get_schema()
 
         self.assertEqual(schema2, expected)
+
+if __name__ == '__main__':
+    unittest.main()
+
