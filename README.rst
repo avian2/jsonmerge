@@ -261,6 +261,9 @@ no support for ambiguous schemas like that.
 Requirements
 ------------
 
+*jsonmerge* supports Python 2 (2.6, 2.7) and Python 3 (3.2 and newer).
+Python 2.6 support will be removed in the next release.
+
 You need *jsonschema* (https://pypi.python.org/pypi/jsonschema) module
 installed.
 
