@@ -1,4 +1,4 @@
-2016-04-02	jsonmerge	1.3.0
+2017-04-02	jsonmerge	1.3.0
 
 	* Add "objClass" option for selection of an alternative class for
 	  storage of JSON objects, like OrderedDict (thanks to Ray Plante).
