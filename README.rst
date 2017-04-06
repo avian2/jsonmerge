@@ -180,7 +180,7 @@ objectMerge
   correspond to specific Python classes. Built-in names include
   *OrderedDict*, to use the collections.OrderedDict class, or *dict*,
   which uses the Python's dict built-in. If not specified, *dict* is
-  used by default. (*OrderedDict* is not available in Python 2.6.)
+  used by default.
 
   Note that additional classes or a different default can be configured via
   the Merger() constructor (see below).
@@ -211,10 +211,9 @@ The Merger Class
 The Merger class allows you to further customize the merging of JSON
 data by allowing you to:
 
-- set the schema containing the merge stategy configuration
-- provide additional strategy implementations
-- set a default class to use for holding JSON object data; *OrderedDict*
-  is provided as built-in option in Python 2.7 or later.
+- set the schema containing the merge stategy configuration,
+- provide additional strategy implementations,
+- set a default class to use for holding JSON object data and
 - configure additional JSON object classes selectable via the *objClass*
   merge option.
 
@@ -261,8 +260,7 @@ no support for ambiguous schemas like that.
 Requirements
 ------------
 
-*jsonmerge* supports Python 2 (2.6, 2.7) and Python 3 (3.2 and newer).
-Python 2.6 support will be removed in the next release.
+*jsonmerge* supports Python 2 (2.7) and Python 3 (3.2 and newer).
 
 You need *jsonschema* (https://pypi.python.org/pypi/jsonschema) module
 installed.
