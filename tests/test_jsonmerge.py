@@ -1,12 +1,7 @@
 # vim:ts=4 sw=4 expandtab softtabstop=4
 import unittest
 
-try:
-    from collections import OrderedDict
-except:
-    # OrderedDict not available in python <2.7
-    OrderedDict = None
-
+from collections import OrderedDict
 import jsonmerge
 import jsonmerge.strategies
 from jsonmerge.exceptions import (
@@ -18,18 +13,6 @@ from jsonmerge.jsonvalue import JSONValue
 
 import jsonschema
 
-# workaround for Python < 2.7
-if not hasattr(unittest, 'skipIf'):
-    def skipIf(condition, reason):
-        def d(f):
-            def df(*args):
-                if condition:
-                    print("skipped %r" % (reason,))
-                else:
-                    return f(*args)
-            return df
-        return d
-    unittest.skipIf = skipIf
 
 class TestMerge(unittest.TestCase):
 
@@ -230,7 +213,6 @@ class TestMerge(unittest.TestCase):
 
         self.assertEqual(base, {'a': "b"})
 
-    @unittest.skipIf(OrderedDict is None, "Not supported on Python <2.7")
     def test_merge_objclass(self):
         schema = {'mergeStrategy': 'objectMerge', 'mergeOptions': { 'objClass': 'OrderedDict'}}
 
@@ -247,7 +229,6 @@ class TestMerge(unittest.TestCase):
 
         self.assertEqual(base, {'a': "b", 'c': "a"})
 
-    @unittest.skipIf(OrderedDict is None, "Not supported on Python <2.7")
     def test_merge_objclass2(self):
         schema = {'mergeStrategy': 'objectMerge',
                   'properties': {
@@ -263,7 +244,6 @@ class TestMerge(unittest.TestCase):
         self.assertIsInstance(base['a'], OrderedDict)
         self.assertIsInstance(base['d'], dict)
 
-    @unittest.skipIf(OrderedDict is None, "Not supported on Python <2.7")
     def test_merge_objclass_bad_cls(self):
         schema = {'mergeStrategy': 'objectMerge', 'mergeOptions': { 'objClass': 'foo'}}
 
@@ -287,7 +267,6 @@ class TestMerge(unittest.TestCase):
 
         self.assertTrue(isinstance(base, MyDict))
 
-    @unittest.skipIf(OrderedDict is None, "Not supported on Python <2.7")
     def test_merge_objclass_def(self):
         schema = {'mergeStrategy': 'objectMerge'}
 

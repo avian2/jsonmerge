@@ -1,17 +1,9 @@
 # vim:ts=4 sw=4 expandtab softtabstop=4
+from collections import OrderedDict
 from jsonmerge.jsonvalue import JSONValue
 from jsonmerge import strategies
 from jsonschema.validators import Draft4Validator, RefResolver
 import logging
-
-try:
-    # OrderedDict does not exist before python 2.7
-    from collections import OrderedDict
-except:
-    import warnings
-    warnings.warn("Support for Python <2.7 in jsonmerge will be removed soon", DeprecationWarning)
-
-    OrderedDict = None
 
 log = logging.getLogger(name=__name__)
 
@@ -203,8 +195,6 @@ class Merger(object):
         'OrderedDict' (collections.OrderedDict) or one of the names specified
         in the objclass_menu argument. If not specified, 'dict' is used.
 
-        Note: OrderedDict is not available in Python 2.6.
-
         objclass_menu argument should be a dictionary that maps a string name
         to a function or class that will return an empty dictionary-like object
         to use as a JSON object. The function must accept either no arguments
@@ -217,9 +207,7 @@ class Merger(object):
         self.strategies = dict(self.STRATEGIES)
         self.strategies.update(strategies)
 
-        self.objclass_menu = { 'dict': dict }
-        if OrderedDict:
-            self.objclass_menu['OrderedDict'] = OrderedDict
+        self.objclass_menu = { 'dict': dict, 'OrderedDict': OrderedDict }
         if objclass_menu:
             self.objclass_menu.update(objclass_menu)
 
