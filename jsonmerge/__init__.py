@@ -3,6 +3,7 @@ from collections import OrderedDict
 from jsonmerge.exceptions import HeadInstanceError
 from jsonmerge.jsonvalue import JSONValue
 from jsonmerge import strategies
+from jsonmerge import descenders
 from jsonschema.validators import Draft4Validator, RefResolver
 import logging
 
@@ -42,17 +43,12 @@ class Walk(object):
                 assert schema.val == resolved
 
         if not schema.is_undef():
-            ref = schema.val.get("$ref")
-            if ref is not None:
-                with self.resolver.resolving(ref) as resolved:
-                    rv = self.descend(JSONValue(resolved, ref), *args)
+
+            for descender in self.DESCENDERS:
+                rv = descender(self, schema, *args)
+                if rv is not None:
                     self.lvl -= 1
                     return rv
-
-            rv = self.descend_special(schema, *args)
-            if rv is not None:
-                self.lvl -= 1
-                return rv
 
             name = schema.val.get("mergeStrategy")
             opts = schema.val.get("mergeOptions")
@@ -76,6 +72,11 @@ class Walk(object):
 
 class WalkInstance(Walk):
 
+    DESCENDERS = [
+            descenders.ref,
+            descenders.oneOf
+    ]
+
     def __init__(self, merger, base, head):
         Walk.__init__(self, merger)
         self.base_resolver = RefResolver("", base.val)
@@ -89,39 +90,6 @@ class WalkInstance(Walk):
 
         rv['value'] = head
         return rv
-
-    def descend_special(self, schema, base, head, meta, **kwargs):
-
-        one_of = schema.val.get("oneOf")
-        if one_of is not None:
-            return self.descend_oneof(schema, base, head, meta, **kwargs)
-
-        return None
-
-    def descend_oneof(self, schema, base, head, meta, **kwargs):
-        valid = []
-
-        for i, subschema in enumerate(schema.val.get("oneOf")):
-            if base.is_undef():
-                base_valid = True
-            else:
-                base_valid = not list(self.merger.validator.iter_errors(base.val, subschema))
-
-            if head.is_undef():
-                head_valid = True
-            else:
-                head_valid = not list(self.merger.validator.iter_errors(head.val, subschema))
-
-            if base_valid and head_valid:
-                valid.append(i)
-
-        if len(valid) == 0:
-            raise HeadInstanceError("No element of 'oneOf' validates both head and base")
-
-        if len(valid) > 1:
-            raise HeadInstanceError("Multiple elements of 'oneOf' validate")
-
-        return self.descend(schema['oneOf'][valid[0]], base, head, meta, **kwargs)
 
     def default_strategy(self, schema, base, head, meta, **kwargs):
         if self.is_type(head, "object"):
@@ -150,6 +118,10 @@ class WalkInstance(Walk):
         return rv
 
 class WalkSchema(Walk):
+
+    DESCENDERS = [
+            descenders.ref,
+    ]
 
     def is_base_context(self):
         return self.resolver.base_uri == self.merger.schema.get('id', '')
