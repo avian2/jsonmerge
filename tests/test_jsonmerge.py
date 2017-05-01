@@ -442,6 +442,36 @@ class TestMerge(unittest.TestCase):
         base = [1]
         self.assertRaises(HeadInstanceError, merger.merge, base, {'b': 2})
 
+    def test_oneof_recursive(self):
+        # Schema to merge all arrays with "append" strategy and all objects
+        # with the default "objectMerge" strategy.
+
+        schema = {
+            "oneOf": [
+                {
+                    "type": "array",
+                    "mergeStrategy": "append"
+                },
+                {
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#"
+                    }
+                },
+                {
+                    "type": "string"
+                },
+            ]
+        }
+
+        base = {"a": ["1"], "b": "3", "c": {"d": ["4"], "e": "f"}}
+        head = {"a": ["2"], "b": "4", "g": "7", "c": {"d": ["3"]}}
+
+        merger = jsonmerge.Merger(schema)
+        base = merger.merge(base, head)
+
+        self.assertEqual(base, {"a": ["1", "2"], "b": "4", "g": "7", "c": {"d": ["4", "3"], "e": "f"}})
+
     def test_custom_strategy(self):
 
         schema = {'mergeStrategy': 'myStrategy'}

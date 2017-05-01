@@ -102,14 +102,24 @@ class WalkInstance(Walk):
         valid = []
 
         for i, subschema in enumerate(schema.val.get("oneOf")):
-            base_valid = not list(self.merger.validator.iter_errors(base.val, subschema))
-            head_valid = not list(self.merger.validator.iter_errors(head.val, subschema))
+            if base.is_undef():
+                base_valid = True
+            else:
+                base_valid = not list(self.merger.validator.iter_errors(base.val, subschema))
+
+            if head.is_undef():
+                head_valid = True
+            else:
+                head_valid = not list(self.merger.validator.iter_errors(head.val, subschema))
 
             if base_valid and head_valid:
                 valid.append(i)
 
-        if len(valid) != 1:
-            raise HeadInstanceError("'oneOf' matches a different branch in head than in base")
+        if len(valid) == 0:
+            raise HeadInstanceError("No element of 'oneOf' validates both head and base")
+
+        if len(valid) > 1:
+            raise HeadInstanceError("Multiple elements of 'oneOf' validate")
 
         return self.descend(schema['oneOf'][valid[0]], base, head, meta, **kwargs)
 
