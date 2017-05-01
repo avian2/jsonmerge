@@ -17,16 +17,15 @@ def oneOf(walk, schema, base, head, meta):
 
     valid = []
 
-    for i, subschema in enumerate(one_of.val):
-        if base.is_undef():
-            base_valid = True
+    def is_valid(v, schema):
+        if v.is_undef():
+            return True
         else:
-            base_valid = not list(walk.merger.validator.iter_errors(base.val, subschema))
+            return not list(walk.merger.validator.iter_errors(v.val, schema))
 
-        if head.is_undef():
-            head_valid = True
-        else:
-            head_valid = not list(walk.merger.validator.iter_errors(head.val, subschema))
+    for i, subschema in enumerate(one_of.val):
+        base_valid = is_valid(base, subschema)
+        head_valid = is_valid(head, subschema)
 
         if base_valid and head_valid:
             valid.append(i)

@@ -1,6 +1,5 @@
 # vim:ts=4 sw=4 expandtab softtabstop=4
 from collections import OrderedDict
-from jsonmerge.exceptions import HeadInstanceError
 from jsonmerge.jsonvalue import JSONValue
 from jsonmerge import strategies
 from jsonmerge import descenders
@@ -28,9 +27,6 @@ class Walk(object):
             return False
 
         return self.merger.validator.is_type(instance.val, type)
-
-    def descend_special(self, schema, *args):
-        return None
 
     def descend(self, schema, *args):
         assert isinstance(schema, JSONValue)
