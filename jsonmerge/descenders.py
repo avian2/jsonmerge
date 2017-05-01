@@ -31,7 +31,7 @@ def oneOf(walk, schema, base, head, meta):
             valid.append(i)
 
     if len(valid) == 0:
-        raise HeadInstanceError("No element of 'oneOf' validates both head and base")
+        raise HeadInstanceError("No element of 'oneOf' validates both base and head")
 
     if len(valid) > 1:
         raise HeadInstanceError("Multiple elements of 'oneOf' validate")

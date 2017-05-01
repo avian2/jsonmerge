@@ -251,6 +251,9 @@ Merging of documents with schemas that do not have a well-defined type
 documents could require merging of two values of different types. For
 example, *jsonmerge* does not know how to merge a string to an object.
 
+Currently there is only limited support for the *oneOf* keyword, where both
+*base* and *head* can be validated by the same *oneOf* element.
+
 You can work around this limitation by defining for your own strategy that
 defines what to do in such cases. See docstring documentation for the
 *Strategy* class on how to do that. get_schema() however currently provides
