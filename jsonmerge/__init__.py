@@ -1,5 +1,6 @@
 # vim:ts=4 sw=4 expandtab softtabstop=4
 from collections import OrderedDict
+from jsonmerge.exceptions import HeadInstanceError
 from jsonmerge.jsonvalue import JSONValue
 from jsonmerge import strategies
 from jsonschema.validators import Draft4Validator, RefResolver
@@ -27,6 +28,9 @@ class Walk(object):
 
         return self.merger.validator.is_type(instance.val, type)
 
+    def descend_special(self, schema, *args):
+        return None
+
     def descend(self, schema, *args):
         assert isinstance(schema, JSONValue)
         self.lvl += 1
@@ -44,11 +48,16 @@ class Walk(object):
                     rv = self.descend(JSONValue(resolved, ref), *args)
                     self.lvl -= 1
                     return rv
-            else:
-                name = schema.val.get("mergeStrategy")
-                opts = schema.val.get("mergeOptions")
-                if opts is None:
-                    opts = {}
+
+            rv = self.descend_special(schema, *args)
+            if rv is not None:
+                self.lvl -= 1
+                return rv
+
+            name = schema.val.get("mergeStrategy")
+            opts = schema.val.get("mergeOptions")
+            if opts is None:
+                opts = {}
         else:
             name = None
             opts = {}
@@ -80,6 +89,29 @@ class WalkInstance(Walk):
 
         rv['value'] = head
         return rv
+
+    def descend_special(self, schema, base, head, meta, **kwargs):
+
+        one_of = schema.val.get("oneOf")
+        if one_of is not None:
+            return self.descend_oneof(schema, base, head, meta, **kwargs)
+
+        return None
+
+    def descend_oneof(self, schema, base, head, meta, **kwargs):
+        valid = []
+
+        for i, subschema in enumerate(schema.val.get("oneOf")):
+            base_valid = not list(self.merger.validator.iter_errors(base.val, subschema))
+            head_valid = not list(self.merger.validator.iter_errors(head.val, subschema))
+
+            if base_valid and head_valid:
+                valid.append(i)
+
+        if len(valid) != 1:
+            raise HeadInstanceError("'oneOf' matches a different branch in head than in base")
+
+        return self.descend(schema['oneOf'][valid[0]], base, head, meta, **kwargs)
 
     def default_strategy(self, schema, base, head, meta, **kwargs):
         if self.is_type(head, "object"):

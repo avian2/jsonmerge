@@ -417,18 +417,30 @@ class TestMerge(unittest.TestCase):
 
         schema = {
             'oneOf': [
-                {'properties': {'a': {}}},
-                {'properties': {'b': {}}}
+                {
+                    'type': 'array',
+                    'mergeStrategy': 'append'
+                },
+                {
+                    'type': 'object'
+                }
             ]
         }
 
         merger = jsonmerge.Merger(schema)
 
-        base = None
-        base = merger.merge(base, {'a': 1})
+        base = [1]
+        base = merger.merge(base, [2])
+
+        self.assertEqual(base, [1,2])
+
+        base = {'a': 1}
         base = merger.merge(base, {'b': 2})
 
         self.assertEqual(base, {'a': 1, 'b': 2})
+
+        base = [1]
+        self.assertRaises(HeadInstanceError, merger.merge, base, {'b': 2})
 
     def test_custom_strategy(self):
 
