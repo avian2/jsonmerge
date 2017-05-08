@@ -15,20 +15,23 @@ class Descender(object):
         return None
 
 class Ref(Descender):
-    def descend(self, walk, schema, *args):
-
+    def descend_instance(self, walk, schema, base, head, meta):
         ref = schema.val.get("$ref")
         if ref is None:
             return None
 
         with walk.resolver.resolving(ref) as resolved:
-            return walk.descend(JSONValue(resolved, ref), *args)
-
-    def descend_instance(self, walk, schema, base, head, meta):
-        return self.descend(walk, schema, base, head, meta)
+            return walk.descend(JSONValue(resolved, ref), base, head, meta)
 
     def descend_schema(self, walk, schema, meta):
-        return self.descend(walk, schema, meta)
+        ref = schema.val.get("$ref")
+        if ref is None:
+            return None
+
+        with walk.resolver.resolving(ref) as resolved:
+            walk.descend(JSONValue(resolved, ref), meta)
+
+        return schema
 
 class OneOf(Descender):
     def descend_instance(self, walk, schema, base, head, meta):

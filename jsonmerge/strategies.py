@@ -49,10 +49,6 @@ class Strategy(object):
 
         Recursion into the next level, if necessary, is achieved by calling
         walk.descend() method.
-
-        Implementations should take care that all external schema references
-        are resolved in the returned schema. This can be achieved by calling
-        walk.resolve_refs() method.
         """
         raise NotImplemented
 
@@ -61,7 +57,7 @@ class Overwrite(Strategy):
         return head
 
     def get_schema(self, walk, schema, meta, **kwargs):
-        return walk.resolve_refs(schema)
+        return schema
 
 class Version(Strategy):
     def merge(self, walk, base, head, schema, meta, limit=None, unique=None, ignoreDups=True, **kwargs):
@@ -92,7 +88,7 @@ class Version(Strategy):
         if 'properties' not in item:
             item['properties'] = {}
 
-        item['properties']['value'] = walk.resolve_refs(schema).val
+        item['properties']['value'] = schema.val
 
         rv = {  "type": "array",
                 "items": item }
@@ -122,7 +118,7 @@ class Append(Strategy):
         schema.val.pop('maxItems', None)
         schema.val.pop('uniqueItems', None)
 
-        return walk.resolve_refs(schema)
+        return schema
 
 
 class ArrayMergeById(Strategy):
@@ -182,17 +178,9 @@ class ArrayMergeById(Strategy):
 
     def get_schema(self, walk, schema, meta, **kwargs):
         subschema = schema.get('items')
+        if not subschema.is_undef():
+            schema.val['items'] = walk.descend(subschema, meta).val
 
-        # Note we're discarding the walk.descend() result here. This is because
-        # it would de-reference the $ref if the subschema is a reference - i.e.
-        # in the result it would replace the reference with the copy of the
-        # target.
-        #
-        # But we want to keep the $ref and do the walk.descend() only on the target of the reference.
-        #
-        # This seems to work, but is an ugly workaround. walk.descend() should
-        # be fixed instead to not dereference $refs when not necessary.
-        walk.descend(subschema, meta)
         return schema
 
 
