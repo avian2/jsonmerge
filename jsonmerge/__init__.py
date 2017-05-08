@@ -11,6 +11,12 @@ log = logging.getLogger(name=__name__)
 #logging.basicConfig(level=logging.DEBUG)
 
 class Walk(object):
+
+    DESCENDERS = [
+            descenders.Ref(),
+            descenders.OneOf(),
+    ]
+
     def __init__(self, merger):
         self.merger = merger
         self.resolver = merger.validator.resolver
@@ -41,7 +47,7 @@ class Walk(object):
         if not schema.is_undef():
 
             for descender in self.DESCENDERS:
-                rv = descender(self, schema, *args)
+                rv = self.call_descender(descender, schema, *args)
                 if rv is not None:
                     self.lvl -= 1
                     return rv
@@ -68,11 +74,6 @@ class Walk(object):
 
 class WalkInstance(Walk):
 
-    DESCENDERS = [
-            descenders.ref,
-            descenders.oneOf
-    ]
-
     def __init__(self, merger, base, head):
         Walk.__init__(self, merger)
         self.base_resolver = RefResolver("", base.val)
@@ -92,6 +93,9 @@ class WalkInstance(Walk):
             return "objectMerge"
         else:
             return "overwrite"
+
+    def call_descender(self, descender, schema, base, head, meta):
+        return descender.descend_instance(self, schema, base, head, meta)
 
     def work(self, strategy, schema, base, head, meta, **kwargs):
         assert isinstance(schema, JSONValue)
@@ -114,10 +118,6 @@ class WalkInstance(Walk):
         return rv
 
 class WalkSchema(Walk):
-
-    DESCENDERS = [
-            descenders.ref,
-    ]
 
     def is_base_context(self):
         return self.resolver.base_uri == self.merger.schema.get('id', '')
@@ -167,6 +167,9 @@ class WalkSchema(Walk):
             return "objectMerge"
         else:
             return "overwrite"
+
+    def call_descender(self, descender, schema, meta):
+        return descender.descend_schema(self, schema, meta)
 
     def work(self, strategy, schema, meta, **kwargs):
         assert isinstance(schema, JSONValue)
