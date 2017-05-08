@@ -54,3 +54,13 @@ class OneOf(Descender):
 
         i = valid[0]
         return walk.descend(one_of[i], base, head, meta)
+
+    def descend_schema(self, walk, schema, meta):
+        one_of = schema.get("oneOf")
+        if one_of.is_undef():
+            return None
+
+        for i in range(len(one_of.val)):
+            one_of.val[i] = walk.descend(one_of[i], meta).val
+
+        return schema

@@ -247,12 +247,12 @@ Limitations
 -----------
 
 Merging of documents with schemas that do not have a well-defined type
-(e.g. schemas using *allOf*, *anyOf* and *oneOf*) will likely fail. Such
+(e.g. schemas using *allOf* and *anyOf*) will likely fail. Such
 documents could require merging of two values of different types. For
 example, *jsonmerge* does not know how to merge a string to an object.
 
-Currently there is only limited support for the *oneOf* keyword, where both
-*base* and *head* can be validated by the same *oneOf* element.
+Support for the *oneOf* keyword is limited to the case where both *base*
+and *head* can be validated by the same *oneOf* element.
 
 You can work around this limitation by defining for your own strategy that
 defines what to do in such cases. See docstring documentation for the

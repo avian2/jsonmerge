@@ -1552,6 +1552,36 @@ class TestGetSchema(unittest.TestCase):
 
         self.assertEqual(schema2, expected)
 
+    def test_oneof(self):
+
+        schema = {
+            'oneOf': [
+                {
+                    'type': 'array',
+                    'mergeStrategy': 'append'
+                },
+                {
+                    'type': 'object'
+                }
+            ]
+        }
+
+        expected = {
+            'oneOf': [
+                {
+                    'type': 'array',
+                },
+                {
+                    'type': 'object'
+                }
+            ]
+        }
+
+        merger = jsonmerge.Merger(schema)
+        schema2 = merger.get_schema()
+
+        self.assertEqual(schema2, expected)
+
 if __name__ == '__main__':
     unittest.main()
 
