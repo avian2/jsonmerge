@@ -9,6 +9,10 @@ log = logging.getLogger(name=__name__)
 
 #logging.basicConfig(level=logging.DEBUG)
 
+class DummyRemoteCache(object):
+    def __call__(self, url):
+        return self.resolver.resolve_from_url(url)
+
 class Walk(object):
     def __init__(self, merger):
         self.merger = merger
@@ -202,7 +206,16 @@ class Merger(object):
         """
 
         self.schema = schema
-        self.validator = Draft4Validator(schema)
+
+        remote_cache = DummyRemoteCache()
+        try:
+            resolver = RefResolver.from_schema(schema, remote_cache=remote_cache)
+        except TypeError:
+            # jsonschema<=2.4.0
+            resolver = RefResolver.from_schema(schema)
+        remote_cache.resolver = resolver
+
+        self.validator = Draft4Validator(schema, resolver=resolver)
 
         self.strategies = dict(self.STRATEGIES)
         self.strategies.update(strategies)
