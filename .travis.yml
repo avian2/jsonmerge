@@ -7,13 +7,6 @@ python:
   - 3.4
   - 3.5
   - 3.6
-matrix:
-  include:
-    - python: "3.2"
-      install:
-        - pip install jsonschema==2.3.0
-      script:
-        - python setup.py test
 install:
   - pip install coveralls
 script:
