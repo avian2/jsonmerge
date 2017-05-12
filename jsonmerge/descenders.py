@@ -3,6 +3,11 @@ from jsonmerge.exceptions import HeadInstanceError
 from jsonmerge.jsonvalue import JSONValue
 
 class Descender(object):
+    """Base class for descender classes.
+
+    Descenders are similar to merge strategies, except that they only handle
+    recursion into deeper schema structures and don't touch instances.
+    """
     def descend_instance(self, walk, schema, base, head, meta):
         return None
 
