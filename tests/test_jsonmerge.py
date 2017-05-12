@@ -417,18 +417,60 @@ class TestMerge(unittest.TestCase):
 
         schema = {
             'oneOf': [
-                {'properties': {'a': {}}},
-                {'properties': {'b': {}}}
+                {
+                    'type': 'array',
+                    'mergeStrategy': 'append'
+                },
+                {
+                    'type': 'object'
+                }
             ]
         }
 
         merger = jsonmerge.Merger(schema)
 
-        base = None
-        base = merger.merge(base, {'a': 1})
+        base = [1]
+        base = merger.merge(base, [2])
+
+        self.assertEqual(base, [1,2])
+
+        base = {'a': 1}
         base = merger.merge(base, {'b': 2})
 
         self.assertEqual(base, {'a': 1, 'b': 2})
+
+        base = [1]
+        self.assertRaises(HeadInstanceError, merger.merge, base, {'b': 2})
+
+    def test_oneof_recursive(self):
+        # Schema to merge all arrays with "append" strategy and all objects
+        # with the default "objectMerge" strategy.
+
+        schema = {
+            "oneOf": [
+                {
+                    "type": "array",
+                    "mergeStrategy": "append"
+                },
+                {
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#"
+                    }
+                },
+                {
+                    "type": "string"
+                },
+            ]
+        }
+
+        base = {"a": ["1"], "b": "3", "c": {"d": ["4"], "e": "f"}}
+        head = {"a": ["2"], "b": "4", "g": "7", "c": {"d": ["3"]}}
+
+        merger = jsonmerge.Merger(schema)
+        base = merger.merge(base, head)
+
+        self.assertEqual(base, {"a": ["1", "2"], "b": "4", "g": "7", "c": {"d": ["4", "3"], "e": "f"}})
 
     def test_custom_strategy(self):
 
@@ -1504,6 +1546,36 @@ class TestGetSchema(unittest.TestCase):
                     },
                     'additionalProperties': {}
                 }
+
+        merger = jsonmerge.Merger(schema)
+        schema2 = merger.get_schema()
+
+        self.assertEqual(schema2, expected)
+
+    def test_oneof(self):
+
+        schema = {
+            'oneOf': [
+                {
+                    'type': 'array',
+                    'mergeStrategy': 'append'
+                },
+                {
+                    'type': 'object'
+                }
+            ]
+        }
+
+        expected = {
+            'oneOf': [
+                {
+                    'type': 'array',
+                },
+                {
+                    'type': 'object'
+                }
+            ]
+        }
 
         merger = jsonmerge.Merger(schema)
         schema2 = merger.get_schema()

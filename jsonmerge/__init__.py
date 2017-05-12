@@ -2,6 +2,7 @@
 from collections import OrderedDict
 from jsonmerge.jsonvalue import JSONValue
 from jsonmerge import strategies
+from jsonmerge import descenders
 from jsonschema.validators import Draft4Validator, RefResolver
 import logging
 
@@ -14,6 +15,12 @@ class DummyRemoteCache(object):
         return self.resolver.resolve_from_url(url)
 
 class Walk(object):
+
+    DESCENDERS = [
+            descenders.Ref(),
+            descenders.OneOf(),
+    ]
+
     def __init__(self, merger):
         self.merger = merger
         self.resolver = merger.validator.resolver
@@ -42,17 +49,17 @@ class Walk(object):
                 assert schema.val == resolved
 
         if not schema.is_undef():
-            ref = schema.val.get("$ref")
-            if ref is not None:
-                with self.resolver.resolving(ref) as resolved:
-                    rv = self.descend(JSONValue(resolved, ref), *args)
+
+            for descender in self.DESCENDERS:
+                rv = self.call_descender(descender, schema, *args)
+                if rv is not None:
                     self.lvl -= 1
                     return rv
-            else:
-                name = schema.val.get("mergeStrategy")
-                opts = schema.val.get("mergeOptions")
-                if opts is None:
-                    opts = {}
+
+            name = schema.val.get("mergeStrategy")
+            opts = schema.val.get("mergeOptions")
+            if opts is None:
+                opts = {}
         else:
             name = None
             opts = {}
@@ -90,6 +97,9 @@ class WalkInstance(Walk):
             return "objectMerge"
         else:
             return "overwrite"
+
+    def call_descender(self, descender, schema, base, head, meta):
+        return descender.descend_instance(self, schema, base, head, meta)
 
     def work(self, strategy, schema, base, head, meta, **kwargs):
         assert isinstance(schema, JSONValue)
@@ -161,6 +171,9 @@ class WalkSchema(Walk):
             return "objectMerge"
         else:
             return "overwrite"
+
+    def call_descender(self, descender, schema, meta):
+        return descender.descend_schema(self, schema, meta)
 
     def work(self, strategy, schema, meta, **kwargs):
         assert isinstance(schema, JSONValue)
