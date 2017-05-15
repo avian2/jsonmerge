@@ -1271,6 +1271,22 @@ class TestGetSchema(unittest.TestCase):
 
         self.assertEqual(expected, mschema)
 
+    def test_ref_to_non_object_is_an_error(self):
+
+        schema = {
+                'properties': {
+                    'foo': {
+                        '$ref': '#/definitions/bar'
+                    }
+                },
+                'definitions': {
+                    'bar': []
+                }
+        }
+
+        merger = jsonmerge.Merger(schema)
+        self.assertRaises(SchemaError, merger.get_schema)
+
     def test_reference_in_meta(self):
 
         schema = {'mergeStrategy': 'version'}

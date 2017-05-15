@@ -1,5 +1,5 @@
 # vim:ts=4 sw=4 expandtab softtabstop=4
-from jsonmerge.exceptions import HeadInstanceError
+from jsonmerge.exceptions import HeadInstanceError, SchemaError
 from jsonmerge.jsonvalue import JSONValue
 
 class Descender(object):
@@ -33,7 +33,12 @@ class Ref(Descender):
 
         if ref not in self.refs_descended:
             with walk.resolver.resolving(ref) as resolved:
-                result = walk.descend(JSONValue(resolved, ref), meta)
+
+                rinstance = JSONValue(resolved, ref)
+                if not walk.is_type(rinstance, 'object'):
+                    raise SchemaError("'$ref' does not point to an object")
+
+                result = walk.descend(rinstance, meta)
 
                 resolved.clear()
                 resolved.update(result.val)
