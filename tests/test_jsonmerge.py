@@ -1055,6 +1055,52 @@ class TestGetSchema(unittest.TestCase):
                              }
                          })
 
+    def test_version_ref_twice(self):
+        schema = {
+                'properties': {
+                    'a': {
+                        '$ref': '#/definitions/item'
+                    },
+                    'b': {
+                        '$ref': '#/definitions/item'
+                    },
+                },
+                'definitions': {
+                    'item': {
+                        'type': 'object',
+                        'mergeStrategy': 'version'
+                    }
+                }
+        }
+
+        expected = {
+                'properties': {
+                    'a': {
+                        '$ref': '#/definitions/item'
+                    },
+                    'b': {
+                        '$ref': '#/definitions/item'
+                    },
+                },
+                'definitions': {
+                    'item': {
+                        'type': 'array',
+                        'items': {
+                            'properties': {
+                                'value': {
+                                    'type': 'object',
+                                }
+                            }
+                        }
+                    }
+                }
+        }
+
+        merger = jsonmerge.Merger(schema)
+        schema2 = merger.get_schema()
+
+        self.assertEqual(expected, schema2)
+
     def test_version_meta(self):
         schema = {'type': 'object',
                   'mergeStrategy': 'version'}
@@ -1416,12 +1462,6 @@ class TestGetSchema(unittest.TestCase):
     def test_merge_by_id_with_depth_twice(self):
 
         # Here were have a $ref that get_schema() should descend into twice.
-        #
-        # The way ArrayMergeById.get_schema() is currently implemented it
-        # expands any subschemas in #/definitions/refitem twice. By chance this
-        # currently results in the correct output, but it's not clear whether
-        # this is always the case. I can't currently find an example that
-        # breaks.
 
         schema = {
             "properties": {

@@ -15,6 +15,9 @@ class Descender(object):
         return None
 
 class Ref(Descender):
+    def __init__(self):
+        self.refs_descended = set()
+
     def descend_instance(self, walk, schema, base, head, meta):
         ref = schema.val.get("$ref")
         if ref is None:
@@ -28,8 +31,14 @@ class Ref(Descender):
         if ref is None:
             return None
 
-        with walk.resolver.resolving(ref) as resolved:
-            walk.descend(JSONValue(resolved, ref), meta)
+        if ref not in self.refs_descended:
+            with walk.resolver.resolving(ref) as resolved:
+                result = walk.descend(JSONValue(resolved, ref), meta)
+
+                resolved.clear()
+                resolved.update(result.val)
+
+            self.refs_descended.add(ref)
 
         return schema
 

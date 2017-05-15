@@ -17,14 +17,16 @@ class DummyRemoteCache(object):
 class Walk(object):
 
     DESCENDERS = [
-            descenders.Ref(),
-            descenders.OneOf(),
+            descenders.Ref,
+            descenders.OneOf,
     ]
 
     def __init__(self, merger):
         self.merger = merger
         self.resolver = merger.validator.resolver
         self.lvl = -1
+
+        self.descenders = [ cls() for cls in self.DESCENDERS ]
 
     def _indent(self):
         return "  " * self.lvl
@@ -50,7 +52,7 @@ class Walk(object):
 
         if not schema.is_undef():
 
-            for descender in self.DESCENDERS:
+            for descender in self.descenders:
                 rv = self.call_descender(descender, schema, *args)
                 if rv is not None:
                     self.lvl -= 1
