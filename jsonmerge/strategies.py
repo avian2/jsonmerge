@@ -270,7 +270,7 @@ class ObjectMerge(Strategy):
 
     def get_schema(self, walk, schema, meta, **kwargs):
 
-        for forbidden in ("oneOf", "allOf", "anyOf"):
+        for forbidden in ("allOf", "anyOf"):
             if forbidden in schema.val:
                 raise SchemaError("Type ambiguous schema")
 
