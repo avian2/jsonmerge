@@ -1303,6 +1303,9 @@ class TestGetSchema(unittest.TestCase):
                     'properties': {
                         'foo': {
                             'type': 'string'
+                        },
+                        'bar': {
+                            'enum': [ 'a', 'b' ]
                         }
                     }
                 }
@@ -1320,7 +1323,8 @@ class TestGetSchema(unittest.TestCase):
                              'items': {
                                  'properties': {
                                      'value': {},
-                                     'foo': {'type': 'string'}
+                                     'foo': {'type': 'string'},
+                                     'bar': {'enum': ['a', 'b'] },
                                  }
                              }
                          })
