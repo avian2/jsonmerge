@@ -1055,6 +1055,52 @@ class TestGetSchema(unittest.TestCase):
                              }
                          })
 
+    def test_version_ref_twice(self):
+        schema = {
+                'properties': {
+                    'a': {
+                        '$ref': '#/definitions/item'
+                    },
+                    'b': {
+                        '$ref': '#/definitions/item'
+                    },
+                },
+                'definitions': {
+                    'item': {
+                        'type': 'object',
+                        'mergeStrategy': 'version'
+                    }
+                }
+        }
+
+        expected = {
+                'properties': {
+                    'a': {
+                        '$ref': '#/definitions/item'
+                    },
+                    'b': {
+                        '$ref': '#/definitions/item'
+                    },
+                },
+                'definitions': {
+                    'item': {
+                        'type': 'array',
+                        'items': {
+                            'properties': {
+                                'value': {
+                                    'type': 'object',
+                                }
+                            }
+                        }
+                    }
+                }
+        }
+
+        merger = jsonmerge.Merger(schema)
+        schema2 = merger.get_schema()
+
+        self.assertEqual(expected, schema2)
+
     def test_version_meta(self):
         schema = {'type': 'object',
                   'mergeStrategy': 'version'}
@@ -1143,7 +1189,9 @@ class TestGetSchema(unittest.TestCase):
         merger = jsonmerge.Merger(schema)
         self.assertRaises(SchemaError, merger.get_schema)
 
-    def test_resolve_refs(self):
+    def test_external_refs(self):
+
+        # We follow, but never resolve $refs in schemas. Internal or external.
 
         schema_1 = {
             'id': 'http://example.com/schema_1.json',
@@ -1173,10 +1221,16 @@ class TestGetSchema(unittest.TestCase):
 
         mschema = merger.get_schema()
 
-        d = {'bar': []}
-        jsonschema.validate(d, mschema)
+        d = {
+            'id': 'http://example.com/schema_1.json',
+            '$ref': 'schema_2.json#/definitions/foo'
+        }
 
-    def test_dont_resolve_refs(self):
+        self.assertEqual(d, mschema)
+
+    def test_internal_refs(self):
+
+        # We follow, but never resolve $refs in schemas. Internal or external.
 
         schema = {
             'id': 'http://example.com/schema_1.json',
@@ -1195,14 +1249,43 @@ class TestGetSchema(unittest.TestCase):
             }
         }
 
-        mschema_correct = dict(schema)
-        del mschema_correct['mergeStrategy']
+        expected = {
+            'id': 'http://example.com/schema_1.json',
+            'properties': {
+                'foo': {
+                    '$ref': '#/definitions/bar'
+                }
+            },
+            'definitions': {
+                'bar': {
+                    'properties': {
+                        'baz': {}
+                    }
+                }
+            }
+        }
 
         merger = jsonmerge.Merger(schema)
 
         mschema = merger.get_schema()
 
-        self.assertEqual(mschema_correct, mschema)
+        self.assertEqual(expected, mschema)
+
+    def test_ref_to_non_object_is_an_error(self):
+
+        schema = {
+                'properties': {
+                    'foo': {
+                        '$ref': '#/definitions/bar'
+                    }
+                },
+                'definitions': {
+                    'bar': []
+                }
+        }
+
+        merger = jsonmerge.Merger(schema)
+        self.assertRaises(SchemaError, merger.get_schema)
 
     def test_reference_in_meta(self):
 
@@ -1244,37 +1327,25 @@ class TestGetSchema(unittest.TestCase):
 
     def test_array_in_schema(self):
 
-        schema_1 = {
-            'id': 'http://example.com/schema_1.json',
-            '$ref': 'schema_2.json#/definitions/foo'
-        }
-
-        schema_2 = {
-            'id': 'http://example.com/schema_2.json',
-            'definitions': {
-                'foo': {
-                    'mergeStrategy': 'overwrite',
-                    'enum': [
-                        "foo",
-                        "bar",
-                    ]
-                },
-            }
-        }
-
-        merger = jsonmerge.Merger(schema_1)
-        merger.cache_schema(schema_2)
-
-        mschema = merger.get_schema()
-
-        d = {
+        schema = {
+            'mergeStrategy': 'overwrite',
             'enum': [
                 "foo",
                 "bar",
             ]
         }
 
-        self.assertEqual(d, mschema)
+        expected = {
+            'enum': [
+                "foo",
+                "bar",
+            ]
+        }
+
+        merger = jsonmerge.Merger(schema)
+        mschema = merger.get_schema()
+
+        self.assertEqual(expected, mschema)
 
     def test_version_adds_array_type(self):
         schema = {
@@ -1407,12 +1478,6 @@ class TestGetSchema(unittest.TestCase):
     def test_merge_by_id_with_depth_twice(self):
 
         # Here were have a $ref that get_schema() should descend into twice.
-        #
-        # The way ArrayMergeById.get_schema() is currently implemented it
-        # expands any subschemas in #/definitions/refitem twice. By chance this
-        # currently results in the correct output, but it's not clear whether
-        # this is always the case. I can't currently find an example that
-        # breaks.
 
         schema = {
             "properties": {

@@ -1,5 +1,5 @@
 # vim:ts=4 sw=4 expandtab softtabstop=4
-from jsonmerge.exceptions import HeadInstanceError
+from jsonmerge.exceptions import HeadInstanceError, SchemaError
 from jsonmerge.jsonvalue import JSONValue
 
 class Descender(object):
@@ -15,20 +15,37 @@ class Descender(object):
         return None
 
 class Ref(Descender):
-    def descend(self, walk, schema, *args):
+    def __init__(self):
+        self.refs_descended = set()
 
+    def descend_instance(self, walk, schema, base, head, meta):
         ref = schema.val.get("$ref")
         if ref is None:
             return None
 
         with walk.resolver.resolving(ref) as resolved:
-            return walk.descend(JSONValue(resolved, ref), *args)
-
-    def descend_instance(self, walk, schema, base, head, meta):
-        return self.descend(walk, schema, base, head, meta)
+            return walk.descend(JSONValue(resolved, ref), base, head, meta)
 
     def descend_schema(self, walk, schema, meta):
-        return self.descend(walk, schema, meta)
+        ref = schema.val.get("$ref")
+        if ref is None:
+            return None
+
+        if ref not in self.refs_descended:
+            with walk.resolver.resolving(ref) as resolved:
+
+                rinstance = JSONValue(resolved, ref)
+                if not walk.is_type(rinstance, 'object'):
+                    raise SchemaError("'$ref' does not point to an object")
+
+                result = walk.descend(rinstance, meta)
+
+                resolved.clear()
+                resolved.update(result.val)
+
+            self.refs_descended.add(ref)
+
+        return schema
 
 class OneOf(Descender):
     def descend_instance(self, walk, schema, base, head, meta):

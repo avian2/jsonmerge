@@ -17,14 +17,16 @@ class DummyRemoteCache(object):
 class Walk(object):
 
     DESCENDERS = [
-            descenders.Ref(),
-            descenders.OneOf(),
+            descenders.Ref,
+            descenders.OneOf,
     ]
 
     def __init__(self, merger):
         self.merger = merger
         self.resolver = merger.validator.resolver
         self.lvl = -1
+
+        self.descenders = [ cls() for cls in self.DESCENDERS ]
 
     def _indent(self):
         return "  " * self.lvl
@@ -50,7 +52,7 @@ class Walk(object):
 
         if not schema.is_undef():
 
-            for descender in self.DESCENDERS:
+            for descender in self.descenders:
                 rv = self.call_descender(descender, schema, *args)
                 if rv is not None:
                     self.lvl -= 1
@@ -126,7 +128,11 @@ class WalkSchema(Walk):
     def is_base_context(self):
         return self.resolver.base_uri == self.merger.schema.get('id', '')
 
-    def resolve_refs(self, schema, resolve_base=False):
+    def resolve_refs(self, schema):
+        # For backwards compatibility with jsonmerge <= 1.3.0
+        return schema
+
+    def _resolve_refs(self, schema, resolve_base=False):
         assert isinstance(schema, JSONValue)
 
         if (not resolve_base) and self.is_base_context():
@@ -134,14 +140,14 @@ class WalkSchema(Walk):
             # are still valid
             return schema
         elif self.is_type(schema, "array"):
-            return JSONValue([ self.resolve_refs(v).val for v in schema ], schema.ref)
+            return JSONValue([ self._resolve_refs(v).val for v in schema ], schema.ref)
         elif self.is_type(schema, "object"):
             ref = schema.val.get("$ref")
             if ref is not None:
                 with self.resolver.resolving(ref) as resolved:
-                    return self.resolve_refs(JSONValue(resolved, ref))
+                    return self._resolve_refs(JSONValue(resolved, ref))
             else:
-                return JSONValue(dict( ((k, self.resolve_refs(v).val) for k, v in schema.items()) ), schema.ref)
+                return JSONValue(dict( ((k, self._resolve_refs(v).val) for k, v in schema.items()) ), schema.ref)
         else:
             return schema
 
@@ -305,7 +311,7 @@ class Merger(object):
             m.validator.resolver.store.update(self.validator.resolver.store)
 
             w = WalkSchema(m)
-            meta = w.resolve_refs(JSONValue(meta), resolve_base=True).val
+            meta = w._resolve_refs(JSONValue(meta), resolve_base=True).val
 
         schema = JSONValue(self.schema)
 
