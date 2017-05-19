@@ -1176,11 +1176,11 @@ class TestGetSchema(unittest.TestCase):
                              }
                          })
 
-    def test_oneof(self):
+    def test_anyof(self):
 
         schema = {
             'mergeStrategy': 'objectMerge',
-            'oneOf': [
+            'anyOf': [
                 {'properties': {'a': {}}},
                 {'properties': {'b': {}}}
             ]
