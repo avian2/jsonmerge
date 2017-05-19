@@ -260,6 +260,18 @@ defines what to do in such cases. See docstring documentation for the
 no support for ambiguous schemas like that.
 
 
+Security considerations
+-----------------------
+
+A JSON schema document can contain *$ref* references to external schemas.
+*jsonmerge* resolves URIs in these references using the mechanisms provided
+by the *jsonschema* module. External references can cause HTTP or similar
+network requests to be performed.
+
+If *jsonmerge* is used on untrusted input, this may lead to vulnerabilities
+similar to the XML External Entity (XXE) attack.
+
+
 Requirements
 ------------
 
