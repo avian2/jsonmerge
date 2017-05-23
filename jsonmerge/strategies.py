@@ -257,11 +257,6 @@ class ObjectMerge(Strategy):
         return base
 
     def get_schema(self, walk, schema, meta, **kwargs):
-
-        for forbidden in ("allOf", "anyOf"):
-            if forbidden in schema.val:
-                raise SchemaError("Type ambiguous schema")
-
         schema2 = JSONValue(dict(schema.val), schema.ref)
 
         def descend_keyword(keyword):
