@@ -1177,9 +1177,11 @@ class TestGetSchema(unittest.TestCase):
                          })
 
     def test_anyof(self):
+        # We don't support descending through 'anyOf', since each branch could
+        # have its own rules for merging. How could we then decide which rule
+        # to follow?
 
         schema = {
-            'mergeStrategy': 'objectMerge',
             'anyOf': [
                 {'properties': {'a': {}}},
                 {'properties': {'b': {}}}
@@ -1188,6 +1190,45 @@ class TestGetSchema(unittest.TestCase):
 
         merger = jsonmerge.Merger(schema)
         self.assertRaises(SchemaError, merger.get_schema)
+
+    def test_anyof_dont_descend(self):
+        # However, 'anyOf' should be fine if we don't descend through it (e.g.
+        # if it's after a 'overwrite' strategy for instance.
+
+        schema = {
+            'properties': {
+                'a': {
+                    'mergeStrategy': 'overwrite',
+                    'properties': {
+                        'b': {
+                            'anyOf': [
+                                {'properties': {'c': {}}},
+                                {'properties': {'d': {}}},
+                            ]
+                        }
+                    }
+                }
+            }
+        }
+
+        expected = {
+            'properties': {
+                'a': {
+                    'properties': {
+                        'b': {
+                            'anyOf': [
+                                {'properties': {'c': {}}},
+                                {'properties': {'d': {}}},
+                            ]
+                        }
+                    }
+                }
+            }
+        }
+
+        merger = jsonmerge.Merger(schema)
+        mschema = merger.get_schema()
+        self.assertEqual(expected, mschema)
 
     def test_external_refs(self):
 

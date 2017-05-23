@@ -19,6 +19,7 @@ class Walk(object):
     DESCENDERS = [
             descenders.Ref,
             descenders.OneOf,
+            descenders.AnyOfAllOf,
     ]
 
     def __init__(self, merger):

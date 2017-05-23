@@ -86,3 +86,16 @@ class OneOf(Descender):
             one_of.val[i] = walk.descend(one_of[i], meta).val
 
         return schema
+
+class AnyOfAllOf(Descender):
+    def descend(self, schema):
+        for forbidden in ("allOf", "anyOf"):
+            if forbidden in schema.val:
+                raise SchemaError("Can't descend to 'allOf' and 'anyOf' keywords")
+        return None
+
+    def descend_instance(self, walk, schema, base, head, meta):
+        return self.descend(schema)
+
+    def descend_schema(self, walk, schema, meta):
+        return self.descend(schema)
