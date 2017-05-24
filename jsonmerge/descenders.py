@@ -31,19 +31,24 @@ class Ref(Descender):
         if ref is None:
             return None
 
-        if ref not in self.refs_descended:
-            with walk.resolver.resolving(ref) as resolved:
+        if ref in self.refs_descended:
+            return schema
 
-                rinstance = JSONValue(resolved, ref)
-                if not walk.is_type(rinstance, 'object'):
-                    raise SchemaError("'$ref' does not point to an object")
+        if walk.resolver.is_remote_ref(ref):
+            return schema
 
-                result = walk.descend(rinstance, meta)
+        with walk.resolver.resolving(ref) as resolved:
 
-                resolved.clear()
-                resolved.update(result.val)
+            rinstance = JSONValue(resolved, ref)
+            if not walk.is_type(rinstance, 'object'):
+                raise SchemaError("'$ref' does not point to an object")
 
-            self.refs_descended.add(ref)
+            result = walk.descend(rinstance, meta)
+
+            resolved.clear()
+            resolved.update(result.val)
+
+        self.refs_descended.add(ref)
 
         return schema
 

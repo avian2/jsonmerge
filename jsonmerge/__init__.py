@@ -1,18 +1,15 @@
 # vim:ts=4 sw=4 expandtab softtabstop=4
 from collections import OrderedDict
 from jsonmerge.jsonvalue import JSONValue
+from jsonmerge.resolver import LocalRefResolver
 from jsonmerge import strategies
 from jsonmerge import descenders
-from jsonschema.validators import Draft4Validator, RefResolver
+from jsonschema.validators import Draft4Validator
 import logging
 
 log = logging.getLogger(name=__name__)
 
 #logging.basicConfig(level=logging.DEBUG)
-
-class DummyRemoteCache(object):
-    def __call__(self, url):
-        return self.resolver.resolve_from_url(url)
 
 class Walk(object):
 
@@ -83,8 +80,8 @@ class WalkInstance(Walk):
 
     def __init__(self, merger, base, head):
         Walk.__init__(self, merger)
-        self.base_resolver = RefResolver("", base.val)
-        self.head_resolver = RefResolver("", head.val)
+        self.base_resolver = LocalRefResolver("", base.val)
+        self.head_resolver = LocalRefResolver("", head.val)
 
     def add_meta(self, head, meta):
         if meta is None:
@@ -227,14 +224,7 @@ class Merger(object):
 
         self.schema = schema
 
-        remote_cache = DummyRemoteCache()
-        try:
-            resolver = RefResolver.from_schema(schema, remote_cache=remote_cache)
-        except TypeError:
-            # jsonschema<=2.4.0
-            resolver = RefResolver.from_schema(schema)
-        remote_cache.resolver = resolver
-
+        resolver = LocalRefResolver.from_schema(schema)
         self.validator = Draft4Validator(schema, resolver=resolver)
 
         self.strategies = dict(self.STRATEGIES)

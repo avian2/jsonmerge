@@ -390,9 +390,10 @@ class TestMerge(unittest.TestCase):
 
         self.assertEqual(base, base_expect)
 
-    def test_refs(self):
+    def test_internal_refs(self):
 
         schema = {
+            'id': 'http://example.com/schema_1.json',
             'properties': {
                 'a': {'$ref': "#/definitions/a"},
             },
@@ -406,6 +407,37 @@ class TestMerge(unittest.TestCase):
         }
 
         merger = jsonmerge.Merger(schema)
+
+        base = None
+        base = merger.merge(base, {"a": {"b": "c"}})
+        base = merger.merge(base, {"a": {"b": "d"}})
+
+        self.assertEqual(base, {"a": {"b": [{"value": "c"}, {"value": "d"}]}})
+
+    def test_external_refs(self):
+
+        schema_1 = {
+            'id': 'http://example.com/schema_1.json',
+            'properties': {
+                'a': {'$ref': "schema_2.json#/definitions/a"},
+            },
+        }
+
+        schema_2 = {
+            'id': 'http://example.com/schema_2.json',
+            'definitions': {
+                "a": {
+                    "properties": {
+                        "b": {'mergeStrategy': 'version'},
+                    }
+                },
+            }
+        }
+
+        merger = jsonmerge.Merger(schema_1)
+
+        # merge() would otherwise make a HTTP request
+        merger.cache_schema(schema_2)
 
         base = None
         base = merger.merge(base, {"a": {"b": "c"}})
@@ -1232,34 +1264,13 @@ class TestGetSchema(unittest.TestCase):
 
     def test_external_refs(self):
 
-        # We follow, but never resolve $refs in schemas. Internal or external.
-
         schema_1 = {
             'id': 'http://example.com/schema_1.json',
             '$ref': 'schema_2.json#/definitions/foo'
         }
 
-        schema_2 = {
-            'id': 'http://example.com/schema_2.json',
-            'definitions': {
-                'foo': {
-                    'mergeStrategy': 'overwrite',
-                    'properties': {
-                        'bar': {
-                            '$ref': '#/definitions/baz'
-                        },
-                        'b': {}
-                    },
-                },
-                'baz': {
-                    'mergeStrategy': 'append'
-                }
-            }
-        }
-
+        # get_schema() shouldn't do external HTTP requests for schemas.
         merger = jsonmerge.Merger(schema_1)
-        merger.cache_schema(schema_2)
-
         mschema = merger.get_schema()
 
         d = {
@@ -1270,8 +1281,6 @@ class TestGetSchema(unittest.TestCase):
         self.assertEqual(d, mschema)
 
     def test_internal_refs(self):
-
-        # We follow, but never resolve $refs in schemas. Internal or external.
 
         schema = {
             'id': 'http://example.com/schema_1.json',
