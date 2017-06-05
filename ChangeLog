@@ -1,3 +1,14 @@
+2017-06-05	jsonmerge	1.4.0
+
+	* More consistent handling of $ref references in get_schema(). Internal
+	  references are now followed, but always kept unresolved in the final
+	  result instead of replacing them with the referenced part of the
+	  document. External references are never followed. This removes the
+	  need to call resolve_refs() in custom merge strategies.
+	* Support for "oneOf" schema keyword.
+	* Fix compatibility with jsonschema > 2.4.0.
+	* Remove support for Python 2.6.
+
 2017-04-02	jsonmerge	1.3.0
 
 	* Add "objClass" option for selection of an alternative class for
