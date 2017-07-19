@@ -1701,6 +1701,34 @@ class TestGetSchema(unittest.TestCase):
 
         self.assertEqual(schema2, expected)
 
+    def test_oneof_recursive(self):
+        # Schema to merge all arrays with "append" strategy and all objects
+        # with the default "objectMerge" strategy.
+
+        schema = {
+            "oneOf": [
+                {
+                    "type": "array",
+                    "mergeStrategy": "append"
+                },
+                {
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#"
+                    }
+                },
+                {
+                    "type": "string"
+                },
+            ]
+        }
+
+        merger = jsonmerge.Merger(schema)
+        schema2 = merger.get_schema()
+
+        self.assertEqual(schema2, schema)
+
+
 if __name__ == '__main__':
     unittest.main()
 

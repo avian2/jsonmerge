@@ -16,7 +16,7 @@ class Descender(object):
 
 class Ref(Descender):
     def __init__(self):
-        self.refs_descended = set()
+        self.refs_descended = set('#')
 
     def descend_instance(self, walk, schema, base, head, meta):
         ref = schema.val.get("$ref")
@@ -37,6 +37,8 @@ class Ref(Descender):
         if walk.resolver.is_remote_ref(ref):
             return schema
 
+        self.refs_descended.add(ref)
+
         with walk.resolver.resolving(ref) as resolved:
 
             rinstance = JSONValue(resolved, ref)
@@ -47,8 +49,6 @@ class Ref(Descender):
 
             resolved.clear()
             resolved.update(result.val)
-
-        self.refs_descended.add(ref)
 
         return schema
 
