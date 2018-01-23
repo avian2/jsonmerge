@@ -504,6 +504,28 @@ class TestMerge(unittest.TestCase):
 
         self.assertEqual(base, {"a": ["1", "2"], "b": "4", "g": "7", "c": {"d": ["4", "3"], "e": "f"}})
 
+    def test_anyof(self):
+        schema = {
+            'anyOf': [
+                {
+                    'mergeStrategy': 'overwrite'
+                },
+                {
+                    'type': 'array'
+                },
+                {
+                    'type': 'string'
+                },
+            ]
+        }
+
+        merger = jsonmerge.Merger(schema)
+
+        self.assertEqual(merger.merge('a', {'a': 1}), {'a': 1})
+        self.assertEqual(merger.merge({'a': 1}, 'a'), 'a')
+        self.assertEqual(merger.merge([2, 3, 4], 'a'), 'a')
+        self.assertEqual(merger.merge('a', [2, 3, 4]), [2, 3, 4])
+
     def test_custom_strategy(self):
 
         schema = {'mergeStrategy': 'myStrategy'}
@@ -1208,7 +1230,7 @@ class TestGetSchema(unittest.TestCase):
                              }
                          })
 
-    def test_anyof(self):
+    def test_anyof_descend(self):
         # We don't support descending through 'anyOf', since each branch could
         # have its own rules for merging. How could we then decide which rule
         # to follow?
@@ -1261,6 +1283,21 @@ class TestGetSchema(unittest.TestCase):
         merger = jsonmerge.Merger(schema)
         mschema = merger.get_schema()
         self.assertEqual(expected, mschema)
+
+    def test_anyof_overwrite_all(self):
+        # 'anyOf' should also be fine if all possible subschemas would result in
+        # an 'overwrite' strategy.
+
+        schema = {
+            'anyOf': [
+                {'mergeStrategy': 'overwrite'},
+                {'type': 'array'},
+                {'type': 'string'}
+            ]
+        }
+
+        merger = jsonmerge.Merger(schema)
+        mschema = merger.get_schema()
 
     def test_external_refs(self):
 

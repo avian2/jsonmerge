@@ -93,7 +93,9 @@ class WalkInstance(Walk):
         return rv
 
     def default_strategy(self, schema, base, head, meta, **kwargs):
-        if self.is_type(head, "object"):
+        if not schema.is_undef() and ("anyOf" in schema.val or "allOf" in schema.val):
+            return "overwrite"
+        elif self.is_type(head, "object"):
             return "objectMerge"
         else:
             return "overwrite"
