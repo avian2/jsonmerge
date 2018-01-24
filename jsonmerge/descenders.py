@@ -94,7 +94,6 @@ class OneOf(Descender):
 
 class AnyOfAllOf(Descender):
     def descend_instance(self, walk, schema, base, head, meta):
-
         allOf = schema.get("allOf")
         anyOf = schema.get("anyOf")
         if allOf.is_undef() and anyOf.is_undef():
@@ -103,42 +102,7 @@ class AnyOfAllOf(Descender):
         if schema.val.get("mergeStrategy") == "overwrite":
             return None
 
-        anyall = allOf if anyOf.is_undef() else anyOf
-
-        def is_valid(v, schema):
-            if v.is_undef():
-                return True
-            else:
-                return not list(walk.merger.validator.iter_errors(v.val, schema))
-
-        base_valid = []
-        head_valid = []
-
-        for i, subschema in enumerate(anyall.val):
-            if is_valid(base, subschema):
-                base_valid.append(i)
-            if is_valid(head, subschema):
-                head_valid.append(i)
-
-        if not anyOf.is_undef():
-            if len(base_valid) == 0:
-                raise BaseInstanceError("No element of 'anyOf' validates base")
-            if len(head_valid) == 0:
-                raise HeadInstanceError("No element of 'anyOf' validates head")
-        else:
-            if len(base_valid) < len(allOf.val):
-                raise BaseInstanceError("Not all elements of 'allOf' validate base")
-            if len(head_valid) < len(allOf.val):
-                raise HeadInstanceError("Not all elements of 'allOf' validate head")
-
-        for i in head_valid:
-            subschema = anyall.val[i]
-            strategy = subschema.get("mergeStrategy") \
-                    or walk.default_strategy(JSONValue(subschema), base, head, meta)
-            if strategy != "overwrite":
-                raise SchemaError("Can't descend to 'allOf' and 'anyOf' keywords")
-
-        return None
+        raise SchemaError("Can't descend to 'allOf' and 'anyOf' keywords")
 
     def descend_schema(self, walk, schema, meta):
         allOf = schema.get("allOf")
@@ -149,11 +113,4 @@ class AnyOfAllOf(Descender):
         if schema.val.get("mergeStrategy") == "overwrite":
             return schema
 
-        anyall = allOf if anyOf.is_undef() else anyOf
-        for subschema in anyall.val:
-            strategy = subschema.get("mergeStrategy") \
-                    or walk.default_strategy(JSONValue(subschema), meta)
-            if strategy != "overwrite":
-                raise SchemaError("Can't descend to 'allOf' and 'anyOf' keywords")
-
-        return schema
+        raise SchemaError("Can't descend to 'allOf' and 'anyOf' keywords")
