@@ -58,6 +58,9 @@ class OneOf(Descender):
         if one_of.is_undef():
             return None
 
+        if schema.val.get("mergeStrategy") == "overwrite":
+            return None
+
         valid = []
 
         def is_valid(v, schema):

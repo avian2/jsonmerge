@@ -504,6 +504,24 @@ class TestMerge(unittest.TestCase):
 
         self.assertEqual(base, {"a": ["1", "2"], "b": "4", "g": "7", "c": {"d": ["4", "3"], "e": "f"}})
 
+    def test_oneof_overwrite_toplevel(self):
+        schema = {
+            'mergeStrategy': 'overwrite',
+            'oneOf': [
+                {
+                    'type': 'array'
+                },
+                {
+                    'type': 'string'
+                },
+            ]
+        }
+
+        merger = jsonmerge.Merger(schema)
+
+        self.assertEqual(merger.merge([2, 3, 4], 'a'), 'a')
+        self.assertEqual(merger.merge('a', [2, 3, 4]), [2, 3, 4])
+
     def test_anyof_overwrite_toplevel(self):
         schema = {
             'mergeStrategy': 'overwrite',
