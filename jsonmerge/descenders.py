@@ -58,6 +58,9 @@ class OneOf(Descender):
         if one_of.is_undef():
             return None
 
+        if schema.val.get("mergeStrategy") == "overwrite":
+            return None
+
         valid = []
 
         def is_valid(v, schema):
@@ -93,14 +96,24 @@ class OneOf(Descender):
         return schema
 
 class AnyOfAllOf(Descender):
-    def descend(self, schema):
-        for forbidden in ("allOf", "anyOf"):
-            if forbidden in schema.val:
-                raise SchemaError("Can't descend to 'allOf' and 'anyOf' keywords")
-        return None
-
     def descend_instance(self, walk, schema, base, head, meta):
-        return self.descend(schema)
+        allOf = schema.get("allOf")
+        anyOf = schema.get("anyOf")
+        if allOf.is_undef() and anyOf.is_undef():
+            return None
+
+        if schema.val.get("mergeStrategy") == "overwrite":
+            return None
+
+        raise SchemaError("Can't descend to 'allOf' and 'anyOf' keywords")
 
     def descend_schema(self, walk, schema, meta):
-        return self.descend(schema)
+        allOf = schema.get("allOf")
+        anyOf = schema.get("anyOf")
+        if allOf.is_undef() and anyOf.is_undef():
+            return None
+
+        if schema.val.get("mergeStrategy") == "overwrite":
+            return schema
+
+        raise SchemaError("Can't descend to 'allOf' and 'anyOf' keywords")
