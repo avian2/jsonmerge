@@ -522,6 +522,22 @@ class TestMerge(unittest.TestCase):
         self.assertEqual(merger.merge([2, 3, 4], 'a'), 'a')
         self.assertEqual(merger.merge('a', [2, 3, 4]), [2, 3, 4])
 
+    def test_anyof(self):
+        schema = {
+            'anyOf': [
+                {
+                    'type': 'array'
+                },
+                {
+                    'type': 'string'
+                },
+            ]
+        }
+
+        merger = jsonmerge.Merger(schema)
+
+        self.assertRaises(SchemaError, merger.merge, [2, 3, 4], 'a')
+
     def test_anyof_overwrite_toplevel(self):
         schema = {
             'mergeStrategy': 'overwrite',
@@ -1764,7 +1780,34 @@ class TestGetSchema(unittest.TestCase):
 
         self.assertEqual(schema2, schema)
 
+    def test_anyof_toplevel(self):
+
+        schema = {
+            "mergeStrategy": "version",
+            "anyOf": [
+                {"type": "string", "pattern": "^!?(?:[0-9]{1,3}\\.){3}[0-9]{1,3}(?:\\/[0-9]{1,2})?$"},
+                {"type": "string", "format": "hostname"}
+            ]
+        }
+
+        expected = {
+            "type": "array",
+            "items": {
+                "properties": {
+                    "value": {
+                        "anyOf": [
+                            {"type": "string", "pattern": "^!?(?:[0-9]{1,3}\\.){3}[0-9]{1,3}(?:\\/[0-9]{1,2})?$"},
+                            {"type": "string", "format": "hostname"}
+                        ]
+                    }
+                }
+            }
+        }
+
+        merger = jsonmerge.Merger(schema)
+        schema2 = merger.get_schema()
+
+        self.assertEqual(schema2, expected)
 
 if __name__ == '__main__':
     unittest.main()
-

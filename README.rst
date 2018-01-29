@@ -198,7 +198,8 @@ version
   *ignoreDups* option to *false*.
 
 If a merge strategy is not specified in the schema, *objectMerge* is used
-for objects and *overwrite* for all other values.
+for objects and *overwrite* for all other values (but see also the section
+below regarding keywords that apply subschemas).
 
 You can implement your own strategies by making subclasses of
 jsonmerge.strategies.Strategy and passing them to Merger() constructor
@@ -243,20 +244,34 @@ objclass_menu
    object as a parameter which initializes its contents.
 
 
-Limitations
------------
+Support for keywords that apply subschemas
+------------------------------------------
 
-Merging of documents with schemas that do not have a well-defined type
-(e.g. schemas using *allOf* and *anyOf*) will likely fail. Such
-documents could require merging of two values of different types. For
-example, *jsonmerge* does not know how to merge a string to an object.
+Complex merging of documents with schemas that use keywords *allOf*,
+*anyOf* and *oneOf* can be problematic. Such documents do not have a
+well-defined type and might require merging of two values of different
+types, which will fail for some strategies. In such cases *get_schema()*
+might also return schemas that never validate.
 
-Support for the *oneOf* keyword is limited to the case where both *base*
-and *head* can be validated by the same *oneOf* element.
+The *overwrite* strategy is usually the safest choice for such schemas.
 
-You can work around this limitation by defining for your own strategy that
-defines what to do in such cases. See docstring documentation for the
-*Strategy* class on how to do that. get_schema() however currently provides
+If you explicitly define a merge strategy at the same level as *allOf*,
+*anyOf* or *oneOf* keyword, then *jsonmerge* will use the defined strategy
+and not further process any subschemas under those keywords. The
+strategy however will descend as usual (e.g. *objectMerge* will take into
+account subschemas under the *properties* keyword at the same level as
+*allOf*).
+
+If a merge strategy is not explicitly defined and a *allOf* or *anyOf*
+keyword is present, *jsonmerge* will raise an error.
+
+If a merge stragegy is not explicitly defined and a *oneOf* keyword is
+present, *jsonmerge* will continue on the branch of *oneOf* that validates
+both *base* and *head*. If no branch validates, it will raise an error.
+
+You can define more complex behaviors by defining for your own strategy
+that defines what to do in such cases. See docstring documentation for the
+*Strategy* class on how to do that. *get_schema()* however currently provides
 no support for ambiguous schemas like that.
 
 

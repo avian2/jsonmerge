@@ -58,7 +58,9 @@ class OneOf(Descender):
         if one_of.is_undef():
             return None
 
-        if schema.val.get("mergeStrategy") == "overwrite":
+        # If we have a strategy defined on this level, don't descend into
+        # subschemas.
+        if not schema.get("mergeStrategy").is_undef():
             return None
 
         valid = []
@@ -102,7 +104,9 @@ class AnyOfAllOf(Descender):
         if allOf.is_undef() and anyOf.is_undef():
             return None
 
-        if schema.val.get("mergeStrategy") == "overwrite":
+        # We must have a strategy defined on this level, or we can't know which
+        # subschema to descend to.
+        if not schema.get("mergeStrategy").is_undef():
             return None
 
         raise SchemaError("Can't descend to 'allOf' and 'anyOf' keywords")
@@ -113,7 +117,9 @@ class AnyOfAllOf(Descender):
         if allOf.is_undef() and anyOf.is_undef():
             return None
 
-        if schema.val.get("mergeStrategy") == "overwrite":
-            return schema
+        # We must have a strategy defined on this level, or we can't know which
+        # subschema to descend to.
+        if not schema.get("mergeStrategy").is_undef():
+            return None
 
         raise SchemaError("Can't descend to 'allOf' and 'anyOf' keywords")
