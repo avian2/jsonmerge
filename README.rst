@@ -262,17 +262,16 @@ strategy however will descend as usual (e.g. *objectMerge* will take into
 account subschemas under the *properties* keyword at the same level as
 *allOf*).
 
-If a merge strategy is not explicitly defined and a *allOf* or *anyOf*
+If a merge strategy is not explicitly defined and an *allOf* or *anyOf*
 keyword is present, *jsonmerge* will raise an error.
 
-If a merge stragegy is not explicitly defined and a *oneOf* keyword is
+If a merge stragegy is not explicitly defined and an *oneOf* keyword is
 present, *jsonmerge* will continue on the branch of *oneOf* that validates
 both *base* and *head*. If no branch validates, it will raise an error.
 
 You can define more complex behaviors by defining for your own strategy
 that defines what to do in such cases. See docstring documentation for the
-*Strategy* class on how to do that. *get_schema()* however currently provides
-no support for ambiguous schemas like that.
+*Strategy* class on how to do that.
 
 
 Security considerations
