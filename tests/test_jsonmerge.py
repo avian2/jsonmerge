@@ -1780,6 +1780,35 @@ class TestGetSchema(unittest.TestCase):
 
         self.assertEqual(schema2, schema)
 
+    def test_oneof_toplevel(self):
+
+        schema = {
+            "mergeStrategy": "version",
+            "oneOf": [
+                {"type": "string", "pattern": "^!?(?:[0-9]{1,3}\\.){3}[0-9]{1,3}(?:\\/[0-9]{1,2})?$"},
+                {"type": "string", "format": "hostname"}
+            ]
+        }
+
+        expected = {
+            "type": "array",
+            "items": {
+                "properties": {
+                    "value": {
+                        "oneOf": [
+                            {"type": "string", "pattern": "^!?(?:[0-9]{1,3}\\.){3}[0-9]{1,3}(?:\\/[0-9]{1,2})?$"},
+                            {"type": "string", "format": "hostname"}
+                        ]
+                    }
+                }
+            }
+        }
+
+        merger = jsonmerge.Merger(schema)
+        schema2 = merger.get_schema()
+
+        self.assertEqual(schema2, expected)
+
     def test_anyof_toplevel(self):
 
         schema = {

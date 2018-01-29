@@ -53,15 +53,23 @@ class Ref(Descender):
         return schema
 
 class OneOf(Descender):
-    def descend_instance(self, walk, schema, base, head, meta):
+    def do_descend(self, schema):
         one_of = schema.get("oneOf")
         if one_of.is_undef():
-            return None
+            return False
 
         # If we have a strategy defined on this level, don't descend into
         # subschemas.
         if not schema.get("mergeStrategy").is_undef():
+            return False
+
+        return True
+
+    def descend_instance(self, walk, schema, base, head, meta):
+        if not self.do_descend(schema):
             return None
+
+        one_of = schema.get("oneOf")
 
         valid = []
 
@@ -88,9 +96,10 @@ class OneOf(Descender):
         return walk.descend(one_of[i], base, head, meta)
 
     def descend_schema(self, walk, schema, meta):
-        one_of = schema.get("oneOf")
-        if one_of.is_undef():
+        if not self.do_descend(schema):
             return None
+
+        one_of = schema.get("oneOf")
 
         for i in range(len(one_of.val)):
             one_of.val[i] = walk.descend(one_of[i], meta).val
