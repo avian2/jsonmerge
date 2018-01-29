@@ -98,7 +98,7 @@ class OneOf(Descender):
         return schema
 
 class AnyOfAllOf(Descender):
-    def descend_instance(self, walk, schema, base, head, meta):
+    def descend(self, schema):
         allOf = schema.get("allOf")
         anyOf = schema.get("anyOf")
         if allOf.is_undef() and anyOf.is_undef():
@@ -110,16 +110,9 @@ class AnyOfAllOf(Descender):
             return None
 
         raise SchemaError("Can't descend to 'allOf' and 'anyOf' keywords")
+
+    def descend_instance(self, walk, schema, base, head, meta):
+        return self.descend(schema)
 
     def descend_schema(self, walk, schema, meta):
-        allOf = schema.get("allOf")
-        anyOf = schema.get("anyOf")
-        if allOf.is_undef() and anyOf.is_undef():
-            return None
-
-        # We must have a strategy defined on this level, or we can't know which
-        # subschema to descend to.
-        if not schema.get("mergeStrategy").is_undef():
-            return None
-
-        raise SchemaError("Can't descend to 'allOf' and 'anyOf' keywords")
+        return self.descend(schema)
