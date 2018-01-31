@@ -101,13 +101,13 @@ class Version(Strategy):
 class Append(Strategy):
     def merge(self, walk, base, head, schema, meta, **kwargs):
         if not walk.is_type(head, "array"):
-            raise HeadInstanceError("Head for an 'append' merge strategy is not an array")
+            raise HeadInstanceError("Head for an 'append' merge strategy is not an array", head)
 
         if base.is_undef():
             base = JSONValue([], base.ref)
         else:
             if not walk.is_type(base, "array"):
-                raise BaseInstanceError("Base for an 'append' merge strategy is not an array")
+                raise BaseInstanceError("Base for an 'append' merge strategy is not an array", base)
 
             base = JSONValue(list(base.val), base.ref)
 
@@ -124,19 +124,19 @@ class Append(Strategy):
 class ArrayMergeById(Strategy):
     def merge(self, walk, base, head, schema, meta, idRef="id", ignoreId=None, **kwargs):
         if not walk.is_type(head, "array"):
-            raise HeadInstanceError("Head for an 'arrayMergeById' merge strategy is not an array")  # nopep8
+            raise HeadInstanceError("Head for an 'arrayMergeById' merge strategy is not an array", head)  # nopep8
 
         if base.is_undef():
             base = JSONValue([], base.ref)
         else:
             if not walk.is_type(base, "array"):
-                raise BaseInstanceError("Base for an 'arrayMergeById' merge strategy is not an array")  # nopep8
+                raise BaseInstanceError("Base for an 'arrayMergeById' merge strategy is not an array", base)  # nopep8
             base = JSONValue(list(base.val), base.ref)
 
         subschema = schema.get('items')
 
         if walk.is_type(subschema, "array"):
-            raise SchemaError("'arrayMergeById' not supported when 'items' is an array")
+            raise SchemaError("'arrayMergeById' not supported when 'items' is an array", subschema)
 
         def iter_index_key_item(jv):
             for i, item in enumerate(jv):
@@ -151,7 +151,7 @@ class ArrayMergeById(Strategy):
             for j, key_2, item_2 in iter_index_key_item(head):
                 if j < i:
                     if key_1 == key_2:
-                        raise HeadInstanceError("Id was not unique")
+                        raise HeadInstanceError("Id was not unique", head)
                 else:
                     break
 
@@ -172,7 +172,7 @@ class ArrayMergeById(Strategy):
                 # If there wasn't a match, we append a new object
                 base.val.append(walk.descend(subschema, JSONValue(undef=True), head_item, meta).val)
             if key_count > 1:
-                raise BaseInstanceError("Id was not unique")
+                raise BaseInstanceError("Id was not unique", base)
 
         return base
 
@@ -213,20 +213,20 @@ class ObjectMerge(Strategy):
     """
     def merge(self, walk, base, head, schema, meta, objclass_menu=None, objClass='_default', **kwargs):
         if not walk.is_type(head, "object"):
-            raise HeadInstanceError("Head for an 'object' merge strategy is not an object")
+            raise HeadInstanceError("Head for an 'object' merge strategy is not an object", head)
 
         if objclass_menu is None:
             objclass_menu = { '_default': dict }
 
         objcls = objclass_menu.get(objClass)
         if objcls is None:
-            raise SchemaError("objClass '%s' not recognized" % objClass)
+            raise SchemaError("objClass '%s' not recognized" % objClass, schema)
 
         if base.is_undef():
             base = JSONValue(objcls(), base.ref)
         else:
             if not walk.is_type(base, "object"):
-                raise BaseInstanceError("Base for an 'object' merge strategy is not an object")
+                raise BaseInstanceError("Base for an 'object' merge strategy is not an object", base)
 
             base = JSONValue(objcls(base.val), base.ref)
 

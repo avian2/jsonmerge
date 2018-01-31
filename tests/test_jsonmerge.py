@@ -137,16 +137,22 @@ class TestMerge(unittest.TestCase):
         schema = {'mergeStrategy': 'append'}
 
         base = None
-        self.assertRaises(HeadInstanceError,
-                          jsonmerge.merge, base, "a", schema)
+
+        with self.assertRaises(HeadInstanceError) as cm:
+            jsonmerge.merge(base, "a", schema)
+
+        self.assertEqual(cm.exception.value.ref, "#")
 
     def test_append_type_error_base(self):
 
         schema = {'mergeStrategy': 'append'}
 
         base = "ab"
-        self.assertRaises(BaseInstanceError,
-                          jsonmerge.merge, base, ["a"], schema)
+
+        with self.assertRaises(BaseInstanceError) as cm:
+            jsonmerge.merge(base, ["a"], schema)
+
+        self.assertEqual(cm.exception.value.ref, "#")
 
     def test_merge_default(self):
         schema = {}
@@ -192,16 +198,20 @@ class TestMerge(unittest.TestCase):
         schema = {'mergeStrategy': 'objectMerge'}
 
         base = None
-        self.assertRaises(HeadInstanceError,
-                          jsonmerge.merge, base, "a", schema)
+        with self.assertRaises(HeadInstanceError) as cm:
+            jsonmerge.merge(base, "a", schema)
+
+        self.assertEqual(cm.exception.value.ref, "#")
 
     def test_merge_type_error_base(self):
 
         schema = {'mergeStrategy': 'objectMerge'}
 
         base = "ab"
-        self.assertRaises(BaseInstanceError,
-                          jsonmerge.merge, base, {'foo': 1}, schema)
+        with self.assertRaises(BaseInstanceError) as cm:
+            jsonmerge.merge(base, {'foo': 1}, schema)
+
+        self.assertEqual(cm.exception.value.ref, "#")
 
     def test_merge_overwrite(self):
 
@@ -250,7 +260,10 @@ class TestMerge(unittest.TestCase):
         merger = jsonmerge.Merger(schema)
 
         base = None
-        self.assertRaises(SchemaError, merger.merge, base, OrderedDict([('c', "a"), ('a', "a")]), schema)
+        with self.assertRaises(SchemaError) as cm:
+            merger.merge(base, OrderedDict([('c', "a"), ('a', "a")]), schema)
+
+        self.assertEquals(cm.exception.value.ref, '#')
 
     def test_merge_objclass_menu(self):
         schema = {'mergeStrategy': 'objectMerge', 'mergeOptions': { 'objClass': 'foo'}}
@@ -472,7 +485,11 @@ class TestMerge(unittest.TestCase):
         self.assertEqual(base, {'a': 1, 'b': 2})
 
         base = [1]
-        self.assertRaises(HeadInstanceError, merger.merge, base, {'b': 2})
+
+        with self.assertRaises(HeadInstanceError) as cm:
+            merger.merge(base, {'b': 2})
+
+        self.assertEqual(cm.exception.value.ref, '#')
 
     def test_oneof_recursive(self):
         # Schema to merge all arrays with "append" strategy and all objects
@@ -536,7 +553,10 @@ class TestMerge(unittest.TestCase):
 
         merger = jsonmerge.Merger(schema)
 
-        self.assertRaises(SchemaError, merger.merge, [2, 3, 4], 'a')
+        with self.assertRaises(SchemaError) as cm:
+                merger.merge([2, 3, 4], 'a')
+
+        self.assertEqual(cm.exception.value.ref, '#')
 
     def test_anyof_overwrite_toplevel(self):
         schema = {
@@ -902,7 +922,11 @@ class TestMerge(unittest.TestCase):
         merger = jsonmerge.Merger(schema)
 
         base = None
-        self.assertRaises(SchemaError, merger.merge, base, head)
+
+        with self.assertRaises(SchemaError) as cm:
+            merger.merge(base, head)
+
+        self.assertEqual(cm.exception.value.ref, '#/items')
 
     def test_merge_by_id_only_integers(self):
 
@@ -937,7 +961,10 @@ class TestMerge(unittest.TestCase):
         base = []
 
         merger = jsonmerge.Merger(schema)
-        self.assertRaises(HeadInstanceError, merger.merge, base, head)
+        with self.assertRaises(HeadInstanceError) as cm:
+            merger.merge(base, head)
+
+        self.assertEqual(cm.exception.value.ref, '#')
 
     def test_merge_by_id_bad_base_type(self):
         schema = {
@@ -948,7 +975,10 @@ class TestMerge(unittest.TestCase):
         base = {'foo': 'bar'}
 
         merger = jsonmerge.Merger(schema)
-        self.assertRaises(BaseInstanceError, merger.merge, base, head)
+        with self.assertRaises(BaseInstanceError) as cm:
+            merger.merge(base, head)
+
+        self.assertEqual(cm.exception.value.ref, '#')
 
     def test_merge_by_id_no_base_id(self):
         schema = {
@@ -980,7 +1010,10 @@ class TestMerge(unittest.TestCase):
 
         merger = jsonmerge.Merger(schema)
 
-        self.assertRaises(BaseInstanceError, merger.merge, base, head)
+        with self.assertRaises(BaseInstanceError) as cm:
+            merger.merge(base, head)
+
+        self.assertEqual(cm.exception.value.ref, '#')
 
     def test_merge_by_id_non_unique_head(self):
         schema = {
@@ -1001,7 +1034,10 @@ class TestMerge(unittest.TestCase):
 
         merger = jsonmerge.Merger(schema)
 
-        self.assertRaises(HeadInstanceError, merger.merge, base, head)
+        with self.assertRaises(HeadInstanceError) as cm:
+            merger.merge(base, head)
+
+        self.assertEqual(cm.exception.value.ref, '#')
 
     def test_append_with_maxitems(self):
 
@@ -1273,7 +1309,10 @@ class TestGetSchema(unittest.TestCase):
         }
 
         merger = jsonmerge.Merger(schema)
-        self.assertRaises(SchemaError, merger.get_schema)
+        with self.assertRaises(SchemaError) as cm:
+            merger.get_schema()
+
+        self.assertEqual(cm.exception.value.ref, '#')
 
     def test_anyof_dont_descend(self):
         # However, 'anyOf' should be fine if we don't descend through it (e.g.
@@ -1387,7 +1426,11 @@ class TestGetSchema(unittest.TestCase):
         }
 
         merger = jsonmerge.Merger(schema)
-        self.assertRaises(SchemaError, merger.get_schema)
+
+        with self.assertRaises(SchemaError) as cm:
+            merger.get_schema()
+
+        self.assertEqual(cm.exception.value.ref, '#/properties/foo')
 
     def test_reference_in_meta(self):
 
@@ -1837,6 +1880,17 @@ class TestGetSchema(unittest.TestCase):
         schema2 = merger.get_schema()
 
         self.assertEqual(schema2, expected)
+
+class TestExceptions(unittest.TestCase):
+    def test_str_with_ref(self):
+        e = SchemaError("Test error", JSONValue({}, '#'))
+
+        self.assertEqual(str(e), 'Test error: #')
+
+    def test_str(self):
+        e = SchemaError("Test error")
+
+        self.assertEqual(str(e), 'Test error')
 
 if __name__ == '__main__':
     unittest.main()

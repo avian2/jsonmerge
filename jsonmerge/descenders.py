@@ -43,7 +43,7 @@ class Ref(Descender):
 
             rinstance = JSONValue(resolved, ref)
             if not walk.is_type(rinstance, 'object'):
-                raise SchemaError("'$ref' does not point to an object")
+                raise SchemaError("'$ref' does not point to an object", schema)
 
             result = walk.descend(rinstance, meta)
 
@@ -87,10 +87,10 @@ class OneOf(Descender):
                 valid.append(i)
 
         if len(valid) == 0:
-            raise HeadInstanceError("No element of 'oneOf' validates both base and head")
+            raise HeadInstanceError("No element of 'oneOf' validates both base and head", head)
 
         if len(valid) > 1:
-            raise HeadInstanceError("Multiple elements of 'oneOf' validate")
+            raise HeadInstanceError("Multiple elements of 'oneOf' validate", head)
 
         i = valid[0]
         return walk.descend(one_of[i], base, head, meta)
@@ -118,7 +118,7 @@ class AnyOfAllOf(Descender):
         if not schema.get("mergeStrategy").is_undef():
             return None
 
-        raise SchemaError("Can't descend to 'allOf' and 'anyOf' keywords")
+        raise SchemaError("Can't descend to 'allOf' and 'anyOf' keywords", schema)
 
     def descend_instance(self, walk, schema, base, head, meta):
         return self.descend(schema)
