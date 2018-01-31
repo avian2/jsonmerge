@@ -553,7 +553,10 @@ class TestMerge(unittest.TestCase):
 
         merger = jsonmerge.Merger(schema)
 
-        self.assertRaises(SchemaError, merger.merge, [2, 3, 4], 'a')
+        with self.assertRaises(SchemaError) as cm:
+                merger.merge([2, 3, 4], 'a')
+
+        self.assertEqual(cm.exception.value.ref, '#')
 
     def test_anyof_overwrite_toplevel(self):
         schema = {
