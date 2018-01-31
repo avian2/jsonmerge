@@ -1881,5 +1881,16 @@ class TestGetSchema(unittest.TestCase):
 
         self.assertEqual(schema2, expected)
 
+class TestExceptions(unittest.TestCase):
+    def test_str_with_ref(self):
+        e = SchemaError("Test error", JSONValue({}, '#'))
+
+        self.assertEqual(str(e), 'Test error: #')
+
+    def test_str(self):
+        e = SchemaError("Test error")
+
+        self.assertEqual(str(e), 'Test error')
+
 if __name__ == '__main__':
     unittest.main()
