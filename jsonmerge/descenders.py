@@ -16,7 +16,7 @@ class Descender(object):
 
 class Ref(Descender):
     def __init__(self):
-        self.refs_descended = set()
+        self.refs_descended = set('#')
 
     def descend_instance(self, walk, schema, base, head, meta):
         ref = schema.val.get("$ref")
@@ -37,6 +37,8 @@ class Ref(Descender):
         if walk.resolver.is_remote_ref(ref):
             return schema
 
+        self.refs_descended.add(ref)
+
         with walk.resolver.resolving(ref) as resolved:
 
             rinstance = JSONValue(resolved, ref)
@@ -48,15 +50,26 @@ class Ref(Descender):
             resolved.clear()
             resolved.update(result.val)
 
-        self.refs_descended.add(ref)
-
         return schema
 
 class OneOf(Descender):
-    def descend_instance(self, walk, schema, base, head, meta):
+    def do_descend(self, schema):
         one_of = schema.get("oneOf")
         if one_of.is_undef():
+            return False
+
+        # If we have a strategy defined on this level, don't descend into
+        # subschemas.
+        if not schema.get("mergeStrategy").is_undef():
+            return False
+
+        return True
+
+    def descend_instance(self, walk, schema, base, head, meta):
+        if not self.do_descend(schema):
             return None
+
+        one_of = schema.get("oneOf")
 
         valid = []
 
@@ -83,9 +96,10 @@ class OneOf(Descender):
         return walk.descend(one_of[i], base, head, meta)
 
     def descend_schema(self, walk, schema, meta):
-        one_of = schema.get("oneOf")
-        if one_of.is_undef():
+        if not self.do_descend(schema):
             return None
+
+        one_of = schema.get("oneOf")
 
         for i in range(len(one_of.val)):
             one_of.val[i] = walk.descend(one_of[i], meta).val
@@ -94,10 +108,17 @@ class OneOf(Descender):
 
 class AnyOfAllOf(Descender):
     def descend(self, schema):
-        for forbidden in ("allOf", "anyOf"):
-            if forbidden in schema.val:
-                raise SchemaError("Can't descend to 'allOf' and 'anyOf' keywords", schema)
-        return None
+        allOf = schema.get("allOf")
+        anyOf = schema.get("anyOf")
+        if allOf.is_undef() and anyOf.is_undef():
+            return None
+
+        # We must have a strategy defined on this level, or we can't know which
+        # subschema to descend to.
+        if not schema.get("mergeStrategy").is_undef():
+            return None
+
+        raise SchemaError("Can't descend to 'allOf' and 'anyOf' keywords", schema)
 
     def descend_instance(self, walk, schema, base, head, meta):
         return self.descend(schema)

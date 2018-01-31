@@ -521,6 +521,58 @@ class TestMerge(unittest.TestCase):
 
         self.assertEqual(base, {"a": ["1", "2"], "b": "4", "g": "7", "c": {"d": ["4", "3"], "e": "f"}})
 
+    def test_oneof_overwrite_toplevel(self):
+        schema = {
+            'mergeStrategy': 'overwrite',
+            'oneOf': [
+                {
+                    'type': 'array'
+                },
+                {
+                    'type': 'string'
+                },
+            ]
+        }
+
+        merger = jsonmerge.Merger(schema)
+
+        self.assertEqual(merger.merge([2, 3, 4], 'a'), 'a')
+        self.assertEqual(merger.merge('a', [2, 3, 4]), [2, 3, 4])
+
+    def test_anyof(self):
+        schema = {
+            'anyOf': [
+                {
+                    'type': 'array'
+                },
+                {
+                    'type': 'string'
+                },
+            ]
+        }
+
+        merger = jsonmerge.Merger(schema)
+
+        self.assertRaises(SchemaError, merger.merge, [2, 3, 4], 'a')
+
+    def test_anyof_overwrite_toplevel(self):
+        schema = {
+            'mergeStrategy': 'overwrite',
+            'anyOf': [
+                {
+                    'type': 'array'
+                },
+                {
+                    'type': 'string'
+                },
+            ]
+        }
+
+        merger = jsonmerge.Merger(schema)
+
+        self.assertEqual(merger.merge([2, 3, 4], 'a'), 'a')
+        self.assertEqual(merger.merge('a', [2, 3, 4]), [2, 3, 4])
+
     def test_custom_strategy(self):
 
         schema = {'mergeStrategy': 'myStrategy'}
@@ -1241,7 +1293,7 @@ class TestGetSchema(unittest.TestCase):
                              }
                          })
 
-    def test_anyof(self):
+    def test_anyof_descend(self):
         # We don't support descending through 'anyOf', since each branch could
         # have its own rules for merging. How could we then decide which rule
         # to follow?
@@ -1741,6 +1793,90 @@ class TestGetSchema(unittest.TestCase):
 
         self.assertEqual(schema2, expected)
 
+    def test_oneof_recursive(self):
+        # Schema to merge all arrays with "append" strategy and all objects
+        # with the default "objectMerge" strategy.
+
+        schema = {
+            "oneOf": [
+                {
+                    "type": "array",
+                    "mergeStrategy": "append"
+                },
+                {
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#"
+                    }
+                },
+                {
+                    "type": "string"
+                },
+            ]
+        }
+
+        merger = jsonmerge.Merger(schema)
+        schema2 = merger.get_schema()
+
+        self.assertEqual(schema2, schema)
+
+    def test_oneof_toplevel(self):
+
+        schema = {
+            "mergeStrategy": "version",
+            "oneOf": [
+                {"type": "string", "pattern": "^!?(?:[0-9]{1,3}\\.){3}[0-9]{1,3}(?:\\/[0-9]{1,2})?$"},
+                {"type": "string", "format": "hostname"}
+            ]
+        }
+
+        expected = {
+            "type": "array",
+            "items": {
+                "properties": {
+                    "value": {
+                        "oneOf": [
+                            {"type": "string", "pattern": "^!?(?:[0-9]{1,3}\\.){3}[0-9]{1,3}(?:\\/[0-9]{1,2})?$"},
+                            {"type": "string", "format": "hostname"}
+                        ]
+                    }
+                }
+            }
+        }
+
+        merger = jsonmerge.Merger(schema)
+        schema2 = merger.get_schema()
+
+        self.assertEqual(schema2, expected)
+
+    def test_anyof_toplevel(self):
+
+        schema = {
+            "mergeStrategy": "version",
+            "anyOf": [
+                {"type": "string", "pattern": "^!?(?:[0-9]{1,3}\\.){3}[0-9]{1,3}(?:\\/[0-9]{1,2})?$"},
+                {"type": "string", "format": "hostname"}
+            ]
+        }
+
+        expected = {
+            "type": "array",
+            "items": {
+                "properties": {
+                    "value": {
+                        "anyOf": [
+                            {"type": "string", "pattern": "^!?(?:[0-9]{1,3}\\.){3}[0-9]{1,3}(?:\\/[0-9]{1,2})?$"},
+                            {"type": "string", "format": "hostname"}
+                        ]
+                    }
+                }
+            }
+        }
+
+        merger = jsonmerge.Merger(schema)
+        schema2 = merger.get_schema()
+
+        self.assertEqual(schema2, expected)
+
 if __name__ == '__main__':
     unittest.main()
-
