@@ -151,7 +151,7 @@ class ArrayMergeById(Strategy):
             for j, key_2, item_2 in iter_index_key_item(head):
                 if j < i:
                     if key_1 == key_2:
-                        raise HeadInstanceError("Id was not unique", head)
+                        raise HeadInstanceError("Id was not unique", item_1)
                 else:
                     break
 
@@ -160,19 +160,22 @@ class ArrayMergeById(Strategy):
             if head_key == ignoreId:
                 continue
 
-            key_count = 0
+            matching_j = []
             for j, base_key, base_item in iter_index_key_item(base):
 
                 if base_key == head_key:
-                    key_count += 1
-                    # If there was a match, we replace with a merged item
-                    base.val[j] = walk.descend(subschema, base_item, head_item, meta).val
+                    matching_j.append(j)
 
-            if key_count == 0:
+            if len(matching_j) == 1:
+                # If there was exactly one match, we replace it with a merged item
+                j = matching_j[0]
+                base.val[j] = walk.descend(subschema, base_item, head_item, meta).val
+            elif len(matching_j) == 0:
                 # If there wasn't a match, we append a new object
                 base.val.append(walk.descend(subschema, JSONValue(undef=True), head_item, meta).val)
-            if key_count > 1:
-                raise BaseInstanceError("Id was not unique", base)
+            else:
+                j = matching_j[1]
+                raise BaseInstanceError("Id was not unique", base[j])
 
         return base
 

@@ -1013,7 +1013,7 @@ class TestMerge(unittest.TestCase):
         with self.assertRaises(BaseInstanceError) as cm:
             merger.merge(base, head)
 
-        self.assertEqual(cm.exception.value.ref, '#')
+        self.assertEqual(cm.exception.value.ref, '#/1')
 
     def test_merge_by_id_non_unique_head(self):
         schema = {
@@ -1037,7 +1037,7 @@ class TestMerge(unittest.TestCase):
         with self.assertRaises(HeadInstanceError) as cm:
             merger.merge(base, head)
 
-        self.assertEqual(cm.exception.value.ref, '#')
+        self.assertEqual(cm.exception.value.ref, '#/1')
 
     def test_append_with_maxitems(self):
 
