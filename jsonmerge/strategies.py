@@ -179,14 +179,10 @@ class ArrayMergeById(Strategy):
             if len(matching_j) == 1:
                 # If there was exactly one match, we replace it with a merged item
                 j = matching_j[0]
-                sub = walk.descend(subschema, base_item, head_item, meta)
-                if not sub.is_undef():
-                    base.val[j] = sub.val
+                base[j] = walk.descend(subschema, base_item, head_item, meta)
             elif len(matching_j) == 0:
                 # If there wasn't a match, we append a new object
-                sub = walk.descend(subschema, JSONValue(undef=True), head_item, meta)
-                if not sub.is_undef():
-                    base.val.append(sub.val)
+                base.append(walk.descend(subschema, JSONValue(undef=True), head_item, meta))
             else:
                 j = matching_j[1]
                 raise BaseInstanceError("Id was not unique", base[j])
@@ -196,7 +192,7 @@ class ArrayMergeById(Strategy):
     def get_schema(self, walk, schema, meta, **kwargs):
         subschema = schema.get('items')
         if not subschema.is_undef():
-            schema.val['items'] = walk.descend(subschema, meta).val
+            schema['items'] = walk.descend(subschema, meta)
 
         return schema
 
@@ -269,9 +265,7 @@ class ObjectMerge(Strategy):
                     if not p.is_undef():
                         subschema = p
 
-            sub = walk.descend(subschema, base.get(k), v, meta)
-            if not sub.is_undef():
-                base.val[k] = sub.val
+            base[k] = walk.descend(subschema, base.get(k), v, meta)
 
         return base
 
@@ -282,13 +276,13 @@ class ObjectMerge(Strategy):
             p = schema.get(keyword)
             if not p.is_undef():
                 for k, v in p.items():
-                    schema2.val[keyword][k] = walk.descend(v, meta).val
+                    schema2[keyword][k] = walk.descend(v, meta)
 
         descend_keyword("properties")
         descend_keyword("patternProperties")
 
         p = schema.get("additionalProperties")
         if not p.is_undef():
-            schema2.val["additionalProperties"] = walk.descend(p, meta).val
+            schema2["additionalProperties"] = walk.descend(p, meta)
 
         return schema2
