@@ -59,6 +59,16 @@ class Overwrite(Strategy):
     def get_schema(self, walk, schema, meta, **kwargs):
         return schema
 
+class Discard(Strategy):
+    def merge(self, walk, base, head, schema, meta, keepIfUndef=False, **kwargs):
+        if base.is_undef() and keepIfUndef:
+            return head
+        else:
+            return base
+
+    def get_schema(self, walk, schema, meta, **kwargs):
+        return schema
+
 class Version(Strategy):
     def merge(self, walk, base, head, schema, meta, limit=None, unique=None, ignoreDups=True, **kwargs):
 
@@ -169,10 +179,14 @@ class ArrayMergeById(Strategy):
             if len(matching_j) == 1:
                 # If there was exactly one match, we replace it with a merged item
                 j = matching_j[0]
-                base.val[j] = walk.descend(subschema, base_item, head_item, meta).val
+                sub = walk.descend(subschema, base_item, head_item, meta)
+                if not sub.is_undef():
+                    base.val[j] = sub.val
             elif len(matching_j) == 0:
                 # If there wasn't a match, we append a new object
-                base.val.append(walk.descend(subschema, JSONValue(undef=True), head_item, meta).val)
+                sub = walk.descend(subschema, JSONValue(undef=True), head_item, meta)
+                if not sub.is_undef():
+                    base.val.append(sub.val)
             else:
                 j = matching_j[1]
                 raise BaseInstanceError("Id was not unique", base[j])
@@ -255,7 +269,9 @@ class ObjectMerge(Strategy):
                     if not p.is_undef():
                         subschema = p
 
-            base.val[k] = walk.descend(subschema, base.get(k), v, meta).val
+            sub = walk.descend(subschema, base.get(k), v, meta)
+            if not sub.is_undef():
+                base.val[k] = sub.val
 
         return base
 

@@ -1098,6 +1098,81 @@ class TestMerge(unittest.TestCase):
 
         self.assertEqual(base, {'a': 0, '~1': 1})
 
+    def test_discard(self):
+
+        schema = {'mergeStrategy': 'discard'}
+
+        base = "a"
+        base = jsonmerge.merge(base, "b", schema)
+
+        self.assertEqual(base, "a")
+
+    def test_discard_objectmerge_null(self):
+
+        schema = {
+                'properties': {
+                    'a': {
+                        'mergeStrategy': 'discard'
+                    }
+                } }
+
+        base = {}
+        head = {'a': 1}
+
+        base = jsonmerge.merge(base, head, schema)
+        self.assertEqual(base, {})
+
+    def test_discard_arraymergebyid(self):
+
+        schema = {
+                'mergeStrategy': 'arrayMergeById',
+                'items': {
+                    'mergeStrategy': 'discard'
+                } }
+
+        base = [ {'id': 1, 'val': 1} ]
+        head = [ {'id': 1, 'val': 2} ]
+
+        base = jsonmerge.merge(base, head, schema)
+        self.assertEqual(base, [{'id': 1, 'val': 1}])
+
+    def test_discard_arraymergebyid_null(self):
+
+        schema = {
+                'mergeStrategy': 'arrayMergeById',
+                'items': {
+                    'mergeStrategy': 'discard'
+                } }
+
+        base = [ ]
+        head = [ {'id': 1, 'val': 1} ]
+
+        base = jsonmerge.merge(base, head, schema)
+        self.assertEqual(base, [])
+
+    def test_discard_null_keep(self):
+
+        schema = {
+                'properties': {
+                    'a': {
+                        'mergeStrategy': 'discard',
+                        'mergeOptions': {
+                            'keepIfUndef': True
+                        }
+                    }
+                } }
+
+        base = {}
+        head = {'a': 1}
+
+        base = jsonmerge.merge(base, head, schema)
+        self.assertEqual(base, {'a': 1})
+
+        head = {'a': 2}
+
+        base = jsonmerge.merge(base, head, schema)
+        self.assertEqual(base, {'a': 1})
+
 class TestGetSchema(unittest.TestCase):
 
     def test_default_overwrite(self):
@@ -1880,6 +1955,19 @@ class TestGetSchema(unittest.TestCase):
         schema2 = merger.get_schema()
 
         self.assertEqual(schema2, expected)
+
+    def test_discard(self):
+
+        schema = {  'type': 'string',
+                    'mergeStrategy': 'discard' }
+
+        merger = jsonmerge.Merger(schema)
+        schema2 = merger.get_schema()
+
+        expected = { 'type': 'string' }
+
+        self.assertEqual(schema2, expected)
+
 
 class TestExceptions(unittest.TestCase):
     def test_str_with_ref(self):

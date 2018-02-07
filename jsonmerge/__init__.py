@@ -193,6 +193,7 @@ class WalkSchema(Walk):
 class Merger(object):
 
     STRATEGIES = {
+        "discard": strategies.Discard(),
         "overwrite": strategies.Overwrite(),
         "version": strategies.Version(),
         "append": strategies.Append(),
