@@ -263,7 +263,7 @@ class TestMerge(unittest.TestCase):
         with self.assertRaises(SchemaError) as cm:
             merger.merge(base, OrderedDict([('c', "a"), ('a', "a")]), schema)
 
-        self.assertEquals(cm.exception.value.ref, '#')
+        self.assertEqual(cm.exception.value.ref, '#')
 
     def test_merge_objclass_menu(self):
         schema = {'mergeStrategy': 'objectMerge', 'mergeOptions': { 'objClass': 'foo'}}
