@@ -16,8 +16,25 @@ class JSONValue(object):
     def _subval(self, key, **kwargs):
         return JSONValue(ref=self.ref+'/'+self._ref_escape(str(key)), **kwargs)
 
+    def __setitem__(self, key, item):
+        if item.is_undef():
+            if isinstance(self.val, list):
+                raise ValueError("Can't assign an undefined value to a list")
+
+            # setting a dict element to an undefined value deletes that element
+            if key in self.val:
+                del self.val[key]
+        else:
+            self.val[key] = item.val
+
     def __getitem__(self, key):
         return self._subval(key, val=self.val[key])
+
+    def append(self, item):
+        assert isinstance(self.val, list)
+
+        if not item.is_undef():
+            self.val.append(item.val)
 
     def get(self, key, *args):
         r = self.val.get(key, *args)
