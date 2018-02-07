@@ -1173,6 +1173,22 @@ class TestMerge(unittest.TestCase):
         base = jsonmerge.merge(base, head, schema)
         self.assertEqual(base, {'a': 1})
 
+    def test_bad_strategy(self):
+
+        schema = {
+                'properties': {
+                    'a': {
+                        'mergeStrategy': 'invalidStrategy'
+                    } } }
+
+        base = {'a': 1 }
+        head = {'a': 2 }
+
+        with self.assertRaises(SchemaError) as cm:
+            jsonmerge.merge(base, head, schema)
+
+        self.assertEqual(cm.exception.value.ref, '#/properties/a')
+
 class TestGetSchema(unittest.TestCase):
 
     def test_default_overwrite(self):
@@ -1967,6 +1983,21 @@ class TestGetSchema(unittest.TestCase):
         expected = { 'type': 'string' }
 
         self.assertEqual(schema2, expected)
+
+    def test_bad_strategy(self):
+
+        schema = {
+                'properties': {
+                    'a': {
+                        'mergeStrategy': 'invalidStrategy'
+                    } } }
+
+        merger = jsonmerge.Merger(schema)
+
+        with self.assertRaises(SchemaError) as cm:
+            merger.get_schema()
+
+        self.assertEqual(cm.exception.value.ref, '#/properties/a')
 
 
 class TestExceptions(unittest.TestCase):

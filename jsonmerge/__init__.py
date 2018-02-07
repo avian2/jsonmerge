@@ -4,6 +4,7 @@ from jsonmerge.jsonvalue import JSONValue
 from jsonmerge.resolver import LocalRefResolver
 from jsonmerge import strategies
 from jsonmerge import descenders
+from jsonmerge.exceptions import SchemaError
 from jsonschema.validators import Draft4Validator
 import logging
 
@@ -69,7 +70,10 @@ class Walk(object):
 
         log.debug("descend: %sinvoke strategy %s" % (self._indent(), name))
 
-        strategy = self.merger.strategies[name]
+        try:
+            strategy = self.merger.strategies[name]
+        except KeyError:
+            raise SchemaError("Unknown strategy '%s'" % name, schema)
 
         rv = self.work(strategy, schema, *args, **opts)
 
