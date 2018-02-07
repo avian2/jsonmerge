@@ -144,6 +144,17 @@ overwrite
   Overwrite with the value in *base* with value in *head*. Works with any
   type.
 
+discard
+  Keep the value in *base*, even if *head* contains a different value.
+  Works with any type.
+
+  By default, if *base* does not contain any value (i.e. that part of the
+  document is undefined), the value after merge is kept undefined. This can
+  be changed with the *keepIfUndef* option. If this option is *true*, then
+  the value from *head* will be retained in this case. This is useful if
+  you are merging a series of documents and want to keep the value that
+  first appears in the series, but want to discard further modifications.
+
 append
   Append arrays. Works only with arrays.
 

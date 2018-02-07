@@ -102,7 +102,7 @@ class OneOf(Descender):
         one_of = schema.get("oneOf")
 
         for i in range(len(one_of.val)):
-            one_of.val[i] = walk.descend(one_of[i], meta).val
+            one_of[i] = walk.descend(one_of[i], meta)
 
         return schema
 
