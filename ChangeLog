@@ -1,3 +1,14 @@
+2018-03-23	jsonmerge	1.5.0
+
+	* Fix "maximum recursion depth exceeded" in get_schema() with schemas
+	  that have recursive references.
+	* Allow a merge strategy to be defined at the same level as "anyOf",
+	  "allOf" and "oneOf" keywords (thanks to Henrique Cabral).
+	* Add reference to the offending JSON value in exceptions thrown by
+	  jsonmerge.
+	* Add "discard" merge strategy.
+	* Raise SchemaError when encountering an unknown merge strategy name.
+
 2017-06-05	jsonmerge	1.4.0
 
 	* More consistent handling of $ref references in get_schema(). Internal
