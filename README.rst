@@ -45,7 +45,9 @@ In a more realistic use case however, you might want to apply different
 *jsonmerge* how to do that using a syntax based on `JSON schema`_.
 
 If you already have schemas for your document, you can simply expand them
-with additional keywords recognized by *jsonmerge*.
+with some additional keywords. Apart from the custom keywords described
+below, *jsonmerge* currently supports the schema syntax defined in the
+`Draft 4`_ of the JSON schema specification.
 
 You use the *mergeStrategy* schema keyword to specify the strategy. The
 default two strategies mentioned above are called *objectMerge* for objects
@@ -352,6 +354,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 .. _JSON schema: http://json-schema.org
+.. _Draft 4: http://json-schema.org/specification-links.html#draft-4
 
 ..
     vim: tw=75 ts=4 sw=4 expandtab softtabstop=4
