@@ -338,6 +338,17 @@ class TestMerge(unittest.TestCase):
 
         self.assertEqual(base, {'a': ["a", "b"], 'b': 'c'})
 
+    def test_merge_additional_bool(self):
+
+        schema = {'additionalProperties': True}
+
+        base = {}
+        head = {'a': 'a'}
+
+        base = jsonmerge.merge(base, head, schema)
+
+        self.assertEqual(base, {'a': 'a'})
+
     def test_example(self):
 
         head1 = {
@@ -1856,6 +1867,18 @@ class TestGetSchema(unittest.TestCase):
         schema2 = merger.get_schema()
 
         self.assertEqual(schema2, expected)
+
+    def test_merge_additional_bool(self):
+
+        schema = {'additionalProperties': True}
+
+        base = {}
+        head = {'a': 'a'}
+
+        merger = jsonmerge.Merger(schema)
+        schema2 = merger.get_schema()
+
+        self.assertEqual(schema2, schema)
 
     def test_oneof(self):
 

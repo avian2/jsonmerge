@@ -262,7 +262,8 @@ class ObjectMerge(Strategy):
 
                 if subschema.is_undef():
                     p = schema.get('additionalProperties')
-                    if not p.is_undef():
+                    # additionalProperties can be boolean in draft 4
+                    if not p.is_undef() and walk.is_type(p, "object"):
                         subschema = p
 
             base[k] = walk.descend(subschema, base.get(k), v, meta)
@@ -281,8 +282,9 @@ class ObjectMerge(Strategy):
         descend_keyword("properties")
         descend_keyword("patternProperties")
 
+       # additionalProperties can be boolean in draft 4
         p = schema.get("additionalProperties")
-        if not p.is_undef():
+        if not p.is_undef() and walk.is_type(p, "object"):
             schema2["additionalProperties"] = walk.descend(p, meta)
 
         return schema2
