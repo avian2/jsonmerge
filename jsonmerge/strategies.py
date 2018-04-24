@@ -26,7 +26,7 @@ class Strategy(object):
 
         The function should return the object resulting from the merge.
 
-        Recursion into the next level, if necessary, is achieved by calling
+        Recursioninto the next level, if necessary, is achieved by calling
         walk.descend() method.
         """
         raise NotImplemented
@@ -175,11 +175,12 @@ class ArrayMergeById(Strategy):
 
                 if base_key == head_key:
                     matching_j.append(j)
+                    matched_item = base_item
 
             if len(matching_j) == 1:
                 # If there was exactly one match, we replace it with a merged item
                 j = matching_j[0]
-                base[j] = walk.descend(subschema, base_item, head_item, meta)
+                base[j] = walk.descend(subschema, matched_item, head_item, meta)
             elif len(matching_j) == 0:
                 # If there wasn't a match, we append a new object
                 base.append(walk.descend(subschema, JSONValue(undef=True), head_item, meta))
@@ -204,7 +205,7 @@ class ObjectMerge(Strategy):
     properties that are present both in base and head are merged based
     on the strategy specified further down in the hierarchy (e.g. in
     properties, patternProperties or additionalProperties schema
-    keywords). 
+    keywords).
 
     walk -- WalkInstance object for the current context.
     base -- JSONValue being merged into.

@@ -633,8 +633,8 @@ class TestMerge(unittest.TestCase):
 
         b = {
             "awards": [
-                {"id": "B", "field": 3},
-                {"id": "C", "field": 4}
+                {"id": "C", "field": 4},
+                {"id": "B", "field": 3}
             ]
         }
 
