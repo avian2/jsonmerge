@@ -26,7 +26,7 @@ class Strategy(object):
 
         The function should return the object resulting from the merge.
 
-        Recursioninto the next level, if necessary, is achieved by calling
+        Recursion into the next level, if necessary, is achieved by calling
         walk.descend() method.
         """
         raise NotImplemented
@@ -205,7 +205,7 @@ class ObjectMerge(Strategy):
     properties that are present both in base and head are merged based
     on the strategy specified further down in the hierarchy (e.g. in
     properties, patternProperties or additionalProperties schema
-    keywords).
+    keywords). 
 
     walk -- WalkInstance object for the current context.
     base -- JSONValue being merged into.
