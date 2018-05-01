@@ -1,3 +1,10 @@
+2018-05-01	jsonmerge	1.5.1
+
+	* Fix exception when additionalProperties keyword is a boolean value.
+	* Fix an issue with arrayMergeById strategy, where a wrong list item was
+	  merged in some cases, or an "Unresolvable JSON pointer" exception
+	  raised. See issue #31 on GitHub.
+
 2018-03-23	jsonmerge	1.5.0
 
 	* Fix "maximum recursion depth exceeded" in get_schema() with schemas
