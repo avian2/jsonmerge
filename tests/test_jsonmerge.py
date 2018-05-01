@@ -633,8 +633,8 @@ class TestMerge(unittest.TestCase):
 
         b = {
             "awards": [
-                {"id": "C", "field": 4},
-                {"id": "B", "field": 3}
+                {"id": "B", "field": 3},
+                {"id": "C", "field": 4}
             ]
         }
 
@@ -1049,6 +1049,67 @@ class TestMerge(unittest.TestCase):
             merger.merge(base, head)
 
         self.assertEqual(cm.exception.value.ref, '#/1')
+
+    def test_merge_by_id_order_issue_31_1(self):
+
+        # There was an issue with arrayMergeById where head value would be
+        # merged with the last item in the base list, not the matching item.
+        # The result was then assigned to the matching item.
+        #
+        # If the last item in the base list was just created in the same
+        # arrayMergeById (i.e. by another item in the head list), then merge
+        # would fail with "Unresolvable JSON pointer".
+        #
+        # https://github.com/avian2/jsonmerge/pull/31
+        schema = {
+            "mergeStrategy": "arrayMergeById",
+        }
+
+        base = [
+            {'id': 'a', 'val': {'a': 1}},
+            {'id': 'b', 'val': {'b': 2}},
+        ]
+
+        head = [
+            {'id': 'a', 'val': {'c': 3}}
+        ]
+
+        expected = [
+            # bug would produce {'b': 2, 'c': 3} here
+            {'id': 'a', 'val': {'a': 1, 'c': 3}},
+            {'id': 'b', 'val': {'b': 2}},
+        ]
+
+        merger = jsonmerge.Merger(schema)
+        base = merger.merge(base, head)
+        self.assertEqual(base, expected)
+
+    def test_merge_by_id_order_issue_31_2(self):
+
+        schema = {
+            "mergeStrategy": "arrayMergeById",
+        }
+
+        base = [
+            {'id': 'a', 'val': {'a': 1}},
+            {'id': 'b', 'val': {'b': 2}},
+        ]
+
+        head = [
+            # this caused "Unresolvable JSON pointer"
+            {'id': 'c', 'val': {'c': 3}},
+            {'id': 'a', 'val': {'c': 3}}
+        ]
+
+        expected = [
+            {'id': 'a', 'val': {'a': 1, 'c': 3}},
+            {'id': 'b', 'val': {'b': 2}},
+            {'id': 'c', 'val': {'c': 3}}
+        ]
+
+        merger = jsonmerge.Merger(schema)
+        base = merger.merge(base, head)
+        self.assertEqual(base, expected)
 
     def test_append_with_maxitems(self):
 
