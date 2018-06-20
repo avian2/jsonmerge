@@ -161,7 +161,7 @@ class ArrayMergeById(Strategy):
             for j, key_2, item_2 in iter_index_key_item(head):
                 if j < i:
                     if key_1 == key_2:
-                        raise HeadInstanceError("Id was not unique", item_1)
+                        raise HeadInstanceError("Id was not unique. key: {} item: {}".format(key_1, item_1))
                 else:
                     break
 
