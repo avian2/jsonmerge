@@ -809,6 +809,35 @@ class TestMerge(unittest.TestCase):
 
         self.assertEqual(base, expected)
 
+    def test_merge_by_id_complex_id(self):
+        schema = {
+            "mergeStrategy": "arrayMergeById",
+        }
+
+        a = [
+                {"id": ["A", {"B": "C"} ], "field": 1},
+                {"id": ["A", {"B": "D"} ], "field": 2},
+                {"id": ["A", {"B": "E"} ], "field": 3},
+        ]
+
+        b = [
+                {"id": ["A", {"B": "D"} ], "field": 4},
+                {"id": ["E", {"B": "C"} ], "field": 5},
+        ]
+
+        merger = jsonmerge.Merger(schema)
+
+        c = merger.merge(a, b)
+
+        expected = [
+                {"id": ["A", {"B": "C"} ], "field": 1},
+                {"id": ["A", {"B": "D"} ], "field": 4},
+                {"id": ["A", {"B": "E"} ], "field": 3},
+                {"id": ["E", {"B": "C"} ], "field": 5},
+        ]
+
+        self.assertEqual(expected, c)
+
     def test_merge_by_id_with_complex_array(self):
         schema = {
             "properties": {
