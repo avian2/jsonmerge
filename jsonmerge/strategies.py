@@ -161,7 +161,7 @@ class ArrayMergeById(Strategy):
             for j, key_2, item_2 in iter_index_key_item(head):
                 if j < i:
                     if key_1 == key_2:
-                        raise HeadInstanceError("Id was not unique", item_1)
+                        raise HeadInstanceError("Id '%s' was not unique in head" % (key_1,), item_1)
                 else:
                     break
 
@@ -186,7 +186,7 @@ class ArrayMergeById(Strategy):
                 base.append(walk.descend(subschema, JSONValue(undef=True), head_item, meta))
             else:
                 j = matching_j[1]
-                raise BaseInstanceError("Id was not unique", base[j])
+                raise BaseInstanceError("Id '%s' was not unique in base" % (base_key,), base[j])
 
         return base
 
