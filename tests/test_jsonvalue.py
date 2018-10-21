@@ -11,6 +11,13 @@ class TestJSONValue(unittest.TestCase):
         self.assertEqual('b', va.val)
         self.assertEqual('#/a', va.ref)
 
+    def test_get_attr_nonascii(self):
+        v = JSONValue({u'\u20ac': 'b'})
+
+        va = v[u'\u20ac']
+        self.assertEqual('b', va.val)
+        self.assertEqual(u'#/\u20ac', va.ref)
+
     def test_get_attr_escape_slash(self):
         v = JSONValue({'a/b': 'c'})
 

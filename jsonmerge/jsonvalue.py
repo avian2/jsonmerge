@@ -1,4 +1,10 @@
 # vim:ts=4 sw=4 expandtab softtabstop=4
+import sys
+
+if sys.version_info[0] >= 3:
+    text_type = str
+else:
+    text_type = unicode
 
 class JSONValue(object):
     def __init__(self, val=None, ref='#', undef=False):
@@ -14,7 +20,7 @@ class JSONValue(object):
         return key.replace('~', '~0').replace('/', '~1')
 
     def _subval(self, key, **kwargs):
-        return JSONValue(ref=self.ref+'/'+self._ref_escape(str(key)), **kwargs)
+        return JSONValue(ref=self.ref+'/'+self._ref_escape(text_type(key)), **kwargs)
 
     def __setitem__(self, key, item):
         if item.is_undef():
