@@ -1,3 +1,10 @@
+2018-11-05	jsonmerge	1.5.2
+
+	* Fix exception on Python 2.7 when objects contain non-ASCII keys.
+	* Require jsonschema<3.0.0 in setup.py since some tests currently fail
+	  with jsonschema 3.0.0 pre-releases.
+	* More descriptive error messages in ArrayMergeById strategy.
+
 2018-05-01	jsonmerge	1.5.1
 
 	* Fix exception when additionalProperties keyword is a boolean value.
