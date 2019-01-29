@@ -46,8 +46,8 @@ In a more realistic use case however, you might want to apply different
 
 If you already have schemas for your document, you can simply expand them
 with some additional keywords. Apart from the custom keywords described
-below, *jsonmerge* currently supports the schema syntax defined in the
-`Draft 4`_ of the JSON schema specification.
+below, *jsonmerge* by default uses the schema syntax defined in the `Draft
+4`_ of the JSON schema specification.
 
 You use the *mergeStrategy* schema keyword to specify the strategy. The
 default two strategies mentioned above are called *objectMerge* for objects
@@ -261,7 +261,7 @@ validatorclass
     A *jsonschema.Validator* subclass. This can be used to specify which
     JSON Schema draft version will be used during merge. Some details such
     as reference resolution are different between versions. By default, the
-    Draft-04 validator is used.
+    Draft 4 validator is used.
 
 
 Support for keywords that apply subschemas
@@ -329,10 +329,12 @@ Source
 The latest development version is available on GitHub:
 https://github.com/avian2/jsonmerge
 
-To install from source and run the test suite::
+To install from source::
 
     python setup.py install
-    python setup.py test
+
+*jsonmerge* uses `Tox`_ for testing. To run the test suite, run *tox* from
+the top of the source distribution.
 
 
 License
@@ -362,6 +364,7 @@ THE SOFTWARE.
 
 .. _JSON schema: http://json-schema.org
 .. _Draft 4: http://json-schema.org/specification-links.html#draft-4
+.. _Tox: https://tox.readthedocs.io/en/latest/
 
 ..
     vim: tw=75 ts=4 sw=4 expandtab softtabstop=4
