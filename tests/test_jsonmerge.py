@@ -13,6 +13,10 @@ from jsonmerge.jsonvalue import JSONValue
 
 import jsonschema
 
+try:
+    Draft6Validator = jsonschema.validators.Draft6Validator
+except AttributeError:
+    Draft6Validator = None
 
 class TestMerge(unittest.TestCase):
 
@@ -459,6 +463,38 @@ class TestMerge(unittest.TestCase):
         }
 
         merger = jsonmerge.Merger(schema_1)
+
+        # merge() would otherwise make a HTTP request
+        merger.cache_schema(schema_2)
+
+        base = None
+        base = merger.merge(base, {"a": {"b": "c"}})
+        base = merger.merge(base, {"a": {"b": "d"}})
+
+        self.assertEqual(base, {"a": {"b": [{"value": "c"}, {"value": "d"}]}})
+
+    @unittest.skipIf(Draft6Validator is None, 'jsonschema too old')
+    def test_external_refs_draft6(self):
+
+        schema_1 = {
+            '$id': 'http://example.com/schema_1.json',
+            'properties': {
+                'a': {'$ref': "schema_2.json#/definitions/a"},
+            },
+        }
+
+        schema_2 = {
+            '$id': 'http://example.com/schema_2.json',
+            'definitions': {
+                "a": {
+                    "properties": {
+                        "b": {'mergeStrategy': 'version'},
+                    }
+                },
+            }
+        }
+
+        merger = jsonmerge.Merger(schema_1, validatorclass=Draft6Validator)
 
         # merge() would otherwise make a HTTP request
         merger.cache_schema(schema_2)

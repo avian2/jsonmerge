@@ -231,7 +231,8 @@ data by allowing you to:
 - configure additional JSON object classes selectable via the *objClass*
   merge option.
 
-The Merger constructor takes the following arguments:
+The Merger constructor takes the following arguments (all optional, except
+schema):
 
 schema
    The JSON Schema that contains the merge strategy directives
@@ -255,6 +256,12 @@ objclass_menu
    argument. Each value is a function or class that produces an instance of
    the JSON object container. It must support an optional dictionary-like
    object as a parameter which initializes its contents.
+
+validatorclass
+    A *jsonschema.Validator* subclass. This can be used to specify which
+    JSON Schema draft version will be used during merge. Some details such
+    as reference resolution are different between versions. By default, the
+    Draft-04 validator is used.
 
 
 Support for keywords that apply subschemas

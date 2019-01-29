@@ -205,13 +205,15 @@ class Merger(object):
         "arrayMergeById": strategies.ArrayMergeById()
     }
 
-    def __init__(self, schema, strategies=(), objclass_def='dict', objclass_menu=None):
+    def __init__(self, schema, strategies=(), objclass_def='dict', objclass_menu=None,
+            validatorclass=Draft4Validator):
         """Create a new Merger object.
 
         schema -- JSON schema to use when merging.
         strategies -- Any additional merge strategies to use during merge.
         objclass_def -- Name of the default class for JSON objects.
         objclass_menu -- Any additional classes for JSON objects.
+        validatorclass -- JSON Schema validator class.
 
         strategies argument should be a dict mapping strategy names to
         instances of Strategy subclasses.
@@ -225,12 +227,20 @@ class Merger(object):
         to a function or class that will return an empty dictionary-like object
         to use as a JSON object. The function must accept either no arguments
         or a dictionary-like object.
+
+        validatorclass argument can be used to supply a validator class from
+        jsonschema. This can be used for example to specify which JSON Schema
+        draft version will be used during merge.
         """
 
         self.schema = schema
 
-        resolver = LocalRefResolver.from_schema(schema)
-        self.validator = Draft4Validator(schema, resolver=resolver)
+        if hasattr(validatorclass, 'ID_OF'):
+            resolver = LocalRefResolver.from_schema(schema, id_of=validatorclass.ID_OF)
+        else:
+            # jsonschema<3.0.0
+            resolver = LocalRefResolver.from_schema(schema)
+        self.validator = validatorclass(schema, resolver=resolver)
 
         self.strategies = dict(self.STRATEGIES)
         self.strategies.update(strategies)
@@ -252,11 +262,16 @@ class Merger(object):
         method can be used to pre-populate the cache with any external schemas
         that are already known.
 
-        If URI is omitted, it is obtained from the 'id' keyword of the schema.
+        If URI is omitted, it is obtained from the schema itself ('id' or '$id'
+        keyword, depending on the JSON Schema draft used)
         """
 
         if uri is None:
-            uri = schema.get('id', '')
+            if hasattr(self.validator, 'ID_OF'):
+                uri = self.validator.ID_OF(schema)
+            else:
+                # jsonschema<3.0.0
+                uri = schema.get('id', '')
 
         self.validator.resolver.store.update(((uri, schema),))
 
