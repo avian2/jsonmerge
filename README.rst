@@ -340,7 +340,7 @@ the top of the source distribution.
 License
 -------
 
-Copyright 2018, Tomaz Solc <tomaz.solc@tablix.org>
+Copyright 2019, Tomaz Solc <tomaz.solc@tablix.org>
 
 The MIT License (MIT)
 
