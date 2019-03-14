@@ -4,7 +4,7 @@
 from setuptools import setup
 
 setup(name='jsonmerge',
-    version='1.5.2',
+    version='1.6.0',
     description='Merge a series of JSON documents.',
     license='MIT',
     long_description=open("README.rst").read(),
