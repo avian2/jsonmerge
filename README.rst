@@ -329,12 +329,14 @@ Source
 The latest development version is available on GitHub:
 https://github.com/avian2/jsonmerge
 
-To install from source::
+To install from source, run the following from the top of the source
+distribution::
 
-    python setup.py install
+    pip install .
 
-*jsonmerge* uses `Tox`_ for testing. To run the test suite, run *tox* from
-the top of the source distribution.
+*jsonmerge* uses `Tox`_ for testing. To run the test suite run::
+
+    tox
 
 
 License
