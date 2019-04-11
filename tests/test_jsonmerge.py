@@ -1176,6 +1176,37 @@ class TestMerge(unittest.TestCase):
         base = merger.merge(base, head)
         self.assertEqual(base, expected)
 
+    def test_merge_by_id_subclass_get_key(self):
+
+        class MyArrayMergeById(jsonmerge.strategies.ArrayMergeById):
+            def get_key(self, walk, item, idRef):
+                return item.val[-1]
+
+        schema = {'mergeStrategy': 'myArrayMergeById'}
+
+        merger = jsonmerge.Merger(schema=schema,
+                                  strategies={'myArrayMergeById': MyArrayMergeById()})
+
+        base = [
+                [ 'a', 'b', 'id1' ],
+                [ 'c', 'id2' ],
+        ]
+
+        head = [
+                [ 'e', 'f', 'g', 'id3' ],
+                [ 'd', 'id1' ],
+        ]
+
+        expected = [
+                [ 'd', 'id1' ],
+                [ 'c', 'id2' ],
+                [ 'e', 'f', 'g', 'id3' ],
+        ]
+
+        base = merger.merge(base, head)
+
+        self.assertEqual(base, expected)
+
     def test_append_with_maxitems(self):
 
         schema = {

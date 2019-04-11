@@ -132,6 +132,19 @@ class Append(Strategy):
 
 
 class ArrayMergeById(Strategy):
+
+    def get_key(self, walk, item, idRef):
+        return walk.resolver.resolve_fragment(item.val, idRef)
+
+    def iter_index_key_item(self, walk, jv, idRef):
+        for i, item in enumerate(jv):
+            try:
+                key = self.get_key(walk, item, idRef)
+            except jsonschema.RefResolutionError:
+                continue
+
+            yield i, key, item
+
     def merge(self, walk, base, head, schema, meta, idRef="id", ignoreId=None, **kwargs):
         if not walk.is_type(head, "array"):
             raise HeadInstanceError("Head for an 'arrayMergeById' merge strategy is not an array", head)  # nopep8
@@ -148,30 +161,21 @@ class ArrayMergeById(Strategy):
         if walk.is_type(subschema, "array"):
             raise SchemaError("'arrayMergeById' not supported when 'items' is an array", subschema)
 
-        def iter_index_key_item(jv):
-            for i, item in enumerate(jv):
-                try:
-                    key = walk.resolver.resolve_fragment(item.val, idRef)
-                except jsonschema.RefResolutionError:
-                    continue
-
-                yield i, key, item
-
-        for i, key_1, item_1 in iter_index_key_item(head):
-            for j, key_2, item_2 in iter_index_key_item(head):
+        for i, key_1, item_1 in self.iter_index_key_item(walk, head, idRef):
+            for j, key_2, item_2 in self.iter_index_key_item(walk, head, idRef):
                 if j < i:
                     if key_1 == key_2:
                         raise HeadInstanceError("Id '%s' was not unique in head" % (key_1,), item_1)
                 else:
                     break
 
-        for i, head_key, head_item in iter_index_key_item(head):
+        for i, head_key, head_item in self.iter_index_key_item(walk, head, idRef):
 
             if head_key == ignoreId:
                 continue
 
             matching_j = []
-            for j, base_key, base_item in iter_index_key_item(base):
+            for j, base_key, base_item in self.iter_index_key_item(walk, base, idRef):
 
                 if base_key == head_key:
                     matching_j.append(j)
