@@ -586,6 +586,35 @@ class TestMerge(unittest.TestCase):
         self.assertEqual(merger.merge([2, 3, 4], 'a'), 'a')
         self.assertEqual(merger.merge('a', [2, 3, 4]), [2, 3, 4])
 
+    def test_oneof_multiple_validate(self):
+
+        schema = {
+            'oneOf': [
+                {
+                    'type': 'array',
+                    'maxItems': 3,
+                    'mergeStrategy': 'append'
+                },
+                {
+                    'type': 'array',
+                    'minItems': 2,
+                    'mergeStrategy': 'overwrite'
+                }
+            ]
+        }
+
+        merger = jsonmerge.Merger(schema)
+
+        base = [1]
+        base = merger.merge(base, [2])
+
+        self.assertEqual(base, [1, 2])
+
+        base = [1, 2]
+
+        with self.assertRaises(HeadInstanceError) as cm:
+            base = merger.merge(base, [3, 4])
+
     def test_anyof(self):
         schema = {
             'anyOf': [
