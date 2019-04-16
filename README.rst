@@ -89,33 +89,54 @@ that appeared in the series of documents::
     >>> from jsonmerge import Merger
     >>> merger = Merger(schema)
 
-    >>> v1 = {
+    >>> rev1 = {
     ...     'foo': {
     ...         'greeting': 'Hello, World!'
     ...     }
     ... }
 
-    >>> v2 = {
+    >>> rev2 = {
     ...     'foo': {
     ...         'greeting': 'Howdy, World!'
     ...     }
     ... }
 
     >>> base = None
-    >>> base = merger.merge(base, v1, meta={'version': 1})
-    >>> base = merger.merge(base, v2, meta={'version': 2})
-
+    >>> base = merger.merge(base, rev1, merge_options={
+    ...                     'version': {
+    ...                         'metadata': {
+    ...                             'revision': 1
+    ...                         }
+    ...                     }
+    ...                 })
+    >>> base = merger.merge(base, rev2, merge_options={
+    ...                     'version': {
+    ...                         'metadata': {
+    ...                             'revision': 2
+    ...                         }
+    ...                     }
+    ...                 })
     >>> pprint(base, width=55)
-    {'foo': [{'value': {'greeting': 'Hello, World!'},
-              'version': 1},
-             {'value': {'greeting': 'Howdy, World!'},
-              'version': 2}]}
+    {'foo': [{'revision': 1,
+              'value': {'greeting': 'Hello, World!'}},
+             {'revision': 2,
+              'value': {'greeting': 'Howdy, World!'}}]}
 
-Note that we use the *mergeOptions* keyword to supply additional options to
-the merge strategy. In this case, we tell the *version* strategy to retain
-only 5 most recent versions of this field. We also used the *meta* argument
-to supply some document meta-data that is included for each version of the
-field. *meta* can contain an arbitrary JSON object.
+Note that we use the *mergeOptions* keyword in the schema to supply
+additional options to the merge strategy. In this case, we tell the
+*version* strategy to retain only 5 most recent versions of this field.
+
+We also used the *merge_options* argument to supply some options that are
+specific to each call of the *merge* method. Options specified this
+way are applied to all invocations of a specific strategy in a schema (in
+contrast to *mergeOptions*, which applies only to the strategy invocation
+in that specific location in the schema). Options specified in
+*mergeOptions* schema keyword override the options specified in the
+*merge_options* argument.
+
+The *metadata* option for the *version* strategy can contain some document
+meta-data that is included for each version of the field. *metadata* can
+contain an arbitrary JSON object.
 
 Example above also demonstrates how *jsonmerge* is typically used when
 merging more than two documents. Typically you start with an empty *base*
