@@ -98,12 +98,14 @@ class Version(Strategy):
     def get_schema(self, walk, schema, limit=None, metadataSchema=None, **kwargs):
 
         if metadataSchema is not None:
-            item = walk.resolve_subschema_option_refs(metadataSchema)
+            item = dict(walk.resolve_subschema_option_refs(metadataSchema))
         else:
             item = {}
 
         if 'properties' not in item:
             item['properties'] = {}
+        else:
+            item['properties'] = dict(item['properties'])
 
         item['properties']['value'] = schema.val
 
