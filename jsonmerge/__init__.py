@@ -47,7 +47,7 @@ class Walk(object):
 
         if not schema.is_undef():
             with self.resolver.resolving(schema.ref) as resolved:
-                assert schema.val == resolved
+                assert schema.val is resolved
 
         if not schema.is_undef():
 
@@ -114,11 +114,11 @@ class WalkInstance(Walk):
 
         if not base.is_undef():
             with self.base_resolver.resolving(base.ref) as resolved:
-                assert base.val == resolved
+                assert base.val is resolved
 
         if not head.is_undef():
             with self.head_resolver.resolving(head.ref) as resolved:
-                assert head.val == resolved
+                assert head.val is resolved
 
         rv = strategy.merge(self, base, head, schema, meta, objclass_menu=self.merger.objclass_menu, **kwargs)
 
