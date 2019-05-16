@@ -85,10 +85,28 @@ class Version(Strategy):
 
         if base.is_undef():
             base = JSONValue(val=[], ref=base.ref)
+            last_entry = JSONValue(undef=True)
         else:
+            if not walk.is_type(base, "array"):
+                raise BaseInstanceError("Base for a 'version' merge strategy is not an array. "
+                        "Base not previously generated with 'version' strategy?", base)
+
             base = JSONValue(list(base.val), base.ref)
 
-        if not ignoreDups or not base.val or base.val[-1]['value'] != head.val:
+            if base.val:
+                last_entry = base[-1]
+
+                if not walk.is_type(last_entry, "object"):
+                    raise BaseInstanceError("Last entry in the versioned array is not an object. "
+                            "Base not previously generated with 'version' strategy?", last_entry)
+
+                if 'value' not in last_entry.val:
+                    raise BaseInstanceError("Last entry in the versioned array has no 'value' property. "
+                            "Base not previously generated with 'version' strategy?", last_entry)
+            else:
+                last_entry = JSONValue(undef=True)
+
+        if not ignoreDups or last_entry.is_undef() or last_entry['value'].val != head.val:
             base.val.append(self.add_metadata(head.val, metadata))
             if limit is not None:
                 base.val = base.val[-limit:]

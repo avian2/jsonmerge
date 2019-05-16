@@ -127,6 +127,42 @@ class TestMerge(unittest.TestCase):
 
         self.assertEqual(base, [{'value': "b"}])
 
+    def test_version_base_not_a_list(self):
+
+        schema = {'mergeStrategy': 'version'}
+
+        base = "a"
+
+        with self.assertRaises(BaseInstanceError) as cm:
+            jsonmerge.merge(base, "b", schema)
+
+    def test_version_base_not_a_list_of_objects(self):
+
+        schema = {'mergeStrategy': 'version'}
+
+        base = ["a"]
+
+        with self.assertRaises(BaseInstanceError) as cm:
+            jsonmerge.merge(base, "b", schema)
+
+    def test_version_base_no_value_in_object(self):
+
+        schema = {'mergeStrategy': 'version'}
+
+        base = [{}]
+
+        with self.assertRaises(BaseInstanceError) as cm:
+            jsonmerge.merge(base, "b", schema)
+
+    def test_version_base_empty_list(self):
+
+        schema = {'mergeStrategy': 'version'}
+
+        base = []
+        base = jsonmerge.merge(base, "b", schema)
+
+        self.assertEqual(base, [{'value': 'b'}])
+
     def test_append(self):
         schema = {'mergeStrategy': 'append'}
 
