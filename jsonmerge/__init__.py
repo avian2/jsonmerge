@@ -97,6 +97,7 @@ class WalkInstance(Walk):
         return rv
 
     def default_strategy(self, schema, base, head, meta, **kwargs):
+        log.debug("       : %sdefault strategy" % (self._indent(),))
         if self.is_type(head, "object"):
             return "objectMerge"
         else:
