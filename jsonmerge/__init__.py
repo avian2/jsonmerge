@@ -48,7 +48,7 @@ class Walk(object):
 
         if not schema.is_undef():
             with self.resolver.resolving(schema.ref) as resolved:
-                assert schema.val == resolved
+                assert schema.val is resolved
 
         # backwards compatibility jsonmerge<=1.6.0
         opts = {'meta': None}
@@ -94,6 +94,7 @@ class WalkInstance(Walk):
         self.head_resolver = LocalRefResolver("", head.val)
 
     def default_strategy(self, schema, base, head, **kwargs):
+        log.debug("       : %sdefault strategy" % (self._indent(),))
         if self.is_type(head, "object"):
             return "objectMerge"
         else:
@@ -111,11 +112,11 @@ class WalkInstance(Walk):
 
         if not base.is_undef():
             with self.base_resolver.resolving(base.ref) as resolved:
-                assert base.val == resolved
+                assert base.val is resolved
 
         if not head.is_undef():
             with self.head_resolver.resolving(head.ref) as resolved:
-                assert head.val == resolved
+                assert head.val is resolved
 
         rv = strategy.merge(self, base, head, schema, objclass_menu=self.merger.objclass_menu, **kwargs)
 

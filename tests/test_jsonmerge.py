@@ -1386,6 +1386,22 @@ class TestMerge(unittest.TestCase):
 
         self.assertEqual(cm.exception.value.ref, '#/properties/a')
 
+    def test_nan(self):
+        # float('nan') == float('nan') evaluates to false.
+        #
+        # https://github.com/avian2/jsonmerge/issues/39
+        base = {
+            "foo": 1,
+            "bar": float('nan')
+        }
+
+        head = {
+            "foo": 1,
+            "bar": float('nan')
+        }
+
+        base = jsonmerge.merge(base, head)
+
 class TestGetSchema(unittest.TestCase):
 
     def test_default_overwrite(self):

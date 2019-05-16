@@ -1,3 +1,7 @@
+2019-05-15	jsonmerge	1.6.1
+
+	* Fix assertion failure when object contains a float NaN value.
+
 2019-03-14	jsonmerge	1.6.0
 
 	* Add validatorclass argument to Merge constructor.
