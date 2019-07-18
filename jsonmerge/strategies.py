@@ -229,6 +229,13 @@ class ArrayMergeById(Strategy):
         return schema
 
 
+class ArrayMergeByIndex(ArrayMergeById):
+
+    def iter_index_key_item(self, walk, jv, idRef):
+        for i, item in enumerate(jv):
+            yield i, i, item
+
+
 class ObjectMerge(Strategy):
     """A Strategy for merging objects.
 

@@ -1438,6 +1438,33 @@ class TestMerge(unittest.TestCase):
 
         base = jsonmerge.merge(base, head)
 
+    def test_merge_by_index(self):
+
+        schema = {
+                'mergeStrategy': 'arrayMergeByIndex'
+        }
+
+        base = [ {'a': 0 }, {'b': 1} ]
+        head = [ {'c': 2 }, {'d': 3} ]
+
+        result = jsonmerge.merge(base, head, schema)
+
+        self.assertEqual(result, [ {'a': 0, 'c': 2}, {'b': 1, 'd': 3} ])
+
+    def test_merge_by_index_empty(self):
+
+        schema = {
+                'mergeStrategy': 'arrayMergeByIndex'
+        }
+
+        base = [ ]
+        head = [ {'c': 2 }, {'d': 3} ]
+
+        result = jsonmerge.merge(base, head, schema)
+
+        self.assertEqual(result, [ {'c': 2}, {'d': 3} ])
+
+
 class TestGetSchema(unittest.TestCase):
 
     def test_default_overwrite(self):
@@ -2340,6 +2367,18 @@ class TestGetSchema(unittest.TestCase):
             merger.get_schema()
 
         self.assertEqual(cm.exception.value.ref, '#/properties/a')
+
+    def test_merge_by_index(self):
+
+        schema = {
+                'type': 'array',
+                'mergeStrategy': 'arrayMergeByIndex'
+        }
+
+        merger = jsonmerge.Merger(schema)
+        result = merger.get_schema()
+
+        self.assertEqual(result, {'type': 'array'})
 
 
 class TestExceptions(unittest.TestCase):

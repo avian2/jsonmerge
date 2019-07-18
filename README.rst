@@ -202,6 +202,13 @@ arrayMergeById
   You can specify an additional item ID to be ignored using the *ignoreId*
   merge option.
 
+arrayMergeByIndex
+  Merge array items by their index in the array. Similarly to
+  *arrayMergeById* strategy, the resulting arrays have items from both
+  *base* and *head* arrays. Items that occur at identical positions in the
+  array will be merged based on the strategy specified further down in the
+  hierarchy.
+
 objectMerge
   Merge objects. Resulting objects have properties from both *base* and
   *head*. Any properties that are present both in *base* and *head* are
