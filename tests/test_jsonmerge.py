@@ -127,6 +127,42 @@ class TestMerge(unittest.TestCase):
 
         self.assertEqual(base, [{'value': "b"}])
 
+    def test_version_base_not_a_list(self):
+
+        schema = {'mergeStrategy': 'version'}
+
+        base = "a"
+
+        with self.assertRaises(BaseInstanceError) as cm:
+            jsonmerge.merge(base, "b", schema)
+
+    def test_version_base_not_a_list_of_objects(self):
+
+        schema = {'mergeStrategy': 'version'}
+
+        base = ["a"]
+
+        with self.assertRaises(BaseInstanceError) as cm:
+            jsonmerge.merge(base, "b", schema)
+
+    def test_version_base_no_value_in_object(self):
+
+        schema = {'mergeStrategy': 'version'}
+
+        base = [{}]
+
+        with self.assertRaises(BaseInstanceError) as cm:
+            jsonmerge.merge(base, "b", schema)
+
+    def test_version_base_empty_list(self):
+
+        schema = {'mergeStrategy': 'version'}
+
+        base = []
+        base = jsonmerge.merge(base, "b", schema)
+
+        self.assertEqual(base, [{'value': 'b'}])
+
     def test_append(self):
         schema = {'mergeStrategy': 'append'}
 
@@ -1551,6 +1587,35 @@ class TestGetSchema(unittest.TestCase):
                              }
                          })
 
+    def test_version_meta_in_schema(self):
+        schema = {
+                'type': 'object',
+                'mergeStrategy': 'version',
+                'mergeOptions': {
+                    'metadataSchema': {
+                        'properties': {
+                            'date': {},
+                            'version': {},
+                        },
+                    },
+                },
+        }
+
+        merger = jsonmerge.Merger(schema)
+        schema2 = merger.get_schema()
+
+        self.assertEqual(schema2,
+                         {
+                             'type': 'array',
+                             'items': {
+                                 'properties': {
+                                     'value': {'type': 'object'},
+                                     'date': {},
+                                     'version': {}
+                                 }
+                             }
+                         })
+
     def test_version_limit(self):
         schema = {'mergeStrategy': 'version',
                   'mergeOptions': {'limit': 5}}
@@ -1777,6 +1842,58 @@ class TestGetSchema(unittest.TestCase):
                                  }
                              }
                          })
+
+    def test_local_reference_in_meta(self):
+
+        schema = {
+                'properties': {
+                    'content': {
+                        'mergeStrategy': 'version',
+                        'mergeOptions': {
+                            'metadataSchema': {
+                                '$ref': '#/definitions/metadata',
+                            },
+                        },
+                    },
+                },
+                'definitions': {
+                    'metadata': {
+                        'properties': {
+                            'revision': {
+                                'type': 'number',
+                            },
+                        },
+                    },
+                },
+        }
+
+        merger = jsonmerge.Merger(schema)
+        mschema = merger.get_schema()
+
+        self.assertEqual(mschema, {
+                            'properties': {
+                                'content': {
+                                    'type': 'array',
+                                    'items': {
+                                        'properties': {
+                                            'value': {},
+                                            'revision': {
+                                                'type': 'number',
+                                            },
+                                        },
+                                    },
+                                },
+                            },
+                            'definitions': {
+                                'metadata': {
+                                    'properties': {
+                                        'revision': {
+                                            'type': 'number',
+                                        },
+                                    },
+                                },
+                            },
+                        })
 
     def test_array_in_schema(self):
 

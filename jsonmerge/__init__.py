@@ -20,8 +20,9 @@ class Walk(object):
             descenders.AnyOfAllOf,
     ]
 
-    def __init__(self, merger):
+    def __init__(self, merger, merge_options):
         self.merger = merger
+        self.merge_options = merge_options
         self.resolver = merger.validator.resolver
         self.lvl = -1
 
@@ -49,6 +50,9 @@ class Walk(object):
             with self.resolver.resolving(schema.ref) as resolved:
                 assert schema.val is resolved
 
+        # backwards compatibility jsonmerge<=1.6.0
+        opts = {'meta': None}
+
         if not schema.is_undef():
 
             for descender in self.descenders:
@@ -58,12 +62,14 @@ class Walk(object):
                     return rv
 
             name = schema.val.get("mergeStrategy")
-            opts = schema.val.get("mergeOptions")
-            if opts is None:
-                opts = {}
+
+            for v in (
+                    self.merge_options.get(name),
+                    schema.val.get("mergeOptions")):
+                if v is not None:
+                    opts.update(v)
         else:
             name = None
-            opts = {}
 
         if name is None:
             name = self.default_strategy(schema, *args, **opts)
@@ -82,31 +88,22 @@ class Walk(object):
 
 class WalkInstance(Walk):
 
-    def __init__(self, merger, base, head):
-        Walk.__init__(self, merger)
+    def __init__(self, merger, base, head, merge_options):
+        Walk.__init__(self, merger, merge_options)
         self.base_resolver = LocalRefResolver("", base.val)
         self.head_resolver = LocalRefResolver("", head.val)
 
-    def add_meta(self, head, meta):
-        if meta is None:
-            rv = dict()
-        else:
-            rv = dict(meta)
-
-        rv['value'] = head
-        return rv
-
-    def default_strategy(self, schema, base, head, meta, **kwargs):
+    def default_strategy(self, schema, base, head, **kwargs):
         log.debug("       : %sdefault strategy" % (self._indent(),))
         if self.is_type(head, "object"):
             return "objectMerge"
         else:
             return "overwrite"
 
-    def call_descender(self, descender, schema, base, head, meta):
-        return descender.descend_instance(self, schema, base, head, meta)
+    def call_descender(self, descender, schema, base, head):
+        return descender.descend_instance(self, schema, base, head)
 
-    def work(self, strategy, schema, base, head, meta, **kwargs):
+    def work(self, strategy, schema, base, head, **kwargs):
         assert isinstance(schema, JSONValue)
         assert isinstance(base, JSONValue)
         assert isinstance(head, JSONValue)
@@ -121,7 +118,7 @@ class WalkInstance(Walk):
             with self.head_resolver.resolving(head.ref) as resolved:
                 assert head.val is resolved
 
-        rv = strategy.merge(self, base, head, schema, meta, objclass_menu=self.merger.objclass_menu, **kwargs)
+        rv = strategy.merge(self, base, head, schema, objclass_menu=self.merger.objclass_menu, **kwargs)
 
         assert isinstance(rv, JSONValue)
         return rv
@@ -134,6 +131,22 @@ class WalkSchema(Walk):
     def resolve_refs(self, schema):
         # For backwards compatibility with jsonmerge <= 1.3.0
         return schema
+
+    def resolve_subschema_option_refs(self, subschema):
+        # This is kind of ugly - schema for meta data
+        # can again contain references to external schemas.
+        #
+        # Since we already have in place all the machinery
+        # to resolve these references in the merge schema,
+        # we (ab)use it here to do the same for meta data
+        # schema.
+        m = Merger(subschema)
+        m.validator.resolver.store.update(self.resolver.store)
+
+        w = WalkSchema(m, merge_options={})
+        subschema = w._resolve_refs(JSONValue(subschema), resolve_base=True).val
+
+        return subschema
 
     def _resolve_refs(self, schema, resolve_base=False):
         assert isinstance(schema, JSONValue)
@@ -174,24 +187,24 @@ class WalkSchema(Walk):
 
         return False
 
-    def default_strategy(self, schema, meta, **kwargs):
+    def default_strategy(self, schema, **kwargs):
 
         if self.schema_is_object(schema):
             return "objectMerge"
         else:
             return "overwrite"
 
-    def call_descender(self, descender, schema, meta):
-        return descender.descend_schema(self, schema, meta)
+    def call_descender(self, descender, schema):
+        return descender.descend_schema(self, schema)
 
-    def work(self, strategy, schema, meta, **kwargs):
+    def work(self, strategy, schema, **kwargs):
         assert isinstance(schema, JSONValue)
 
         schema = JSONValue(dict(schema.val), schema.ref)
         schema.val.pop("mergeStrategy", None)
         schema.val.pop("mergeOptions", None)
 
-        rv = strategy.get_schema(self, schema, meta, **kwargs)
+        rv = strategy.get_schema(self, schema, **kwargs)
         assert isinstance(rv, JSONValue)
         return rv
 
@@ -276,15 +289,17 @@ class Merger(object):
 
         self.validator.resolver.store.update(((uri, schema),))
 
-    def merge(self, base, head, meta=None):
+    def merge(self, base, head, meta=None, merge_options=None):
         """Merge head into base.
 
         base -- Old JSON document you are merging into.
         head -- New JSON document for merging into base.
-        meta -- Optional dictionary with meta-data.
+        merge_options -- Optional dictionary with merge options.
 
-        Any elements in the meta dictionary will be added to
-        the dictionaries appended by the version strategies.
+        Keys of merge_options must be names of the strategies. Values must be
+        dictionaries of merge options as in the mergeOptions schema element.
+        Options in merge_options are applied to all instances of a strategy.
+        Values in schema override values given in merge_options.
 
         Returns an updated base document
         """
@@ -298,37 +313,41 @@ class Merger(object):
 
         head = JSONValue(head)
 
-        walk = WalkInstance(self, base, head)
-        return walk.descend(schema, base, head, meta).val
+        if merge_options is None:
+            merge_options = {}
 
-    def get_schema(self, meta=None):
+        # backwards compatibility jsonmerge<=1.6.0
+        if meta is not None:
+            merge_options['version'] = { 'metadata': meta }
+
+        walk = WalkInstance(self, base, head, merge_options)
+        return walk.descend(schema, base, head).val
+
+    def get_schema(self, meta=None, merge_options=None):
         """Get JSON schema for the merged document.
 
-        meta -- Optional JSON schema for the meta-data.
+        merge_options -- Optional dictionary with merge options.
+
+        Keys of merge_options must be names of the strategies. Values must be
+        dictionaries of merge options as in the mergeOptions schema element.
+        Options in merge_options are applied to all instances of a strategy.
+        Values in schema override values given in merge_options.
 
         Returns a JSON schema for documents returned by the
         merge() method.
         """
 
+        if merge_options is None:
+            merge_options = {}
+
+        # backwards compatibility jsonmerge<=1.6.0
         if meta is not None:
-
-            # This is kind of ugly - schema for meta data
-            # can again contain references to external schemas.
-            #
-            # Since we already have in place all the machinery
-            # to resolve these references in the merge schema,
-            # we (ab)use it here to do the same for meta data
-            # schema.
-            m = Merger(meta)
-            m.validator.resolver.store.update(self.validator.resolver.store)
-
-            w = WalkSchema(m)
-            meta = w._resolve_refs(JSONValue(meta), resolve_base=True).val
+            merge_options['version'] = { 'metadataSchema': meta }
 
         schema = JSONValue(self.schema)
 
-        walk = WalkSchema(self)
-        return walk.descend(schema, meta).val
+        walk = WalkSchema(self, merge_options)
+        return walk.descend(schema).val
 
 def merge(base, head, schema={}):
     """Merge two JSON documents using strategies defined in schema.

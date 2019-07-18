@@ -10,14 +10,13 @@ class Strategy(object):
     """Base class for merge strategies.
     """
 
-    def merge(self, walk, base, head, schema, meta, **kwargs):
+    def merge(self, walk, base, head, schema, **kwargs):
         """Merge head instance into base.
 
         walk -- WalkInstance object for the current context.
         base -- JSONValue being merged into.
         head -- JSONValue being merged.
         schema -- Schema used for merging (also JSONValue)
-        meta -- Meta data, as passed to the Merger.merge() method.
         kwargs -- Dict with any extra options given in the 'mergeOptions'
         keyword
 
@@ -31,13 +30,11 @@ class Strategy(object):
         """
         raise NotImplemented
 
-    def get_schema(self, walk, schema, meta, **kwargs):
+    def get_schema(self, walk, schema, **kwargs):
         """Return the schema for the merged document.
 
         walk -- WalkSchema object for the current context.
         schema -- Original document schema.
-        meta -- Schema for the meta data, as passed to the Merger.get_schema()
-        method.
         kwargs -- Dict with any extra options given in the 'mergeOptions'
         keyword.
 
@@ -53,24 +50,34 @@ class Strategy(object):
         raise NotImplemented
 
 class Overwrite(Strategy):
-    def merge(self, walk, base, head, schema, meta, **kwargs):
+    def merge(self, walk, base, head, schema, **kwargs):
         return head
 
-    def get_schema(self, walk, schema, meta, **kwargs):
+    def get_schema(self, walk, schema, **kwargs):
         return schema
 
 class Discard(Strategy):
-    def merge(self, walk, base, head, schema, meta, keepIfUndef=False, **kwargs):
+    def merge(self, walk, base, head, schema, keepIfUndef=False, **kwargs):
         if base.is_undef() and keepIfUndef:
             return head
         else:
             return base
 
-    def get_schema(self, walk, schema, meta, **kwargs):
+    def get_schema(self, walk, schema, **kwargs):
         return schema
 
 class Version(Strategy):
-    def merge(self, walk, base, head, schema, meta, limit=None, unique=None, ignoreDups=True, **kwargs):
+
+    def add_metadata(self, head, metadata):
+        if metadata is None:
+            rv = dict()
+        else:
+            rv = dict(metadata)
+
+        rv['value'] = head
+        return rv
+
+    def merge(self, walk, base, head, schema, limit=None, unique=None, ignoreDups=True, metadata=None, **kwargs):
 
         # backwards compatibility
         if unique is False:
@@ -78,25 +85,45 @@ class Version(Strategy):
 
         if base.is_undef():
             base = JSONValue(val=[], ref=base.ref)
+            last_entry = JSONValue(undef=True)
         else:
+            if not walk.is_type(base, "array"):
+                raise BaseInstanceError("Base for a 'version' merge strategy is not an array. "
+                        "Base not previously generated with 'version' strategy?", base)
+
             base = JSONValue(list(base.val), base.ref)
 
-        if not ignoreDups or not base.val or base.val[-1]['value'] != head.val:
-            base.val.append(walk.add_meta(head.val, meta))
+            if base.val:
+                last_entry = base[-1]
+
+                if not walk.is_type(last_entry, "object"):
+                    raise BaseInstanceError("Last entry in the versioned array is not an object. "
+                            "Base not previously generated with 'version' strategy?", last_entry)
+
+                if 'value' not in last_entry.val:
+                    raise BaseInstanceError("Last entry in the versioned array has no 'value' property. "
+                            "Base not previously generated with 'version' strategy?", last_entry)
+            else:
+                last_entry = JSONValue(undef=True)
+
+        if not ignoreDups or last_entry.is_undef() or last_entry['value'].val != head.val:
+            base.val.append(self.add_metadata(head.val, metadata))
             if limit is not None:
                 base.val = base.val[-limit:]
 
         return base
 
-    def get_schema(self, walk, schema, meta, limit=None, **kwargs):
+    def get_schema(self, walk, schema, limit=None, metadataSchema=None, **kwargs):
 
-        if meta is not None:
-            item = dict(meta)
+        if metadataSchema is not None:
+            item = dict(walk.resolve_subschema_option_refs(metadataSchema))
         else:
             item = {}
 
         if 'properties' not in item:
             item['properties'] = {}
+        else:
+            item['properties'] = dict(item['properties'])
 
         item['properties']['value'] = schema.val
 
@@ -109,7 +136,7 @@ class Version(Strategy):
         return JSONValue(rv, schema.ref)
 
 class Append(Strategy):
-    def merge(self, walk, base, head, schema, meta, **kwargs):
+    def merge(self, walk, base, head, schema, **kwargs):
         if not walk.is_type(head, "array"):
             raise HeadInstanceError("Head for an 'append' merge strategy is not an array", head)
 
@@ -124,7 +151,7 @@ class Append(Strategy):
         base.val += head.val
         return base
 
-    def get_schema(self, walk, schema, meta, **kwargs):
+    def get_schema(self, walk, schema, **kwargs):
         schema.val.pop('maxItems', None)
         schema.val.pop('uniqueItems', None)
 
@@ -145,7 +172,7 @@ class ArrayMergeById(Strategy):
 
             yield i, key, item
 
-    def merge(self, walk, base, head, schema, meta, idRef="id", ignoreId=None, **kwargs):
+    def merge(self, walk, base, head, schema, idRef="id", ignoreId=None, **kwargs):
         if not walk.is_type(head, "array"):
             raise HeadInstanceError("Head for an 'arrayMergeById' merge strategy is not an array", head)  # nopep8
 
@@ -184,20 +211,20 @@ class ArrayMergeById(Strategy):
             if len(matching_j) == 1:
                 # If there was exactly one match, we replace it with a merged item
                 j = matching_j[0]
-                base[j] = walk.descend(subschema, matched_item, head_item, meta)
+                base[j] = walk.descend(subschema, matched_item, head_item)
             elif len(matching_j) == 0:
                 # If there wasn't a match, we append a new object
-                base.append(walk.descend(subschema, JSONValue(undef=True), head_item, meta))
+                base.append(walk.descend(subschema, JSONValue(undef=True), head_item))
             else:
                 j = matching_j[1]
                 raise BaseInstanceError("Id '%s' was not unique in base" % (base_key,), base[j])
 
         return base
 
-    def get_schema(self, walk, schema, meta, **kwargs):
+    def get_schema(self, walk, schema, **kwargs):
         subschema = schema.get('items')
         if not subschema.is_undef():
-            schema['items'] = walk.descend(subschema, meta)
+            schema['items'] = walk.descend(subschema)
 
         return schema
 
@@ -215,7 +242,6 @@ class ObjectMerge(Strategy):
     base -- JSONValue being merged into.
     head -- JSONValue being merged.
     schema -- Schema used for merging (also JSONValue)
-    meta -- Meta data, as passed to the Merger.merge() method.
     objclass_menu -- A dictionary of classes to use as a JSON object.
     kwargs -- Any extra options given in the 'mergeOptions' keyword.
 
@@ -229,7 +255,7 @@ class ObjectMerge(Strategy):
 
     objClass -- a name for the class to use as a JSON object in the output.
     """
-    def merge(self, walk, base, head, schema, meta, objclass_menu=None, objClass='_default', **kwargs):
+    def merge(self, walk, base, head, schema, objclass_menu=None, objClass='_default', **kwargs):
         if not walk.is_type(head, "object"):
             raise HeadInstanceError("Head for an 'object' merge strategy is not an object", head)
 
@@ -271,18 +297,18 @@ class ObjectMerge(Strategy):
                     if not p.is_undef() and walk.is_type(p, "object"):
                         subschema = p
 
-            base[k] = walk.descend(subschema, base.get(k), v, meta)
+            base[k] = walk.descend(subschema, base.get(k), v)
 
         return base
 
-    def get_schema(self, walk, schema, meta, **kwargs):
+    def get_schema(self, walk, schema, **kwargs):
         schema2 = JSONValue(dict(schema.val), schema.ref)
 
         def descend_keyword(keyword):
             p = schema.get(keyword)
             if not p.is_undef():
                 for k, v in p.items():
-                    schema2[keyword][k] = walk.descend(v, meta)
+                    schema2[keyword][k] = walk.descend(v)
 
         descend_keyword("properties")
         descend_keyword("patternProperties")
@@ -290,6 +316,6 @@ class ObjectMerge(Strategy):
        # additionalProperties can be boolean in draft 4
         p = schema.get("additionalProperties")
         if not p.is_undef() and walk.is_type(p, "object"):
-            schema2["additionalProperties"] = walk.descend(p, meta)
+            schema2["additionalProperties"] = walk.descend(p)
 
         return schema2

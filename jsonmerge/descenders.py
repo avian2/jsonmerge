@@ -8,25 +8,25 @@ class Descender(object):
     Descenders are similar to merge strategies, except that they only handle
     recursion into deeper schema structures and don't touch instances.
     """
-    def descend_instance(self, walk, schema, base, head, meta):
+    def descend_instance(self, walk, schema, base, head):
         return None
 
-    def descend_schema(self, walk, schema, meta):
+    def descend_schema(self, walk, schema):
         return None
 
 class Ref(Descender):
     def __init__(self):
         self.refs_descended = set('#')
 
-    def descend_instance(self, walk, schema, base, head, meta):
+    def descend_instance(self, walk, schema, base, head):
         ref = schema.val.get("$ref")
         if ref is None:
             return None
 
         with walk.resolver.resolving(ref) as resolved:
-            return walk.descend(JSONValue(resolved, ref), base, head, meta)
+            return walk.descend(JSONValue(resolved, ref), base, head)
 
-    def descend_schema(self, walk, schema, meta):
+    def descend_schema(self, walk, schema):
         ref = schema.val.get("$ref")
         if ref is None:
             return None
@@ -45,7 +45,7 @@ class Ref(Descender):
             if not walk.is_type(rinstance, 'object'):
                 raise SchemaError("'$ref' does not point to an object", schema)
 
-            result = walk.descend(rinstance, meta)
+            result = walk.descend(rinstance)
 
             resolved.clear()
             resolved.update(result.val)
@@ -65,7 +65,7 @@ class OneOf(Descender):
 
         return True
 
-    def descend_instance(self, walk, schema, base, head, meta):
+    def descend_instance(self, walk, schema, base, head):
         if not self.do_descend(schema):
             return None
 
@@ -93,16 +93,16 @@ class OneOf(Descender):
             raise HeadInstanceError("Multiple elements of 'oneOf' validate", head)
 
         i = valid[0]
-        return walk.descend(one_of[i], base, head, meta)
+        return walk.descend(one_of[i], base, head)
 
-    def descend_schema(self, walk, schema, meta):
+    def descend_schema(self, walk, schema):
         if not self.do_descend(schema):
             return None
 
         one_of = schema.get("oneOf")
 
         for i in range(len(one_of.val)):
-            one_of[i] = walk.descend(one_of[i], meta)
+            one_of[i] = walk.descend(one_of[i])
 
         return schema
 
@@ -120,8 +120,8 @@ class AnyOfAllOf(Descender):
 
         raise SchemaError("Can't descend to 'allOf' and 'anyOf' keywords", schema)
 
-    def descend_instance(self, walk, schema, base, head, meta):
+    def descend_instance(self, walk, schema, base, head):
         return self.descend(schema)
 
-    def descend_schema(self, walk, schema, meta):
+    def descend_schema(self, walk, schema):
         return self.descend(schema)
