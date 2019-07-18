@@ -205,8 +205,8 @@ arrayMergeById
 arrayMergeByIndex
   Merge array items by their index in the array. Similarly to
   *arrayMergeById* strategy, the resulting arrays have items from both
-  *base* and *head* arrays. Items that occur at identical positions in the
-  array will be merged based on the strategy specified further down in the
+  *base* and *head* arrays. Items that occur at identical positions in both
+  arrays will be merged based on the strategy specified further down in the
   hierarchy.
 
 objectMerge
