@@ -2380,6 +2380,23 @@ class TestGetSchema(unittest.TestCase):
 
         self.assertEqual(result, {'type': 'array'})
 
+    def test_merge_by_index_name_in_exception(self):
+        schema = {
+            'properties': {
+                'a': {
+                    'mergeStrategy': 'arrayMergeByIndex'
+                }
+            }
+        }
+
+        head = {'a': {}}
+        base = {'a': []}
+
+        merger = jsonmerge.Merger(schema)
+        with self.assertRaises(HeadInstanceError) as cm:
+            merger.merge(base, head)
+
+        self.assertIn('arrayMergeByIndex', str(cm.exception))
 
 class TestExceptions(unittest.TestCase):
     def test_str_with_ref(self):
@@ -2391,6 +2408,11 @@ class TestExceptions(unittest.TestCase):
         e = SchemaError("Test error")
 
         self.assertEqual(str(e), 'Test error')
+
+    def test_str_with_name(self):
+        e = SchemaError("Test error", JSONValue({}, '#'), 'test')
+
+        self.assertEqual(str(e), "'test' merge strategy: Test error: #")
 
 if __name__ == '__main__':
     unittest.main()

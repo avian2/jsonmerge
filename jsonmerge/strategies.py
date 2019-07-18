@@ -88,8 +88,8 @@ class Version(Strategy):
             last_entry = JSONValue(undef=True)
         else:
             if not walk.is_type(base, "array"):
-                raise BaseInstanceError("Base for a 'version' merge strategy is not an array. "
-                        "Base not previously generated with 'version' strategy?", base)
+                raise BaseInstanceError("Base is not an array. "
+                        "Base not previously generated with this strategy?", base)
 
             base = JSONValue(list(base.val), base.ref)
 
@@ -98,11 +98,11 @@ class Version(Strategy):
 
                 if not walk.is_type(last_entry, "object"):
                     raise BaseInstanceError("Last entry in the versioned array is not an object. "
-                            "Base not previously generated with 'version' strategy?", last_entry)
+                            "Base not previously generated with this strategy?", last_entry)
 
                 if 'value' not in last_entry.val:
                     raise BaseInstanceError("Last entry in the versioned array has no 'value' property. "
-                            "Base not previously generated with 'version' strategy?", last_entry)
+                            "Base not previously generated with this strategy?", last_entry)
             else:
                 last_entry = JSONValue(undef=True)
 
@@ -138,13 +138,13 @@ class Version(Strategy):
 class Append(Strategy):
     def merge(self, walk, base, head, schema, **kwargs):
         if not walk.is_type(head, "array"):
-            raise HeadInstanceError("Head for an 'append' merge strategy is not an array", head)
+            raise HeadInstanceError("Head is not an array", head)
 
         if base.is_undef():
             base = JSONValue([], base.ref)
         else:
             if not walk.is_type(base, "array"):
-                raise BaseInstanceError("Base for an 'append' merge strategy is not an array", base)
+                raise BaseInstanceError("Base is not an array", base)
 
             base = JSONValue(list(base.val), base.ref)
 
@@ -174,19 +174,19 @@ class ArrayMergeById(Strategy):
 
     def merge(self, walk, base, head, schema, idRef="id", ignoreId=None, **kwargs):
         if not walk.is_type(head, "array"):
-            raise HeadInstanceError("Head for an 'arrayMergeById' merge strategy is not an array", head)  # nopep8
+            raise HeadInstanceError("Head is not an array", head)  # nopep8
 
         if base.is_undef():
             base = JSONValue([], base.ref)
         else:
             if not walk.is_type(base, "array"):
-                raise BaseInstanceError("Base for an 'arrayMergeById' merge strategy is not an array", base)  # nopep8
+                raise BaseInstanceError("Base is not an array", base)  # nopep8
             base = JSONValue(list(base.val), base.ref)
 
         subschema = schema.get('items')
 
         if walk.is_type(subschema, "array"):
-            raise SchemaError("'arrayMergeById' not supported when 'items' is an array", subschema)
+            raise SchemaError("This strategy is not supported when 'items' is an array", subschema)
 
         for i, key_1, item_1 in self.iter_index_key_item(walk, head, idRef):
             for j, key_2, item_2 in self.iter_index_key_item(walk, head, idRef):
@@ -264,7 +264,7 @@ class ObjectMerge(Strategy):
     """
     def merge(self, walk, base, head, schema, objclass_menu=None, objClass='_default', **kwargs):
         if not walk.is_type(head, "object"):
-            raise HeadInstanceError("Head for an 'object' merge strategy is not an object", head)
+            raise HeadInstanceError("Head is not an object", head)
 
         if objclass_menu is None:
             objclass_menu = { '_default': dict }
@@ -277,7 +277,7 @@ class ObjectMerge(Strategy):
             base = JSONValue(objcls(), base.ref)
         else:
             if not walk.is_type(base, "object"):
-                raise BaseInstanceError("Base for an 'object' merge strategy is not an object", base)
+                raise BaseInstanceError("Base is not an object", base)
 
             base = JSONValue(objcls(base.val), base.ref)
 

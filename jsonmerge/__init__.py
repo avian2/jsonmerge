@@ -4,7 +4,7 @@ from jsonmerge.jsonvalue import JSONValue
 from jsonmerge.resolver import LocalRefResolver
 from jsonmerge import strategies
 from jsonmerge import descenders
-from jsonmerge.exceptions import SchemaError
+from jsonmerge.exceptions import SchemaError, JSONMergeError
 from jsonschema.validators import Draft4Validator
 import logging
 
@@ -81,7 +81,12 @@ class Walk(object):
         except KeyError:
             raise SchemaError("Unknown strategy '%s'" % name, schema)
 
-        rv = self.work(strategy, schema, *args, **opts)
+        try:
+            rv = self.work(strategy, schema, *args, **opts)
+        except JSONMergeError as exc:
+            if exc.strategy_name is None:
+                exc.strategy_name = name
+            raise
 
         self.lvl -= 1
         return rv
