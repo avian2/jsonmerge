@@ -231,6 +231,10 @@ version
   array in the form of an object with a *value* property. This way all
   values seen during the merge are preserved.
 
+  You can add additional properties to the appended object using the
+  *metadata* option. Additionally, you can use *metadataSchema* option to
+  specify the schema for the object in the *metadata* option.
+
   You can limit the length of the list using the *limit* option in the
   *mergeOptions* keyword.
 
