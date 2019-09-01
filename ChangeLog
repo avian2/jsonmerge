@@ -1,3 +1,13 @@
+2019-09-01	jsonmerge	1.7.0
+
+	* Add "merge_options" argument to the Merger.merge method, a more
+	  generic replacement for the "meta" argument. "meta" argument still
+	  works, however its use is now deprecated and it may be removed in a
+	  future release. Third-party code that subclasses the Strategy class
+	  and depends on the "meta" argument may need to be updated.
+	* Add arrayMergeByIndex merge strategy.
+
+
 2019-05-15	jsonmerge	1.6.1
 
 	* Fix assertion failure when object contains a float NaN value.
