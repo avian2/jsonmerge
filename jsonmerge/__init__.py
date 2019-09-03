@@ -7,6 +7,7 @@ from jsonmerge import descenders
 from jsonmerge.exceptions import SchemaError, JSONMergeError
 from jsonschema.validators import Draft4Validator
 import logging
+import warnings
 
 log = logging.getLogger(name=__name__)
 
@@ -324,6 +325,10 @@ class Merger(object):
 
         # backwards compatibility jsonmerge<=1.6.0
         if meta is not None:
+            warnings.warn("'meta' argument is deprecated. Please use "
+                    "merge_options={'version': {'metadata': ...}}.",
+                    DeprecationWarning, 2)
+
             merge_options['version'] = { 'metadata': meta }
 
         walk = WalkInstance(self, base, head, merge_options)
@@ -348,6 +353,9 @@ class Merger(object):
 
         # backwards compatibility jsonmerge<=1.6.0
         if meta is not None:
+            warnings.warn("'meta' argument is deprecated. Please use "
+                    "merge_options={'version': {'metadataSchema': ...}}.",
+                    DeprecationWarning, 2)
             merge_options['version'] = { 'metadataSchema': meta }
 
         schema = JSONValue(self.schema)

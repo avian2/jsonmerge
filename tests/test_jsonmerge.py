@@ -1,5 +1,6 @@
 # vim:ts=4 sw=4 expandtab softtabstop=4
 import unittest
+import warnings
 
 from collections import OrderedDict
 import jsonmerge
@@ -17,6 +18,8 @@ try:
     Draft6Validator = jsonschema.validators.Draft6Validator
 except AttributeError:
     Draft6Validator = None
+
+warnings.simplefilter("always")
 
 class TestMerge(unittest.TestCase):
 
@@ -69,14 +72,26 @@ class TestMerge(unittest.TestCase):
         merger = jsonmerge.Merger(schema)
 
         base = None
-        base = merger.merge(base, "a", meta={'uri': 'http://example.com/a'})
-        base = merger.merge(base, "b", meta={'uri': 'http://example.com/b'})
+        base = merger.merge(base, "a", merge_options={
+                'version': {'metadata': {'uri': 'http://example.com/a'}}})
+        base = merger.merge(base, "b", merge_options={
+                'version': {'metadata': {'uri': 'http://example.com/b'}}})
 
         self.assertEqual(base, [
             {'value': "a",
              'uri': 'http://example.com/a'},
             {'value': "b",
              'uri': 'http://example.com/b'}])
+
+    def test_version_meta_deprecated(self):
+        schema = {'mergeStrategy': 'version'}
+        merger = jsonmerge.Merger(schema)
+
+        with warnings.catch_warnings(record=True) as w:
+            base = merger.merge(None, 'a', meta={'foo': 'bar'})
+
+            self.assertEqual(len(w), 1)
+            self.assertTrue(issubclass(w[0].category, DeprecationWarning))
 
     def test_version_ignoredups_false(self):
 
@@ -1600,7 +1615,8 @@ class TestGetSchema(unittest.TestCase):
         }
 
         merger = jsonmerge.Merger(schema)
-        schema2 = merger.get_schema(meta)
+        schema2 = merger.get_schema(merge_options={
+            'version': {'metadataSchema': meta}})
 
         self.assertEqual(schema2,
                          {
@@ -1613,6 +1629,16 @@ class TestGetSchema(unittest.TestCase):
                                  }
                              }
                          })
+
+    def test_version_meta_deprecated(self):
+        schema = {'mergeStrategy': 'version'}
+        merger = jsonmerge.Merger(schema)
+
+        with warnings.catch_warnings(record=True) as w:
+            merger.get_schema(meta={'foo': 'bar'})
+
+            self.assertEqual(len(w), 1)
+            self.assertTrue(issubclass(w[0].category, DeprecationWarning))
 
     def test_version_meta_in_schema(self):
         schema = {
@@ -1856,7 +1882,8 @@ class TestGetSchema(unittest.TestCase):
         merger = jsonmerge.Merger(schema)
         merger.cache_schema(schema_2)
 
-        mschema = merger.get_schema(meta=meta_schema)
+        mschema = merger.get_schema(merge_options={
+            'version': {'metadataSchema': meta_schema}})
 
         self.assertEqual(mschema,
                          {
