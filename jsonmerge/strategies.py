@@ -83,6 +83,10 @@ class Version(Strategy):
         if unique is False:
             ignoreDups = False
 
+        if metadata is not None:
+            if not walk.is_type(JSONValue(val=metadata), "object"):
+                raise SchemaError("'metadata' option does not contain an object")
+
         if base.is_undef():
             base = JSONValue(val=[], ref=base.ref)
             last_entry = JSONValue(undef=True)

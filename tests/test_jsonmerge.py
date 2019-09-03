@@ -83,6 +83,14 @@ class TestMerge(unittest.TestCase):
             {'value': "b",
              'uri': 'http://example.com/b'}])
 
+    def test_version_meta_not_obj(self):
+
+        schema = {'mergeStrategy': 'version'}
+        merger = jsonmerge.Merger(schema)
+
+        with self.assertRaises(SchemaError) as cm:
+            merger.merge(None, "a", merge_options={'version': {'metadata': 'foo'}})
+
     def test_version_meta_deprecated(self):
         schema = {'mergeStrategy': 'version'}
         merger = jsonmerge.Merger(schema)
