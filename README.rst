@@ -371,6 +371,34 @@ distribution::
     tox
 
 
+Reporting bugs and contributing code
+------------------------------------
+
+Thank you for contributing to *jsonmerge*! Free software wouldn't be
+possible without contributions from users like you. However, please consider
+that I maintain this project in my free time. Hence I ask you to follow
+this simple etiquette to minimize the amount of effort needed to include
+your contribution.
+
+Please use `GitHub issues`_ to report bugs. Make sure that your report
+includes:
+
+* A *minimal*, but complete, code example that reproduces the problem,
+  including any JSON data required to run it. It should be something I can
+  copy-paste into a .py file and run.
+* Relevant version of *jsonmerge* - either release number on PyPi or git
+  commit hash.
+* Copy of the traceback, in case you are reporting an unhandled exception.
+* Example of what you think should be the correct output, in case you are
+  reporting wrong result of a merge or schema generation.
+
+Please use `GitHub pull requests`_ to contribute code. Make sure that your
+pull request:
+
+* Passes all existing tests and includes new tests that cover added code.
+* Updates *README.rst* to document added functionality.
+
+
 License
 -------
 
@@ -399,6 +427,8 @@ THE SOFTWARE.
 .. _JSON schema: http://json-schema.org
 .. _Draft 4: http://json-schema.org/specification-links.html#draft-4
 .. _Tox: https://tox.readthedocs.io/en/latest/
+.. _GitHub issues: https://github.com/avian2/jsonmerge/issues
+.. _GitHub pull requests: https://github.com/avian2/jsonmerge/pulls
 
 ..
     vim: tw=75 ts=4 sw=4 expandtab softtabstop=4
