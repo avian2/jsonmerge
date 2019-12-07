@@ -257,7 +257,7 @@ The Merger Class
 The Merger class allows you to further customize the merging of JSON
 data by allowing you to:
 
-- set the schema containing the merge stategy configuration,
+- set the schema containing the merge strategy configuration,
 - provide additional strategy implementations,
 - set a default class to use for holding JSON object data and
 - configure additional JSON object classes selectable via the *objClass*
@@ -317,7 +317,7 @@ account subschemas under the *properties* keyword at the same level as
 If a merge strategy is not explicitly defined and an *allOf* or *anyOf*
 keyword is present, *jsonmerge* will raise an error.
 
-If a merge stragegy is not explicitly defined and an *oneOf* keyword is
+If a merge strategy is not explicitly defined and an *oneOf* keyword is
 present, *jsonmerge* will continue on the branch of *oneOf* that validates
 both *base* and *head*. If no branch validates, it will raise an error.
 
