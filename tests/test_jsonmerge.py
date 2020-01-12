@@ -1295,6 +1295,109 @@ class TestMerge(unittest.TestCase):
 
         self.assertEqual(base, expected)
 
+    def test_merge_by_id_multiple_ids(self):
+
+        schema = {
+                'mergeStrategy': 'arrayMergeById',
+                'mergeOptions': { 'idRef': ['/a', '/b'] }
+        }
+
+        base = [
+                {
+                    'a': 1,
+                    'b': 2
+                },
+                {
+                    'a': 1,
+                    'b': 1,
+                }
+        ]
+
+        head = [
+                {
+                    'a': 1,
+                    'b': 1,
+                    'c': 2,
+                },
+                {
+                    # incomplete key, ignored
+                    'b': 1,
+                },
+                {
+                    'a': 2,
+                    'b': 2,
+                    'c': 3,
+                }
+        ]
+
+        expected = [
+                {
+                    'a': 1,
+                    'b': 2
+                },
+                {
+                    'a': 1,
+                    'b': 1,
+                    'c': 2,
+                },
+                {
+                    'a': 2,
+                    'b': 2,
+                    'c': 3,
+                }
+        ]
+
+        merger = jsonmerge.Merger(schema)
+        base = merger.merge(base, head)
+        self.assertEqual(base, expected)
+
+    def test_merge_by_id_multiple_ids_ignore(self):
+
+        schema = {
+                'mergeStrategy': 'arrayMergeById',
+                'mergeOptions': {
+                    'idRef': ['/a', '/b'],
+                    'ignoreId': [1, 2],
+                }
+        }
+
+        base = [
+                {
+                    'a': 1,
+                    'b': 1,
+                }
+        ]
+
+        head = [
+                {
+                    # ignoreId matches
+                    'a': 1,
+                    'b': 2,
+                    'c': 2,
+                },
+                {
+                    'a': 2,
+                    'b': 2,
+                    'c': 3,
+                }
+        ]
+
+        expected = [
+                {
+                    'a': 1,
+                    'b': 1
+                },
+                {
+                    'a': 2,
+                    'b': 2,
+                    'c': 3,
+                }
+        ]
+
+        merger = jsonmerge.Merger(schema)
+        base = merger.merge(base, head)
+        self.assertEqual(base, expected)
+
     def test_append_with_maxitems(self):
 
         schema = {

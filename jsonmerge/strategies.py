@@ -165,7 +165,12 @@ class Append(Strategy):
 class ArrayMergeById(Strategy):
 
     def get_key(self, walk, item, idRef):
-        return walk.resolver.resolve_fragment(item.val, idRef)
+        if walk.is_type(JSONValue(idRef), 'array'):
+            key = [ walk.resolver.resolve_fragment(item.val, i) for i in idRef ]
+        else:
+            key = walk.resolver.resolve_fragment(item.val, idRef)
+
+        return key
 
     def iter_index_key_item(self, walk, jv, idRef):
         for i, item in enumerate(jv):

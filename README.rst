@@ -202,6 +202,12 @@ arrayMergeById
   You can specify an additional item ID to be ignored using the *ignoreId*
   merge option.
 
+  A compound ID can be specified by setting *idRef* to an array of
+  pointers. In that case, if *any* pointer in the array is invalid for an
+  object in *head*, the object is ignored. If using an array for *idRef*
+  and if *ignoreId* option is also defined, *ignoreId* must be an array as
+  well.
+
 arrayMergeByIndex
   Merge array items by their index in the array. Similarly to
   *arrayMergeById* strategy, the resulting arrays have items from both
