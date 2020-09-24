@@ -1,7 +1,6 @@
 dist: xenial
 language: python
 python:
-  - pypy2.7-6.0
   - pypy3.5-6.0
   - 2.7
   - 3.4
