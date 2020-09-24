@@ -84,7 +84,8 @@ that appeared in the series of documents::
     ...                     "mergeStrategy": "version",
     ...                     "mergeOptions": { "limit": 5 }
     ...                 }
-    ...             }
+    ...             },
+    ...             "additionalProperties": False
     ...         }
     >>> from jsonmerge import Merger
     >>> merger = Merger(schema)
@@ -142,6 +143,52 @@ Example above also demonstrates how *jsonmerge* is typically used when
 merging more than two documents. Typically you start with an empty *base*
 and then consecutively merge different *heads* into it.
 
+A common source of problems are documents that do not match the schema used
+for merging. *jsonmerge* by itself does not validate input documents. It
+only uses the schema to obtain necessary information to apply appropriate merge
+strategies. Since the default strategies are used for parts of the
+document that are not covered by the schema it's easy to get unexpected
+output without any obvious errors raised by *jsonmerge*.
+
+In the following example, the property *Foo* (uppercase F) does not match
+*foo* (lowercase f) in the schema and hence the *version* strategy is not
+applied as with previous two revisions::
+
+    >>> rev3 = {
+    ...     'Foo': {
+    ...         'greeting': 'Howdy, World!'
+    ...     }
+    ... }
+
+    >>> base = merger.merge(base, rev3, merge_options={
+    ...                     'version': {
+    ...                         'metadata': {
+    ...                             'revision': 3
+    ...                         }
+    ...                     }
+    ...                 })
+
+    >>> pprint(base, width=55)
+    {'Foo': {'greeting': 'Howdy, World!'},
+     'foo': [{'revision': 1,
+              'value': {'greeting': 'Hello, World!'}},
+             {'revision': 2,
+              'value': {'greeting': 'Howdy, World!'}}]}
+
+Hence it is recommended to validate the input documents against the schema
+before passing them to *jsonmerge*. This practice is even more effective if
+the schema is filled in with more information than strictly necessary for
+*jsonmerge* (e.g. adding information about types, restrict valid object
+properties with *additionalProperties*, etc.)::
+
+    >>> from jsonschema import validate
+    >>> validate(rev1, schema)
+    >>> validate(rev2, schema)
+    >>> validate(rev3, schema)
+    Traceback (most recent call last):
+        ...
+    jsonschema.exceptions.ValidationError: Additional properties are not allowed ('Foo' was unexpected)
+
 If you care about well-formedness of your documents, you might also want to
 obtain a schema for the documents that the *merge* method creates.
 *jsonmerge* provides a way to automatically generate it from a schema for
@@ -150,7 +197,8 @@ the input document::
     >>> result_schema = merger.get_schema()
 
     >>> pprint(result_schema, width=80)
-    {'properties': {'foo': {'items': {'properties': {'value': {'type': 'object'}}},
+    {'additionalProperties': False,
+     'properties': {'foo': {'items': {'properties': {'value': {'type': 'object'}}},
                             'maxItems': 5,
                             'type': 'array'}}}
 
