@@ -456,7 +456,7 @@ pull request:
 License
 -------
 
-Copyright 2019, Tomaz Solc <tomaz.solc@tablix.org>
+Copyright 2020, Tomaz Solc <tomaz.solc@tablix.org>
 
 The MIT License (MIT)
 
