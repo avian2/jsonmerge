@@ -229,6 +229,9 @@ discard
 append
   Append arrays. Works only with arrays.
 
+  You can specify an optional *sortBy* parameter to indicate the key that 
+  should be used to alphabetically sort a complex structure.
+
 arrayMergeById
   Merge arrays, identifying items to be merged by an ID field. Resulting
   arrays have items from both *base* and *head* arrays.  Any items that
@@ -255,6 +258,9 @@ arrayMergeById
   object in *head*, the object is ignored. If using an array for *idRef*
   and if *ignoreId* option is also defined, *ignoreId* must be an array as
   well.
+
+  You can specify an optional *sortBy* parameter to indicate the key that 
+  should be used to alphabetically sort a complex structure.
 
 arrayMergeByIndex
   Merge array items by their index in the array. Similarly to

@@ -140,7 +140,7 @@ class Version(Strategy):
         return JSONValue(rv, schema.ref)
 
 class Append(Strategy):
-    def merge(self, walk, base, head, schema, **kwargs):
+    def merge(self, walk, base, head, schema, sortBy=None, **kwargs):
         if not walk.is_type(head, "array"):
             raise HeadInstanceError("Head is not an array", head)
 
@@ -153,6 +153,8 @@ class Append(Strategy):
             base = JSONValue(list(base.val), base.ref)
 
         base.val += head.val
+        if sortBy != None:
+            base.val.sort(key = lambda i: i[sortBy])
         return base
 
     def get_schema(self, walk, schema, **kwargs):
@@ -181,7 +183,7 @@ class ArrayMergeById(Strategy):
 
             yield i, key, item
 
-    def merge(self, walk, base, head, schema, idRef="id", ignoreId=None, **kwargs):
+    def merge(self, walk, base, head, schema, idRef="id", ignoreId=None, sortBy=None, **kwargs):
         if not walk.is_type(head, "array"):
             raise HeadInstanceError("Head is not an array", head)  # nopep8
 
@@ -227,6 +229,9 @@ class ArrayMergeById(Strategy):
             else:
                 j = matching_j[1]
                 raise BaseInstanceError("Id '%s' was not unique in base" % (base_key,), base[j])
+
+        if sortBy != None:
+            base.val.sort(key = lambda i: i[sortBy])
 
         return base
 
