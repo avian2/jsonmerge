@@ -11,7 +11,7 @@ setup(name='jsonmerge',
     author='Tomaz Solc',
     author_email='tomaz.solc@tablix.org',
     packages = [ 'jsonmerge' ],
-    install_requires = [ 'jsonschema' ],
+    install_requires = [ 'jsonschema>2.4.0' ],
     test_suite = 'tests',
     classifiers = [
         "License :: OSI Approved :: MIT License",
