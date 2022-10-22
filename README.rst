@@ -456,7 +456,7 @@ pull request:
 License
 -------
 
-Copyright 2021, Tomaz Solc <tomaz.solc@tablix.org>
+Copyright 2022, Tomaz Solc <tomaz.solc@tablix.org>
 
 The MIT License (MIT)
 
