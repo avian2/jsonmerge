@@ -162,13 +162,33 @@ class ArrayStrategy(Strategy):
 
         return self._merge(walk, base, head, schema, **kwargs)
 
+    def default_key(self):
+        # This object always sorts after other items
+        class UnknownKey:
+            def __lt__(self, other):
+                return False
+
+            def __gt__(self, other):
+                if isinstance(other, UnknownKey):
+                    return False
+                else:
+                    return True
+
+        return UnknownKey()
+
     def sort_array(self, walk, base, sortByRef):
         assert walk.is_type(base, "array")
 
         if sortByRef is None:
             return
 
-        base.sort(key=lambda item: self._resolve_ref(walk, item, sortByRef))
+        def key(item):
+            try:
+                return self._resolve_ref(walk, item, sortByRef)
+            except jsonschema.RefResolutionError:
+                return self.default_key()
+
+        base.sort(key=key)
 
 class Append(ArrayStrategy):
     def _merge(self, walk, base, head, schema, sortByRef=None, **kwargs):
