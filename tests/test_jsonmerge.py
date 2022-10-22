@@ -206,6 +206,18 @@ class TestMerge(unittest.TestCase):
         
         self.assertEqual(base, [{"name": "a"}, {"name": "b"}])
 
+    def test_append_with_sort_reversed(self):
+        schema = {'mergeStrategy': 'append',
+                  'mergeOptions':
+                  { 'sortByRef': '/',
+                    'sortReverse': True }}
+
+        base = ['a', 'c']
+        head = ['b']
+        base = jsonmerge.merge(base, head, schema)
+
+        self.assertEqual(base, ['c', 'b', 'a'])
+
     def test_append_with_sort_invalid_ref(self):
         schema = {'mergeStrategy': 'append',
                   'mergeOptions': { 'sortByRef': 'name'}}

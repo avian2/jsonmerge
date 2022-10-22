@@ -176,7 +176,7 @@ class ArrayStrategy(Strategy):
 
         return UnknownKey()
 
-    def sort_array(self, walk, base, sortByRef):
+    def sort_array(self, walk, base, sortByRef, sortReverse):
         assert walk.is_type(base, "array")
 
         if sortByRef is None:
@@ -188,13 +188,13 @@ class ArrayStrategy(Strategy):
             except jsonschema.RefResolutionError:
                 return self.default_key()
 
-        base.sort(key=key)
+        base.sort(key=key, reverse=bool(sortReverse))
 
 class Append(ArrayStrategy):
-    def _merge(self, walk, base, head, schema, sortByRef=None, **kwargs):
+    def _merge(self, walk, base, head, schema, sortByRef=None, sortReverse=None, **kwargs):
         base.val += head.val
 
-        self.sort_array(walk, base, sortByRef)
+        self.sort_array(walk, base, sortByRef, sortReverse)
 
         return base
 
@@ -218,7 +218,7 @@ class ArrayMergeById(ArrayStrategy):
 
             yield i, key, item
 
-    def _merge(self, walk, base, head, schema, idRef="id", ignoreId=None, sortByRef=None, **kwargs):
+    def _merge(self, walk, base, head, schema, idRef="id", ignoreId=None, sortByRef=None, sortReverse=None, **kwargs):
         subschema = schema.get('items')
 
         if walk.is_type(subschema, "array"):
@@ -255,7 +255,7 @@ class ArrayMergeById(ArrayStrategy):
                 j = matching_j[1]
                 raise BaseInstanceError("Id '%s' was not unique in base" % (base_key,), base[j])
 
-        self.sort_array(walk, base, sortByRef)
+        self.sort_array(walk, base, sortByRef, sortReverse)
 
         return base
 
