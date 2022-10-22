@@ -401,7 +401,7 @@ similar to the XML External Entity (XXE) attack.
 Requirements
 ------------
 
-*jsonmerge* supports Python 2 (2.7) and Python 3 (3.2 and newer).
+*jsonmerge* supports Python 2 (2.7) and Python 3 (3.5 and newer).
 
 You need *jsonschema* (https://pypi.python.org/pypi/jsonschema) module
 installed.
@@ -462,7 +462,7 @@ pull request:
 License
 -------
 
-Copyright 2020, Tomaz Solc <tomaz.solc@tablix.org>
+Copyright 2022, Tomaz Solc <tomaz.solc@tablix.org>
 
 The MIT License (MIT)
 

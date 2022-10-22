@@ -12,11 +12,7 @@ class LocalRefResolver(RefResolver):
     #    external reference.
 
     def __init__(self, *args, **kwargs):
-        try:
-            kwargs["remote_cache"] = self.resolve_from_url
-        except AttributeError:
-            # jsonschema<=2.4.0
-            pass
+        kwargs["remote_cache"] = self.resolve_from_url
         super(LocalRefResolver, self).__init__(*args, **kwargs)
 
     def is_remote_ref(self, ref):

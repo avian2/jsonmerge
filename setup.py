@@ -4,14 +4,14 @@
 from setuptools import setup
 
 setup(name='jsonmerge',
-    version='1.7.0',
+    version='1.8.0',
     description='Merge a series of JSON documents.',
     license='MIT',
     long_description=open("README.rst").read(),
     author='Tomaz Solc',
     author_email='tomaz.solc@tablix.org',
     packages = [ 'jsonmerge' ],
-    install_requires = [ 'jsonschema' ],
+    install_requires = [ 'jsonschema>2.4.0' ],
     test_suite = 'tests',
     classifiers = [
         "License :: OSI Approved :: MIT License",
