@@ -162,12 +162,19 @@ class ArrayStrategy(Strategy):
 
         return self._merge(walk, base, head, schema, **kwargs)
 
+    def sort_array(self, walk, base, sortByRef):
+        assert walk.is_type(base, "array")
+
+        if sortByRef is None:
+            return
+
+        base.sort(key=lambda item: self._resolve_ref(walk, item, sortByRef))
+
 class Append(ArrayStrategy):
     def _merge(self, walk, base, head, schema, sortBy=None, **kwargs):
         base.val += head.val
 
-        if sortBy != None:
-            base.val.sort(key = lambda i: i[sortBy])
+        self.sort_array(walk, base, sortBy)
 
         return base
 
@@ -228,8 +235,7 @@ class ArrayMergeById(ArrayStrategy):
                 j = matching_j[1]
                 raise BaseInstanceError("Id '%s' was not unique in base" % (base_key,), base[j])
 
-        if sortBy != None:
-            base.val.sort(key = lambda i: i[sortBy])
+        self.sort_array(walk, base, sortBy)
 
         return base
 
