@@ -206,15 +206,6 @@ class TestMerge(unittest.TestCase):
         
         self.assertEqual(base, [{"name": "a"}, {"name": "b"}])
 
-    def test_append_and_sort_no_sortBy_option_defined(self):
-        schema = {'mergeStrategy': 'append'}
-
-        base = None
-        head = [{"name": "b"}, {"name": "a"}]
-        base = jsonmerge.merge(base, head , schema)
-        
-        self.assertEqual(base, [{"name": "b"}, {"name": "a"}])
-
     def test_append_type_error(self):
 
         schema = {'mergeStrategy': 'append'}
