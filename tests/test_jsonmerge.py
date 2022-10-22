@@ -1970,8 +1970,7 @@ class TestGetSchema(unittest.TestCase):
         schema = {'mergeStrategy': 'version'}
 
         meta_schema = {
-            'id': 'http://example.com/schema_1.json',
-            '$ref': 'schema_2.json#/definitions/meta'
+            '$ref': 'http://example.com/schema_2.json#/definitions/meta'
         }
 
         schema_2 = {
