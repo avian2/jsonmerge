@@ -49,6 +49,14 @@ class Strategy(object):
         """
         raise NotImplemented
 
+    def _resolve_ref(self, walk, item, ref):
+        if walk.is_type(JSONValue(ref), 'array'):
+            resolved = [ walk.resolver.resolve_fragment(item.val, i) for i in ref ]
+        else:
+            resolved = walk.resolver.resolve_fragment(item.val, ref)
+
+        return resolved
+
 class Overwrite(Strategy):
     def merge(self, walk, base, head, schema, **kwargs):
         return head
@@ -139,8 +147,8 @@ class Version(Strategy):
 
         return JSONValue(rv, schema.ref)
 
-class Append(Strategy):
-    def merge(self, walk, base, head, schema, sortBy=None, **kwargs):
+class ArrayStrategy(Strategy):
+    def merge(self, walk, base, head, schema, **kwargs):
         if not walk.is_type(head, "array"):
             raise HeadInstanceError("Head is not an array", head)
 
@@ -152,9 +160,15 @@ class Append(Strategy):
 
             base = JSONValue(list(base.val), base.ref)
 
+        return self._merge(walk, base, head, schema, **kwargs)
+
+class Append(ArrayStrategy):
+    def _merge(self, walk, base, head, schema, sortBy=None, **kwargs):
         base.val += head.val
+
         if sortBy != None:
             base.val.sort(key = lambda i: i[sortBy])
+
         return base
 
     def get_schema(self, walk, schema, **kwargs):
@@ -163,16 +177,10 @@ class Append(Strategy):
 
         return schema
 
-
-class ArrayMergeById(Strategy):
+class ArrayMergeById(ArrayStrategy):
 
     def get_key(self, walk, item, idRef):
-        if walk.is_type(JSONValue(idRef), 'array'):
-            key = [ walk.resolver.resolve_fragment(item.val, i) for i in idRef ]
-        else:
-            key = walk.resolver.resolve_fragment(item.val, idRef)
-
-        return key
+        return self._resolve_ref(walk, item, idRef)
 
     def iter_index_key_item(self, walk, jv, idRef):
         for i, item in enumerate(jv):
@@ -183,17 +191,7 @@ class ArrayMergeById(Strategy):
 
             yield i, key, item
 
-    def merge(self, walk, base, head, schema, idRef="id", ignoreId=None, sortBy=None, **kwargs):
-        if not walk.is_type(head, "array"):
-            raise HeadInstanceError("Head is not an array", head)  # nopep8
-
-        if base.is_undef():
-            base = JSONValue([], base.ref)
-        else:
-            if not walk.is_type(base, "array"):
-                raise BaseInstanceError("Base is not an array", base)  # nopep8
-            base = JSONValue(list(base.val), base.ref)
-
+    def _merge(self, walk, base, head, schema, idRef="id", ignoreId=None, sortBy=None, **kwargs):
         subschema = schema.get('items')
 
         if walk.is_type(subschema, "array"):
