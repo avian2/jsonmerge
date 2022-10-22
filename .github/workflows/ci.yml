@@ -14,11 +14,11 @@ jobs:
       matrix:
         python-version:
           - name: 3.7
-            toxenv: begin,py37-jsonschemalatest,end
+            toxenv: py37-jsonschemalatest
           - name: 3.8
-            toxenv: begin,py38-jsonschemalatest,end
+            toxenv: py38-jsonschemalatest
           - name: 3.9
-            toxenv: begin,py39-jsonschemalatest,end
+            toxenv: py39-jsonschemalatest
 
     steps:
     - uses: actions/checkout@v2
