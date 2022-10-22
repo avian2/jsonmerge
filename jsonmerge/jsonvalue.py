@@ -64,3 +64,10 @@ class JSONValue(object):
 
         for i, v in enumerate(self.val):
             yield self._subval(i, val=v)
+
+    def sort(self, *args, **kwargs):
+        assert isinstance(self.val, list)
+
+        i = list(self)
+        i.sort(*args, **kwargs)
+        self.val = [ j.val for j in i ]
