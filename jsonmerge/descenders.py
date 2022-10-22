@@ -77,7 +77,13 @@ class OneOf(Descender):
             if v.is_undef():
                 return True
             else:
-                return not list(walk.merger.validator.iter_errors(v.val, schema))
+                validator = walk.merger.validator
+                if hasattr(validator, 'evolve'):
+                    errors = validator.evolve(schema=schema).iter_errors(v.val)
+                else:
+                    # jsonschema<4.0.0
+                    errors = validator.iter_errors(v.val, schema)
+                return not list(errors)
 
         for i, subschema in enumerate(one_of.val):
             base_valid = is_valid(base, subschema)
