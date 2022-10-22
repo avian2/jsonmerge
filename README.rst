@@ -229,8 +229,10 @@ discard
 append
   Append arrays. Works only with arrays.
 
-  You can specify an optional *sortBy* parameter to indicate the key that 
-  should be used to alphabetically sort a complex structure.
+  You can specify a *sortByRef* merge option to indicate the key that will
+  be used to sort the items in the array. This option can be an arbitrary
+  *JSON pointer*. When resolving the pointer the root is placed at the
+  root of the array item.
 
 arrayMergeById
   Merge arrays, identifying items to be merged by an ID field. Resulting
@@ -259,8 +261,9 @@ arrayMergeById
   and if *ignoreId* option is also defined, *ignoreId* must be an array as
   well.
 
-  You can specify an optional *sortBy* parameter to indicate the key that 
-  should be used to alphabetically sort a complex structure.
+  You can specify a *sortByRef* merge option to indicate the key that will
+  be used to sort the items in the array. This option can be an arbitrary
+  *JSON pointer*. The pointer is resolved in the same way as *idRef*.
 
 arrayMergeByIndex
   Merge array items by their index in the array. Similarly to

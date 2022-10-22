@@ -171,10 +171,10 @@ class ArrayStrategy(Strategy):
         base.sort(key=lambda item: self._resolve_ref(walk, item, sortByRef))
 
 class Append(ArrayStrategy):
-    def _merge(self, walk, base, head, schema, sortBy=None, **kwargs):
+    def _merge(self, walk, base, head, schema, sortByRef=None, **kwargs):
         base.val += head.val
 
-        self.sort_array(walk, base, sortBy)
+        self.sort_array(walk, base, sortByRef)
 
         return base
 
@@ -198,7 +198,7 @@ class ArrayMergeById(ArrayStrategy):
 
             yield i, key, item
 
-    def _merge(self, walk, base, head, schema, idRef="id", ignoreId=None, sortBy=None, **kwargs):
+    def _merge(self, walk, base, head, schema, idRef="id", ignoreId=None, sortByRef=None, **kwargs):
         subschema = schema.get('items')
 
         if walk.is_type(subschema, "array"):
@@ -235,7 +235,7 @@ class ArrayMergeById(ArrayStrategy):
                 j = matching_j[1]
                 raise BaseInstanceError("Id '%s' was not unique in base" % (base_key,), base[j])
 
-        self.sort_array(walk, base, sortBy)
+        self.sort_array(walk, base, sortByRef)
 
         return base
 

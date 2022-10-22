@@ -198,7 +198,7 @@ class TestMerge(unittest.TestCase):
     def test_append_with_sort(self):
         schema = {'mergeStrategy': 'append', 
                   'mergeOptions': 
-                  { 'sortBy': 'name'}}
+                  { 'sortByRef': 'name'}}
 
         base = None
         head = [{"name": "b"}, {"name": "a"}]
@@ -2348,7 +2348,7 @@ class TestGetSchema(unittest.TestCase):
                     "type": "array",
                     "mergeStrategy": "arrayMergeById",
                     'mergeOptions': 
-                        { 'sortBy': 'id'},
+                        { 'sortByRef': 'id'},
                     "items": {
                         "properties": {
                             "id": {"type": "string"},
