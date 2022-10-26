@@ -96,3 +96,17 @@ class TestJSONValue(unittest.TestCase):
         v.append(JSONValue(undef=True))
 
         self.assertEqual([], v.val)
+
+    def test_sort(self):
+        v = JSONValue(['b', 'a'])
+
+        def f(item):
+            self.assertIn(item.val, ['a', 'b'])
+            self.assertIn(item.ref, ['#/0', '#/1'])
+
+            return item.val
+
+        v.sort(key=f)
+
+        self.assertEqual(v.val, ['a', 'b'])
+        self.assertEqual(v.ref, '#')

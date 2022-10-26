@@ -49,6 +49,14 @@ class Strategy(object):
         """
         raise NotImplemented
 
+    def _resolve_ref(self, walk, item, ref):
+        if walk.is_type(JSONValue(ref), 'array'):
+            resolved = [ walk.resolver.resolve_fragment(item.val, i) for i in ref ]
+        else:
+            resolved = walk.resolver.resolve_fragment(item.val, ref)
+
+        return resolved
+
 class Overwrite(Strategy):
     def merge(self, walk, base, head, schema, **kwargs):
         return head
@@ -139,7 +147,7 @@ class Version(Strategy):
 
         return JSONValue(rv, schema.ref)
 
-class Append(Strategy):
+class ArrayStrategy(Strategy):
     def merge(self, walk, base, head, schema, **kwargs):
         if not walk.is_type(head, "array"):
             raise HeadInstanceError("Head is not an array", head)
@@ -152,7 +160,42 @@ class Append(Strategy):
 
             base = JSONValue(list(base.val), base.ref)
 
+        return self._merge(walk, base, head, schema, **kwargs)
+
+    def default_key(self):
+        # This object always sorts after other items
+        class UnknownKey:
+            def __lt__(self, other):
+                return False
+
+            def __gt__(self, other):
+                if isinstance(other, UnknownKey):
+                    return False
+                else:
+                    return True
+
+        return UnknownKey()
+
+    def sort_array(self, walk, base, sortByRef, sortReverse):
+        assert walk.is_type(base, "array")
+
+        if sortByRef is None:
+            return
+
+        def key(item):
+            try:
+                return self._resolve_ref(walk, item, sortByRef)
+            except jsonschema.RefResolutionError:
+                return self.default_key()
+
+        base.sort(key=key, reverse=bool(sortReverse))
+
+class Append(ArrayStrategy):
+    def _merge(self, walk, base, head, schema, sortByRef=None, sortReverse=None, **kwargs):
         base.val += head.val
+
+        self.sort_array(walk, base, sortByRef, sortReverse)
+
         return base
 
     def get_schema(self, walk, schema, **kwargs):
@@ -161,16 +204,10 @@ class Append(Strategy):
 
         return schema
 
-
-class ArrayMergeById(Strategy):
+class ArrayMergeById(ArrayStrategy):
 
     def get_key(self, walk, item, idRef):
-        if walk.is_type(JSONValue(idRef), 'array'):
-            key = [ walk.resolver.resolve_fragment(item.val, i) for i in idRef ]
-        else:
-            key = walk.resolver.resolve_fragment(item.val, idRef)
-
-        return key
+        return self._resolve_ref(walk, item, idRef)
 
     def iter_index_key_item(self, walk, jv, idRef):
         for i, item in enumerate(jv):
@@ -181,17 +218,7 @@ class ArrayMergeById(Strategy):
 
             yield i, key, item
 
-    def merge(self, walk, base, head, schema, idRef="id", ignoreId=None, **kwargs):
-        if not walk.is_type(head, "array"):
-            raise HeadInstanceError("Head is not an array", head)  # nopep8
-
-        if base.is_undef():
-            base = JSONValue([], base.ref)
-        else:
-            if not walk.is_type(base, "array"):
-                raise BaseInstanceError("Base is not an array", base)  # nopep8
-            base = JSONValue(list(base.val), base.ref)
-
+    def _merge(self, walk, base, head, schema, idRef="id", ignoreId=None, sortByRef=None, sortReverse=None, **kwargs):
         subschema = schema.get('items')
 
         if walk.is_type(subschema, "array"):
@@ -227,6 +254,8 @@ class ArrayMergeById(Strategy):
             else:
                 j = matching_j[1]
                 raise BaseInstanceError("Id '%s' was not unique in base" % (base_key,), base[j])
+
+        self.sort_array(walk, base, sortByRef, sortReverse)
 
         return base
 

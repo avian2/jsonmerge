@@ -195,6 +195,55 @@ class TestMerge(unittest.TestCase):
 
         self.assertEqual(base, ["a", "b"])
 
+    def test_append_with_sort(self):
+        schema = {'mergeStrategy': 'append', 
+                  'mergeOptions': 
+                  { 'sortByRef': 'name'}}
+
+        base = None
+        head = [{"name": "b"}, {"name": "a"}]
+        base = jsonmerge.merge(base, head , schema)
+        
+        self.assertEqual(base, [{"name": "a"}, {"name": "b"}])
+
+    def test_append_with_sort_reversed(self):
+        schema = {'mergeStrategy': 'append',
+                  'mergeOptions':
+                  { 'sortByRef': '/',
+                    'sortReverse': True }}
+
+        base = ['a', 'c']
+        head = ['b']
+        base = jsonmerge.merge(base, head, schema)
+
+        self.assertEqual(base, ['c', 'b', 'a'])
+
+    def test_append_with_sort_invalid_ref(self):
+        schema = {'mergeStrategy': 'append',
+                  'mergeOptions': { 'sortByRef': 'name'}}
+
+        base = [
+                {"item": "a", "name": "a"},
+                {"item": "c", "name": "c"},
+        ]
+
+        head = [
+                {"item": "d"},
+                {"item": "b", "name": "b"},
+                {"item": "f"},
+        ]
+
+        base = jsonmerge.merge(base, head, schema)
+
+        self.assertEqual(base, [
+                {"item": "a", "name": "a"},
+                {"item": "b", "name": "b"},
+                {"item": "c", "name": "c"},
+                {"item": "d"},
+                {"item": "f"},
+        ]
+        )
+
     def test_append_type_error(self):
 
         schema = {'mergeStrategy': 'append'}
@@ -2329,6 +2378,55 @@ class TestGetSchema(unittest.TestCase):
         schema2 = merger.get_schema()
 
         self.assertEqual(schema2, expected)
+
+    def test_merge_by_id_with_sort(self):
+        schema = {
+            "properties": {
+                "awards": {
+                    "type": "array",
+                    "mergeStrategy": "arrayMergeById",
+                    'mergeOptions': 
+                        { 'sortByRef': 'id'},
+                    "items": {
+                        "properties": {
+                            "id": {"type": "string"},
+                            "field": {"type": "number"},
+                        }
+                    }
+                }
+            }
+        }
+
+        a = {
+            "awards": [
+                {"id": "B", "field": 3},
+                {"id": "A", "field": 2}
+            ]
+        }
+
+        b = {
+            "awards": [
+                {"id": "C", "field": 4},
+                {"id": "B", "field": 3}
+            ]
+        }
+
+        expected = {
+            "awards": [
+                {"id": "A", "field": 2},
+                {"id": "B", "field": 3},
+                {"id": "C", "field": 4}
+            ]
+        }
+
+        merger = jsonmerge.Merger(schema)
+
+        base = None
+        base = merger.merge(base, a)
+        base = merger.merge(base, b)
+
+        self.assertEqual(base, expected)
+
 
     def test_merge_append_additional(self):
 
