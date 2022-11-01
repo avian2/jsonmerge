@@ -274,6 +274,20 @@ class TestMerge(unittest.TestCase):
 
         self.assertEqual(base, {'a': "a", 'b': "b"})
 
+    def test_merge_default_type_mismatch(self):
+
+        schema = {}
+
+        base = { "foo": "" }
+        head = { "foo": {} }
+
+        # default_strategy() looks at the type in head to select the strategy. So here
+        # it selects objectMerge, but base is a string. Hence a BaseInstanceError is
+        # raised.
+
+        with self.assertRaises(BaseInstanceError) as cm:
+            result = jsonmerge.merge(base, head, schema)
+
     def test_merge_empty_schema(self):
 
         schema = {}

@@ -101,6 +101,12 @@ class WalkInstance(Walk):
 
     def default_strategy(self, schema, base, head, **kwargs):
         log.debug("       : %sdefault strategy" % (self._indent(),))
+
+        # A different (better?) behavior would be to select default strategy
+        # based on head and base like this (see test_merge_default_type_mismatch)
+        #
+        #if self.is_type(head, "object") and (base.is_undef() or self.is_type(base, "object")):
+
         if self.is_type(head, "object"):
             return "objectMerge"
         else:
