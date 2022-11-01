@@ -1,6 +1,9 @@
 # vim:ts=4 sw=4 expandtab softtabstop=4
 from jsonmerge.exceptions import HeadInstanceError, SchemaError
 from jsonmerge.jsonvalue import JSONValue
+import logging
+
+log = logging.getLogger(name=__name__)
 
 class Descender(object):
     """Base class for descender classes.
@@ -85,9 +88,13 @@ class OneOf(Descender):
                     errors = validator.iter_errors(v.val, schema)
                 return not list(errors)
 
-        for i, subschema in enumerate(one_of.val):
-            base_valid = is_valid(base, subschema)
-            head_valid = is_valid(head, subschema)
+        for i, subschema in enumerate(one_of):
+            log.debug("oneOf: validating %s" % (subschema.ref,))
+
+            base_valid = is_valid(base, subschema.val)
+            head_valid = is_valid(head, subschema.val)
+
+            log.debug("oneOf:   base valid: %s, head valid: %s" % (base_valid, head_valid))
 
             if base_valid and head_valid:
                 valid.append(i)
