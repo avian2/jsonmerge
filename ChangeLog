@@ -1,3 +1,12 @@
+2022-11-02	jsonmerge	1.9.0
+
+	* Add sortByRef and sortReverse options for the append and
+	  arrayMergeById strategies.
+	* Fix failing tests with jsonschema>=4.15.0.
+	* Fix warning about iter_errors use that was deprecated around
+	  jsonschema 4.10.1.
+	* Drop support for jsonschema<=2.4.0.
+
 2021-01-23	jsonmerge	1.8.0
 
 	* Allow "idRef" option for arrayMergeById strategy to be an array of
