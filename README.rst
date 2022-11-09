@@ -451,8 +451,8 @@ includes:
 * A *minimal*, but complete, code example that reproduces the problem,
   including any JSON data required to run it. It should be something I can
   copy-paste into a .py file and run.
-* Relevant version of *jsonmerge* - either release number on PyPi or git
-  commit hash.
+* Relevant versions of *jsonmerge* and *jsonschema* - either release number
+  on PyPi or git commit hash.
 * Copy of the traceback, in case you are reporting an unhandled exception.
 * Example of what you think should be the correct output, in case you are
   reporting wrong result of a merge or schema generation.
