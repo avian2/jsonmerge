@@ -436,6 +436,45 @@ distribution::
     tox
 
 
+Troubleshooting
+---------------
+
+The most common problem with *jsonmerge* is getting unexpected results from
+a merge. Finding the exact reason why *jsonmerge* produced a particular
+result can be complicated, especially when head and base structures are
+very large. Most often the cause is a problem with either the schema or
+head and base that is passed to *jsonmerge*, not a bug in *jsonmerge*
+itself.
+
+Here are some tips for debugging issues with *jsonmerge*:
+
+* Try to minimize the problem. Prune branches of head and base structures
+  that are not relevant to your issue and re-run the merge. Often just
+  getting a clearer view of the relevant parts exposes the problem.
+
+* *jsonmerge* uses the standard `logging`_ Python module to print out what
+  it is doing during the merge. You need to increase verbosity to DEBUG
+  level to see the messages.
+
+* A very common mistake is misunderstanding which part of the schema
+  applies to which part of the head and base structures. Debug logs
+  mentioned in the previous point can be very helpful with that, since they
+  show how merge descends into hierarchies of all involved structures and
+  when a default strategy is used.
+
+* With large head and base it's common that parts of them are not what you
+  think they are. Validate your inputs against your schema using the
+  *jsonschema* library before passing them onto *jsonmerge*. Make sure your
+  schema is restrictive enough.
+
+* Pay special attention to parts of the schema that use *oneOf*, *anyOf*,
+  *allOf* keywords. These can sometimes validate in unexpected ways.
+
+* Another problem point can be *$ref* pointers if they can cause recursion.
+  Using recursive schemas with *jsonmerge* is fine, but they can often
+  product unexpected results.
+
+
 Reporting bugs and contributing code
 ------------------------------------
 
@@ -445,14 +484,21 @@ that I maintain this project in my free time. Hence I ask you to follow
 this simple etiquette to minimize the amount of effort needed to include
 your contribution.
 
-Please use `GitHub issues`_ to report bugs. Make sure that your report
-includes:
+Please use `GitHub issues`_ to report bugs.
+
+Before reporting the bug, please make sure that:
+
+* You've read this entire README file.
+* You've read the Troubleshooting section of the README file.
+* You've looked at existing issues if the bug has already been reported.
+
+Make sure that your report includes:
 
 * A *minimal*, but complete, code example that reproduces the problem,
   including any JSON data required to run it. It should be something I can
   copy-paste into a .py file and run.
 * Relevant versions of *jsonmerge* and *jsonschema* - either release number
-  on PyPi or git commit hash.
+  on PyPi or the git commit hash.
 * Copy of the traceback, in case you are reporting an unhandled exception.
 * Example of what you think should be the correct output, in case you are
   reporting wrong result of a merge or schema generation.
@@ -494,6 +540,7 @@ THE SOFTWARE.
 .. _Tox: https://tox.readthedocs.io/en/latest/
 .. _GitHub issues: https://github.com/avian2/jsonmerge/issues
 .. _GitHub pull requests: https://github.com/avian2/jsonmerge/pulls
+.. _logging: https://docs.python.org/3/library/logging.html
 
 ..
     vim: tw=75 ts=4 sw=4 expandtab softtabstop=4
