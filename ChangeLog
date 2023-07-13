@@ -1,3 +1,7 @@
+2023-07-13	jsonmerge	1.9.1
+	* Require jsonschema 4.17.3 or earlier since some tests currently fail
+	  with 4.18.0 and later releases.
+
 2022-11-02	jsonmerge	1.9.0
 
 	* Add sortByRef and sortReverse options for the append and
