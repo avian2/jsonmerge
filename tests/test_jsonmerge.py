@@ -1,6 +1,7 @@
 # vim:ts=4 sw=4 expandtab softtabstop=4
 import unittest
 import warnings
+import sys
 
 from collections import OrderedDict
 import jsonmerge
@@ -91,15 +92,13 @@ class TestMerge(unittest.TestCase):
         with self.assertRaises(SchemaError) as cm:
             merger.merge(None, "a", merge_options={'version': {'metadata': 'foo'}})
 
+    @unittest.skipIf(sys.version_info < (3,2), "not supported on Python <3.2")
     def test_version_meta_deprecated(self):
         schema = {'mergeStrategy': 'version'}
         merger = jsonmerge.Merger(schema)
 
-        with warnings.catch_warnings(record=True) as w:
+        with self.assertWarnsRegex(DeprecationWarning, r"'meta' argument is deprecated"):
             base = merger.merge(None, 'a', meta={'foo': 'bar'})
-
-            self.assertEqual(len(w), 1)
-            self.assertTrue(issubclass(w[0].category, DeprecationWarning))
 
     def test_version_ignoredups_false(self):
 
@@ -1804,15 +1803,13 @@ class TestGetSchema(unittest.TestCase):
                              }
                          })
 
+    @unittest.skipIf(sys.version_info < (3,2), "not supported on Python <3.2")
     def test_version_meta_deprecated(self):
         schema = {'mergeStrategy': 'version'}
         merger = jsonmerge.Merger(schema)
 
-        with warnings.catch_warnings(record=True) as w:
+        with self.assertWarnsRegex(DeprecationWarning, r"'meta' argument is deprecated"):
             merger.get_schema(meta={'foo': 'bar'})
-
-            self.assertEqual(len(w), 1)
-            self.assertTrue(issubclass(w[0].category, DeprecationWarning))
 
     def test_version_meta_in_schema(self):
         schema = {
