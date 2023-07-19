@@ -1,3 +1,6 @@
+2023-07-19	jsonmerge	1.9.2
+	* Fix failing tests with jsonschema>=4.18.0.
+
 2023-07-13	jsonmerge	1.9.1
 	* Require jsonschema 4.17.3 or earlier since some tests currently fail
 	  with 4.18.0 and later releases.
