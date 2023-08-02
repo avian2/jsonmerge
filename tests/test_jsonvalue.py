@@ -42,7 +42,7 @@ class TestJSONValue(unittest.TestCase):
         v = JSONValue({'a': 'b'})
 
         va = v.get('a')
-        self.assertTrue('b', va.val)
+        self.assertEqual('b', va.val)
         self.assertEqual('#/a', va.ref)
 
     def test_undef(self):
