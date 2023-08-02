@@ -45,6 +45,14 @@ class TestJSONValue(unittest.TestCase):
         self.assertEqual('b', va.val)
         self.assertEqual('#/a', va.ref)
 
+    def test_get_empty_string(self):
+        v = JSONValue({'': 0})
+
+        va = v.get('')
+
+        # https://datatracker.ietf.org/doc/html/rfc6901#section-5
+        self.assertEqual('#/', va.ref)
+
     def test_undef(self):
         v = JSONValue(undef=True)
         self.assertTrue(v.is_undef())
