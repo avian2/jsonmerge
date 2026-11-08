@@ -40,6 +40,11 @@ returns fields that appear in either *base* or *head* document. For other
 JSON types, it simply replaces the older value. These principles are also
 applied in case of multiple nested JSON objects.
 
+Object property names may be empty strings. JSON pointers in schema references
+preserve empty components: ``#/`` selects the empty-string property, while
+``#`` selects the whole document. The historical ``'/'`` alias for the whole
+array item in ``idRef`` and ``sortByRef`` merge options is also supported.
+
 In a more realistic use case however, you might want to apply different
 *merge strategies* to different parts of the document. You can tell
 *jsonmerge* how to do that using a syntax based on `JSON schema`_.
