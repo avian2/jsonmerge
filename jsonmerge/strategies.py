@@ -50,10 +50,15 @@ class Strategy(object):
         raise NotImplemented
 
     def _resolve_ref(self, walk, item, ref):
+        def resolve(ref):
+            # Array options historically use '/' to refer to the whole item.
+            # Keep that alias separate from the empty-key JSON pointer '#/'.
+            return walk.resolver.resolve_fragment(item.val, '' if ref == '/' else ref)
+
         if walk.is_type(JSONValue(ref), 'array'):
-            resolved = [ walk.resolver.resolve_fragment(item.val, i) for i in ref ]
+            resolved = [ resolve(i) for i in ref ]
         else:
-            resolved = walk.resolver.resolve_fragment(item.val, ref)
+            resolved = resolve(ref)
 
         return resolved
 
