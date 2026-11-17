@@ -120,8 +120,9 @@ class Version(Strategy):
 
         if not ignoreDups or last_entry.is_undef() or last_entry['value'].val != head.val:
             base.val.append(self.add_metadata(head.val, metadata))
-            if limit is not None:
-                base.val = base.val[-limit:]
+
+        if limit is not None:
+            base.val = base.val[-limit:] if limit else []
 
         return base
 
