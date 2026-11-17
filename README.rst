@@ -301,7 +301,8 @@ version
   specify the schema for the object in the *metadata* option.
 
   You can limit the length of the list using the *limit* option in the
-  *mergeOptions* keyword.
+  *mergeOptions* keyword. A limit of zero retains no versions. The limit is
+  applied even when a duplicate value does not append a new version.
 
   By default, if a *head* document contains the same value as the *base*,
   document, no new version will be appended. You can change this by setting
